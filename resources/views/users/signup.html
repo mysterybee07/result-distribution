@@ -1,0 +1,120 @@
+{{template "layouts/top" .}}
+
+<div
+  class="untree_co-hero inner-page overlay"
+  style="background-image: url('images/tu.png')"
+>
+  <div class="container">
+    <div class="row align-items-center justify-content-center">
+      <div class="col-12">
+        <div class="row justify-content-center">
+          <div class="col-lg-6 text-center">
+            <h1
+              class="mb-4 heading text-white"
+              data-aos="fade-up"
+              data-aos-delay="100"
+            >
+              Register
+            </h1>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /.row -->
+  </div>
+  <!-- /.container -->
+</div>
+<!-- /.untree_co-hero -->
+
+<div class="untree_co-section">
+  <div class="container">
+    <div class="row mb-5 justify-content-center">
+      <div
+        class="col-lg-5 mx-auto order-1"
+        data-aos="fade-up"
+        data-aos-delay="200"
+      >
+        <form action="/register" method="post" class="form-box">
+        <caption>
+          Register Form
+        </caption>
+          <div class="row">
+             <div class="col-12 mb-3">
+              <select class="form-control" name="batch">
+                <option value="">Select Batch Year</option>
+                <script>
+                  const currentYear = new Date().getFullYear();
+                  for (let year = 2000; year <= currentYear; year++) {
+                    document.write(
+                      '<option value="' + year + '">' + year + "</option>"
+                    );
+                  }
+                </script>
+              </select>
+            </div>
+            <div class="col-12 mb-3">
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Symbol Number"
+                name="symbol"
+                required
+              />
+            </div>
+            <div class="col-12 mb-3">
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Registration Number"
+                name="registration"
+                required
+              />
+            </div>
+            <div class="col-12 mb-3">
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Full Name"
+                name="fullname"
+                required
+              />
+            </div>
+            <div class="col-12 mb-3">
+              <input
+                type="email"
+                class="form-control"
+                placeholder="Email"
+                name="email"
+                required
+              />
+            </div>
+            <div class="col-12 mb-3">
+              <input
+                type="password"
+                class="form-control"
+                placeholder="Password"
+                name="password"
+                required
+              />
+            </div>
+            <div class="col-12 mb-3">
+              <label class="control control--checkbox">
+                <span class="caption"
+                  >Accept our <a href="#">terms and conditions</a></span
+                >
+                <input type="checkbox" name="terms" required />
+                <div class="control__indicator"></div>
+              </label>
+            </div>
+            <div class="col-12">
+              <input type="submit" value="Register" class="btn btn-primary" />
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /.untree_co-section -->
+
+{{template "layouts/bottom" .}}

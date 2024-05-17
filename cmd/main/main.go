@@ -24,7 +24,7 @@ func main() {
 	log.Println("Starting the server on port " + port + "..........")
 
 	//Load templates
-	engine := html.New("./resources/views", ".gohtml")
+	engine := html.New("./resources/views", ".html")
 
 	app := fiber.New(fiber.Config{
 		Views: engine,
@@ -33,6 +33,7 @@ func main() {
 
 	app.Static("/", "./static")
 	routes.Home(app)
+	routes.Profile(app)
 	err := app.Listen(":" + port)
 	if err != nil {
 		log.Fatalf("Server failed to listen: %v", err)
