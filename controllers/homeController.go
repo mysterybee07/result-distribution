@@ -183,5 +183,5 @@ func LoginUser(c *fiber.Ctx) error {
 	// 	"message": "Successfully logged in",
 	// 	"user":    user,
 	// })
-	return c.Redirect("/profile/")
+	return c.Redirect("/profile")
 }
