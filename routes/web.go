@@ -12,6 +12,7 @@ func Home(app *fiber.App) {
 	app.Get("/login", controllers.Login)
 	app.Post("/login", controllers.LoginUser)
 	app.Get("/forgot-password", controllers.ForgotPassword)
+	// app.Get("/users/:id", controllers.GetUserById)
 
 }
 

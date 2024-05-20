@@ -194,3 +194,25 @@ func ForgotPassword(c *fiber.Ctx) error {
 	}
 	return nil
 }
+
+// func GetUsers(c *fiber.Ctx) error {
+// 	var users []models.User
+
+// 	initializers.DB.Find(&users)
+// 	return c.Status(200).JSON(users)
+// }
+
+// func GetUserById(c *fiber.Ctx) error {
+// 	id := c.Params("user_id")
+// 	var user models.User
+
+// 	result := initializers.DB.Find(&user, id)
+
+// 	if result.RowsAffected == 0 {
+// 		return c.SendStatus(404)
+// 	}
+// 	// return c.Status(200).JSON(&user)
+// 	return c.Render("users/forgot-password", fiber.Map{
+// 		"user": user,
+// 	})
+// }
