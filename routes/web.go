@@ -11,9 +11,14 @@ func Home(app *fiber.App) {
 	app.Post("/register", controllers.StoreRegister)
 	app.Get("/login", controllers.Login)
 	app.Post("/login", controllers.LoginUser)
+	app.Get("/forgot-password", controllers.ForgotPassword)
 
 }
 
 func Profile(app *fiber.App) {
 	app.Get("/profile/", controllers.Profile)
+}
+
+func Admin(app *fiber.App) {
+	app.Get("/dashboard", controllers.Index)
 }

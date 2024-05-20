@@ -185,3 +185,12 @@ func LoginUser(c *fiber.Ctx) error {
 	// })
 	return c.Redirect("/profile")
 }
+
+func ForgotPassword(c *fiber.Ctx) error {
+	err := c.Render("users/forgot-password", fiber.Map{})
+	if err != nil {
+		c.Status(fiber.StatusInternalServerError).SendString("Error rendering page")
+		return err
+	}
+	return nil
+}
