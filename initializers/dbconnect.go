@@ -27,6 +27,11 @@ func Connect() {
 	// Migration in database
 	if err := DB.AutoMigrate(
 		&models.User{},
+		&models.Batch{},
+		&models.Program{},
+		&models.Semester{},
+		&models.Subject{},
+		&models.Student{},
 	); err != nil {
 		log.Fatalf("Error migrating database to database")
 	}
