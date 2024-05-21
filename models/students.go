@@ -4,7 +4,7 @@ import "gorm.io/gorm"
 
 type Student struct {
 	gorm.Model
-	Symbol       string  `gorm:"not null" json:"symbol"`
+	SymbolNumber string  `gorm:"not null" json:"symbol_number"`
 	Registration string  `gorm:"not null" json:"registration"`
 	Fullname     string  `gorm:"not null" json:"fullname"`
 	BatchID      uint    `gorm:"not null" json:"batch_id"`

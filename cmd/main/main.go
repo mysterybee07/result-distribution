@@ -34,7 +34,10 @@ func main() {
 	app.Static("/", "./static")
 	routes.Home(app)
 	routes.Profile(app)
-	routes.Admin(app)
+	routes.Dashboard(app)
+	routes.Student(app)
+	routes.Batch(app)
+	routes.Program(app)
 	err := app.Listen(":" + port)
 	if err != nil {
 		log.Fatalf("Server failed to listen: %v", err)

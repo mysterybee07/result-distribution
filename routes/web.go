@@ -20,6 +20,22 @@ func Profile(app *fiber.App) {
 	app.Get("/profile/", controllers.Profile)
 }
 
-func Admin(app *fiber.App) {
+func Dashboard(app *fiber.App) {
 	app.Get("/dashboard", controllers.Index)
+}
+
+func Student(app *fiber.App) {
+	app.Get("/students/add", controllers.AddStudent)
+	app.Post("/students/add", controllers.StoreStudent)
+	app.Get("/students", controllers.GetStudents)
+}
+
+func Batch(app *fiber.App) {
+	app.Get("/batches/add", controllers.AddBatch)
+	app.Post("/batches/add", controllers.CreateBatch)
+}
+
+func Program(app *fiber.App) {
+	app.Get("/programs/add", controllers.AddProgram)
+	app.Post("/programs/add", controllers.StoreProgram)
 }
