@@ -39,3 +39,8 @@ func Program(app *fiber.App) {
 	app.Get("/programs/add", controllers.AddProgram)
 	app.Post("/programs/add", controllers.StoreProgram)
 }
+
+func Semester(app *fiber.App) {
+	app.Get("/semesters/add", controllers.AddSemester)
+	app.Post("/semesters/add", controllers.StoreSemester)
+}
