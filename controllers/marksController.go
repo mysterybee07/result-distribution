@@ -28,35 +28,53 @@ func CreateMarks(c *fiber.Ctx) error {
 
 	var input CreateMarkInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Cannot parse JSON"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Cannot parse JSON",
+		})
 	}
 
 	// Validate input using validator
 	if err := validate.Struct(input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	// Check if the program exists
 	var program models.Program
 	if err := initializers.DB.First(&program, input.ProgramID).Error; err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Program not found"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Program not found",
+		})
 	}
 
 	// Check if the semester exists
 	var semester models.Semester
 	if err := initializers.DB.First(&semester, input.SemesterID).Error; err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Semester not found"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Semester not found",
+		})
 	}
 
 	// Check if the subject exists for the given program and semester
 	var existingSubject models.Subject
 	if err := initializers.DB.Where("id = ? AND program_id = ? AND semester_id = ?", input.SubjectID, input.ProgramID, input.SemesterID).First(&existingSubject).Error; err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Subject not found for the given program and semester"})
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "Subject not found for the given program and semester",
+		})
 	}
 
 	// Create marks for each student
 	var marks []models.Mark
 	for _, markEntry := range input.Marks {
+		var existingMark models.Mark
+		err := initializers.DB.Where("batch_id = ? AND program_id = ? AND semester_id = ? AND subject_id = ? AND student_id = ?",
+			input.BatchID, input.ProgramID, input.SemesterID, input.SubjectID, markEntry.StudentID).First(&existingMark).Error
+		if err == nil {
+			return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+				"error": "Mark entry already exists for the student",
+			})
+		}
 		mark := models.Mark{
 			BatchID:        input.BatchID,
 			ProgramID:      input.ProgramID,
@@ -66,6 +84,11 @@ func CreateMarks(c *fiber.Ctx) error {
 			SemesterMarks:  markEntry.SemesterMarks,
 			AssistantMarks: markEntry.AssistantMarks,
 			PracticalMarks: markEntry.PracticalMarks,
+		}
+		if mark.SemesterMarks < 24 && mark.AssistantMarks < 8 && mark.PracticalMarks < 8 {
+			mark.Status = "failed"
+		} else {
+			mark.Status = "pass"
 		}
 		marks = append(marks, mark)
 	}
@@ -83,10 +106,15 @@ func CreateMarks(c *fiber.Ctx) error {
 			Preload("Subject").
 			Preload("Student").
 			First(&marks[i], marks[i].ID).Error; err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not preload associations"})
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Could not preload associations",
+			})
 		}
 	}
 
 	// Return success message
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "Marks created successfully", "marks": marks})
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"message": "Marks created successfully",
+		"marks":   marks,
+	})
 }
