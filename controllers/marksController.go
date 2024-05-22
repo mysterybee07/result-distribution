@@ -56,11 +56,11 @@ func CreateMarks(c *fiber.Ctx) error {
 		})
 	}
 
-	// Check if the subject exists for the given program and semester
-	var existingSubject models.Course
-	if err := initializers.DB.Where("id = ? AND program_id = ? AND semester_id = ?", input.CourseID, input.ProgramID, input.SemesterID).First(&existingSubject).Error; err != nil {
+	// Check if the Course exists for the given program and semester
+	var existingCourse models.Course
+	if err := initializers.DB.Where("id = ? AND program_id = ? AND semester_id = ?", input.CourseID, input.ProgramID, input.SemesterID).First(&existingCourse).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "Subject not found for the given program and semester",
+			"error": "Course not found for the given program and semester",
 		})
 	}
 
@@ -68,7 +68,7 @@ func CreateMarks(c *fiber.Ctx) error {
 	var marks []models.Mark
 	for _, markEntry := range input.Marks {
 		var existingMark models.Mark
-		err := initializers.DB.Where("batch_id = ? AND program_id = ? AND semester_id = ? AND subject_id = ? AND student_id = ?",
+		err := initializers.DB.Where("batch_id = ? AND program_id = ? AND semester_id = ? AND course_id = ? AND student_id = ?",
 			input.BatchID, input.ProgramID, input.SemesterID, input.CourseID, markEntry.StudentID).First(&existingMark).Error
 		if err == nil {
 			return c.Status(fiber.StatusConflict).JSON(fiber.Map{
