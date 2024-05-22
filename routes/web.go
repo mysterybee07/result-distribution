@@ -44,3 +44,8 @@ func Semester(app *fiber.App) {
 	app.Get("/semesters/add", controllers.AddSemester)
 	app.Post("/semesters/add", controllers.StoreSemester)
 }
+
+func Subject(app *fiber.App) {
+	app.Get("/subjects/add", controllers.AddSubject)
+	app.Post("/subjects/add", controllers.StoreSubject)
+}
