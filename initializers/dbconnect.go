@@ -32,6 +32,7 @@ func Connect() {
 		&models.Semester{},
 		&models.Subject{},
 		&models.Student{},
+		&models.Mark{},
 	); err != nil {
 		log.Fatalf("Error migrating database to database")
 	}

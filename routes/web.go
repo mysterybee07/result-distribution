@@ -49,3 +49,8 @@ func Subject(app *fiber.App) {
 	app.Get("/subjects/add", controllers.AddSubject)
 	app.Post("/subjects/add", controllers.StoreSubject)
 }
+
+func Mark(app *fiber.App) {
+	// app.Get("/marks/add", controllers.AddMark)
+	app.Post("/marks/add", controllers.CreateMarks)
+}

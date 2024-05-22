@@ -40,6 +40,7 @@ func main() {
 	routes.Program(app)
 	routes.Semester(app)
 	routes.Subject(app)
+	routes.Mark(app)
 	err := app.Listen(":" + port)
 	if err != nil {
 		log.Fatalf("Server failed to listen: %v", err)
