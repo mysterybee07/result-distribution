@@ -55,4 +55,5 @@ func Subject(app *fiber.App) {
 func Mark(app *fiber.App) {
 	// app.Get("/marks/add", controllers.AddMark)
 	app.Post("/marks/add", controllers.CreateMarks)
+	app.Put("/marks/edit/:id", controllers.UpdateMarks)
 }
