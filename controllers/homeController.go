@@ -37,6 +37,10 @@ func validateEmail(email string) bool {
 	regex := regexp.MustCompile(pattern)
 	return regex.MatchString(email)
 }
+
+// StoreRegister handles the registration of a new userpackage controllers
+
+// StoreRegister handles the registration of a new user
 func StoreRegister(c *fiber.Ctx) error {
 	var data models.User
 
@@ -49,12 +53,13 @@ func StoreRegister(c *fiber.Ctx) error {
 	}
 
 	// Validate fields
-	if data.Batch == 0 ||
+	if data.BatchID == 0 ||
+		data.ProgramID == 0 ||
 		data.Symbol == "" ||
 		data.Registration == "" ||
-		data.Fullname == "" ||
 		data.Email == "" ||
 		data.Password == "" {
+		log.Println("Missing required fields")
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "All fields are required",
 		})
@@ -62,6 +67,7 @@ func StoreRegister(c *fiber.Ctx) error {
 
 	// Check if the user password is less than 8 characters
 	if len(data.Password) < 8 {
+		log.Println("Password too short")
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Password must be at least 8 characters long",
 		})
@@ -69,6 +75,7 @@ func StoreRegister(c *fiber.Ctx) error {
 
 	// Validate email
 	if !validateEmail(data.Email) {
+		log.Println("Invalid email format")
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid email",
 		})
@@ -77,14 +84,40 @@ func StoreRegister(c *fiber.Ctx) error {
 	// Check if email already exists
 	var existingUser models.User
 	if err := initializers.DB.Where("email = ?", data.Email).First(&existingUser).Error; err == nil {
+		log.Println("Email already taken:", data.Email)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Email is already taken",
+		})
+	}
+
+	// Check if symbol and registration exist in the students table for the given batch and program
+	var student models.Student
+	if err := initializers.DB.Where("symbol_number = ? AND registration = ? AND batch_id = ? AND program_id = ?",
+		data.Symbol, data.Registration, data.BatchID, data.ProgramID).First(&student).Error; err != nil {
+		log.Println("Student record not found:", err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid symbol or registration for the specified batch and program",
+		})
+	}
+
+	// Check if symbol number and registration number are unique in users table
+	if err := initializers.DB.Where("symbol = ? AND batch_id = ? AND program_id = ?", data.Symbol, data.BatchID, data.ProgramID).First(&existingUser).Error; err == nil {
+		log.Println("Symbol Number already taken in users for the specified batch and program:", data.Symbol)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Symbol Number is already taken for the specified batch and program",
+		})
+	}
+	if err := initializers.DB.Where("registration = ? AND batch_id = ? AND program_id = ?", data.Registration, data.BatchID, data.ProgramID).First(&existingUser).Error; err == nil {
+		log.Println("Registration Number already taken in users for the specified batch and program:", data.Registration)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Registration Number is already taken for the specified batch and program",
 		})
 	}
 
 	// Hash password
 	hashedPassword, err := models.HashPassword(data.Password)
 	if err != nil {
+		log.Println("Failed to hash password:", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to hash password",
 		})
@@ -98,13 +131,14 @@ func StoreRegister(c *fiber.Ctx) error {
 			"error": "Failed to create user",
 		})
 	}
-	return c.Redirect("/login")
 
-	// return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-	// 	"user":    data,
-	// 	"message": "Account created successfully",
-	// })
+	// Return success message as JSON
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"user":    data,
+		"message": "Account created successfully",
+	})
 }
+
 func Login(c *fiber.Ctx) error {
 	err := c.Render("users/login", fiber.Map{})
 	if err != nil {
@@ -179,11 +213,11 @@ func LoginUser(c *fiber.Ctx) error {
 	}
 	c.Cookie(&cookie)
 
-	// return c.Status(fiber.StatusOK).JSON(fiber.Map{
-	// 	"message": "Successfully logged in",
-	// 	"user":    user,
-	// })
-	return c.Redirect("/profile")
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Successfully logged in",
+		"user":    user,
+	})
+	// return c.Redirect("/profile")
 }
 
 func ForgotPassword(c *fiber.Ctx) error {

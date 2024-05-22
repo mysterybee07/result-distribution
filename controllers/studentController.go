@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"log"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/mysterybee07/result-distribution-system/initializers"
 	"github.com/mysterybee07/result-distribution-system/models"
@@ -42,9 +44,16 @@ func StoreStudent(c *fiber.Ctx) error {
 	//check if symbol number and registration number already exists
 	var existingSymbol models.Student
 
-	if err := initializers.DB.Where("symbol=?", &student.SymbolNumber).First(&existingSymbol).Error; err == nil {
+	if err := initializers.DB.Where("symbol_number = ? AND batch_id = ? AND program_id = ?", student.SymbolNumber, student.BatchID, student.ProgramID).First(&existingSymbol).Error; err == nil {
+		log.Println("Symbol Number already taken in users for the specified batch and program:", student.SymbolNumber)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Student with this symbol number already exists",
+			"message": "Symbol Number is already taken for the specified batch and program",
+		})
+	}
+	if err := initializers.DB.Where("registration = ? AND batch_id = ? AND program_id = ?", student.Registration, student.BatchID, student.ProgramID).First(&existingSymbol).Error; err == nil {
+		log.Println("Registration Number already taken in users for the specified batch and program:", student.Registration)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Registration Number is already taken for the specified batch and program",
 		})
 	}
 

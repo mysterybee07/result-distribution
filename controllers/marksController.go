@@ -14,7 +14,7 @@ type CreateMarkInput struct {
 	BatchID    uint `json:"batch_id" validate:"required"`
 	ProgramID  uint `json:"program_id" validate:"required"`
 	SemesterID uint `json:"semester_id" validate:"required"`
-	SubjectID  uint `json:"subject_id" validate:"required"`
+	CourseID   uint `json:"course_id" validate:"required"`
 	Marks      []struct {
 		StudentID      uint `json:"student_id" validate:"required"`
 		SemesterMarks  int  `json:"semester_marks" validate:"required"`
@@ -57,8 +57,8 @@ func CreateMarks(c *fiber.Ctx) error {
 	}
 
 	// Check if the subject exists for the given program and semester
-	var existingSubject models.Subject
-	if err := initializers.DB.Where("id = ? AND program_id = ? AND semester_id = ?", input.SubjectID, input.ProgramID, input.SemesterID).First(&existingSubject).Error; err != nil {
+	var existingSubject models.Course
+	if err := initializers.DB.Where("id = ? AND program_id = ? AND semester_id = ?", input.CourseID, input.ProgramID, input.SemesterID).First(&existingSubject).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "Subject not found for the given program and semester",
 		})
@@ -69,7 +69,7 @@ func CreateMarks(c *fiber.Ctx) error {
 	for _, markEntry := range input.Marks {
 		var existingMark models.Mark
 		err := initializers.DB.Where("batch_id = ? AND program_id = ? AND semester_id = ? AND subject_id = ? AND student_id = ?",
-			input.BatchID, input.ProgramID, input.SemesterID, input.SubjectID, markEntry.StudentID).First(&existingMark).Error
+			input.BatchID, input.ProgramID, input.SemesterID, input.CourseID, markEntry.StudentID).First(&existingMark).Error
 		if err == nil {
 			return c.Status(fiber.StatusConflict).JSON(fiber.Map{
 				"error": "Mark entry already exists for the student",
@@ -79,7 +79,7 @@ func CreateMarks(c *fiber.Ctx) error {
 			BatchID:        input.BatchID,
 			ProgramID:      input.ProgramID,
 			SemesterID:     input.SemesterID,
-			SubjectID:      input.SubjectID,
+			CourseID:       input.CourseID,
 			StudentID:      markEntry.StudentID,
 			SemesterMarks:  markEntry.SemesterMarks,
 			AssistantMarks: markEntry.AssistantMarks,
@@ -103,7 +103,7 @@ func CreateMarks(c *fiber.Ctx) error {
 		if err := initializers.DB.Preload("Batch").
 			Preload("Program").
 			Preload("Semester").
-			Preload("Subject").
+			Preload("Course").
 			Preload("Student").
 			First(&marks[i], marks[i].ID).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

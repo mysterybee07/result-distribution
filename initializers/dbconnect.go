@@ -30,7 +30,7 @@ func Connect() {
 		&models.Batch{},
 		&models.Program{},
 		&models.Semester{},
-		&models.Subject{},
+		&models.Course{},
 		&models.Student{},
 		&models.Mark{},
 	); err != nil {

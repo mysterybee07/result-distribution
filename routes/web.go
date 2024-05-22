@@ -46,8 +46,8 @@ func Semester(app *fiber.App) {
 }
 
 func Subject(app *fiber.App) {
-	app.Get("/subjects/add", controllers.AddSubject)
-	app.Post("/subjects/add", controllers.StoreSubject)
+	app.Get("/courses/add", controllers.AddCourse)
+	app.Post("/courses/add", controllers.StoreCourse)
 }
 
 func Mark(app *fiber.App) {
