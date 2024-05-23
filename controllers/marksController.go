@@ -6,6 +6,7 @@ import (
 	"github.com/mysterybee07/result-distribution-system/initializers"
 	"github.com/mysterybee07/result-distribution-system/middleware/validation"
 	"github.com/mysterybee07/result-distribution-system/models"
+	"gorm.io/gorm"
 )
 
 // Create a global validator
@@ -190,5 +191,50 @@ func UpdateMarks(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Marks updated successfully",
 		"marks":   updatedMarks,
+	})
+}
+
+func GetMarksBySymbolNumber(c *fiber.Ctx) error {
+	// Get the symbol number from the request parameters
+	symbolNumber := c.Params("symbolNumber")
+
+	// Check if symbol number is provided
+	if symbolNumber == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Symbol number is required",
+		})
+	}
+
+	// Find the student using the symbol number
+	var student models.Student
+	if err := initializers.DB.Where("symbol_number = ?", symbolNumber).First(&student).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "Student not found",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Could not retrieve student",
+		})
+	}
+
+	// Find the marks for the student
+	var marks []models.Mark
+	if err := initializers.DB.Where("student_id = ?", student.ID).
+		Preload("Batch").
+		Preload("Program").
+		Preload("Semester").
+		Preload("Course").
+		Preload("Student").
+		Find(&marks).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Could not retrieve marks",
+		})
+	}
+
+	// Return the marks
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"student": student,
+		"marks":   marks,
 	})
 }

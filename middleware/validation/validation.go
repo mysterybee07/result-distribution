@@ -76,7 +76,7 @@ func ValidateMarksInput(input *CreateMarkInput, isUpdate bool) error {
 
 	// Check if the course exists for the given program and semester
 	var course models.Course
-	if err := initializers.DB.Where("id = ? AND program_id = ? AND semester_id = ? AND batch_id=?", input.CourseID, input.ProgramID, input.SemesterID, input.BatchID).First(&course).Error; err != nil {
+	if err := initializers.DB.Where("id = ? AND program_id = ? AND semester_id = ?", input.CourseID, input.ProgramID, input.SemesterID).First(&course).Error; err != nil {
 		return fiber.NewError(fiber.StatusNotFound, "Course not found for the given batch, program and semester")
 	}
 
