@@ -26,11 +26,28 @@ type Mark struct {
 }
 
 // BeforeSave hook to set status based on marks
+// func (m *Mark) BeforeSave(tx *gorm.DB) (err error) {
+// 	if m.SemesterMarks < 24 || m.AssistantMarks < 8 || m.PracticalMarks < 8 {
+// 		m.Status = "failed"
+// 	} else {
+// 		m.Status = "pass"
+// 	}
+// 	return
+// }
+
 func (m *Mark) BeforeSave(tx *gorm.DB) (err error) {
-	if m.SemesterMarks < 24 || m.AssistantMarks < 8 || m.PracticalMarks < 8 {
+	var course Course
+	if err := tx.First(&course, m.CourseID).Error; err != nil {
+		return err
+	}
+
+	if m.SemesterMarks < course.SemesterPassMarks ||
+		(course.PracticalPassMarks != nil && m.PracticalMarks < *course.PracticalPassMarks) ||
+		(course.AssistantPassMarks != nil && m.AssistantMarks < *course.AssistantPassMarks) {
 		m.Status = "failed"
 	} else {
 		m.Status = "pass"
 	}
+
 	return
 }

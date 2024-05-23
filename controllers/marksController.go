@@ -32,6 +32,13 @@ func CreateMarks(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
+	//fetching the pass marks
+	var course models.Course
+	if err := initializers.DB.First(&course, input.CourseID).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Could not find the course",
+		})
+	}
 
 	// Create marks for each student
 	var marks []models.Mark
@@ -46,7 +53,9 @@ func CreateMarks(c *fiber.Ctx) error {
 			AssistantMarks: markEntry.AssistantMarks,
 			PracticalMarks: markEntry.PracticalMarks,
 		}
-		if mark.SemesterMarks < 24 && mark.AssistantMarks < 8 && mark.PracticalMarks < 8 {
+		if mark.SemesterMarks < course.SemesterPassMarks ||
+			(course.PracticalPassMarks != nil && mark.PracticalMarks < *course.PracticalPassMarks) ||
+			(course.AssistantPassMarks != nil && mark.AssistantMarks < *course.AssistantPassMarks) {
 			mark.Status = "failed"
 		} else {
 			mark.Status = "pass"
