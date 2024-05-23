@@ -232,9 +232,25 @@ func GetMarksBySymbolNumber(c *fiber.Ctx) error {
 		})
 	}
 
-	// Return the marks
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"student": student,
-		"marks":   marks,
+	totalMarks := 0
+	status := "pass"
+	for i := range marks {
+		mark := &marks[i]
+
+		if mark.SemesterMarks < mark.Course.SemesterPassMarks ||
+			(mark.Course.AssistantPassMarks != nil && mark.AssistantMarks < *mark.Course.AssistantPassMarks) ||
+			(mark.Course.PracticalPassMarks != nil && mark.PracticalMarks < *mark.Course.PracticalPassMarks) {
+			status = "failed"
+		}
+
+		totalMarks += mark.TotalMarks
+	}
+
+	// Return the marks and overall status
+	return c.Render("/", fiber.Map{
+		// "student":    student,
+		// "marks":      marks,
+		"totalMarks": totalMarks,
+		"status":     status,
 	})
 }
