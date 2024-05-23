@@ -113,6 +113,13 @@ func UpdateMarks(c *fiber.Ctx) error {
 		})
 	}
 
+	// Validate marks input
+	if err := validation.ValidateMarksInput(&input, true); err != nil {
+		return c.Status(err.(*fiber.Error).Code).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
 	// Fetch the course details to get the pass marks and total marks
 	var course models.Course
 	if err := initializers.DB.First(&course, input.CourseID).Error; err != nil {
