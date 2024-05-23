@@ -99,7 +99,6 @@ func CreateMarks(c *fiber.Ctx) error {
 }
 
 func UpdateMarks(c *fiber.Ctx) error {
-	// Parse request body
 	var input validation.CreateMarkInput
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -114,41 +113,75 @@ func UpdateMarks(c *fiber.Ctx) error {
 		})
 	}
 
-	// Find marks by CourseID
-	var marks []models.Mark
-	if err := initializers.DB.Where("course_id = ?", input.CourseID).Find(&marks).Error; err != nil {
+	// Fetch the course details to get the pass marks and total marks
+	var course models.Course
+	if err := initializers.DB.First(&course, input.CourseID).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Could not find marks",
+			"error": "Could not find the course",
 		})
 	}
 
-	// Update marks
-	for _, mark := range marks {
-		for _, updatedMark := range input.Marks {
-			if mark.StudentID == updatedMark.StudentID {
-				mark.SemesterMarks = updatedMark.SemesterMarks
-				mark.AssistantMarks = updatedMark.AssistantMarks
-				mark.PracticalMarks = updatedMark.PracticalMarks
+	// Create a slice to store the updated marks
+	var updatedMarks []models.Mark
+	for _, markEntry := range input.Marks {
+		// Check that obtained marks do not exceed total marks
+		if markEntry.SemesterMarks > course.SemesterTotalMarks ||
+			(course.PracticalTotalMarks != nil && markEntry.PracticalMarks > *course.PracticalTotalMarks) ||
+			(course.AssistantTotalMarks != nil && markEntry.AssistantMarks > *course.AssistantTotalMarks) {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Obtained marks cannot exceed total marks",
+			})
+		}
 
-				if mark.SemesterMarks < 24 && mark.AssistantMarks < 8 && mark.PracticalMarks < 8 {
-					mark.Status = "failed"
-				} else {
-					mark.Status = "pass"
-				}
+		// Find the existing mark record
+		var mark models.Mark
+		if err := initializers.DB.Where("student_id = ? AND course_id = ?", markEntry.StudentID, input.CourseID).First(&mark).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Could not find the mark record",
+			})
+		}
 
-				if err := initializers.DB.Save(&mark).Error; err != nil {
-					return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-						"error": "Could not update marks",
-					})
-				}
-				break
-			}
+		// Update the mark fields
+		mark.SemesterMarks = markEntry.SemesterMarks
+		mark.AssistantMarks = markEntry.AssistantMarks
+		mark.PracticalMarks = markEntry.PracticalMarks
+
+		// Check pass/fail status based on the course's pass marks
+		if mark.SemesterMarks < course.SemesterPassMarks ||
+			(course.PracticalPassMarks != nil && mark.PracticalMarks < *course.PracticalPassMarks) ||
+			(course.AssistantPassMarks != nil && mark.AssistantMarks < *course.AssistantPassMarks) {
+			mark.Status = "failed"
+		} else {
+			mark.Status = "pass"
+		}
+
+		// Save the updated mark
+		if err := initializers.DB.Save(&mark).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Could not update the mark",
+			})
+		}
+
+		updatedMarks = append(updatedMarks, mark)
+	}
+
+	// Preload associations for each updated mark
+	for i := range updatedMarks {
+		if err := initializers.DB.Preload("Batch").
+			Preload("Program").
+			Preload("Semester").
+			Preload("Course").
+			Preload("Student").
+			First(&updatedMarks[i], updatedMarks[i].ID).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Could not preload associations",
+			})
 		}
 	}
 
 	// Return success message
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Marks updated successfully",
-		"marks":   marks,
+		"marks":   updatedMarks,
 	})
 }
