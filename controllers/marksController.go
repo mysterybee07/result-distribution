@@ -43,6 +43,15 @@ func CreateMarks(c *fiber.Ctx) error {
 	// Create marks for each student
 	var marks []models.Mark
 	for _, markEntry := range input.Marks {
+
+		// Check that obtained marks do not exceed total marks
+		if markEntry.SemesterMarks > course.SemesterTotalMarks ||
+			(course.PracticalTotalMarks != nil && markEntry.PracticalMarks > *course.PracticalTotalMarks) ||
+			(course.AssistantTotalMarks != nil && markEntry.AssistantMarks > *course.AssistantTotalMarks) {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Obtained marks cannot exceed total marks",
+			})
+		}
 		mark := models.Mark{
 			BatchID:        input.BatchID,
 			ProgramID:      input.ProgramID,
