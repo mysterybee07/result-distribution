@@ -30,8 +30,14 @@ func main() {
 		Views: engine,
 		// ViewsLayout:""
 	})
+	//middleware setup
+	// store := session.New()
+	// app.Use(store)
 
+	//loading static files
 	app.Static("/", "./static")
+
+	//routes
 	routes.Home(app)
 	// app.Use(middleware.AuthRequired)
 	routes.Profile(app)

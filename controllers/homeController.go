@@ -10,7 +10,6 @@ import (
 	"github.com/mysterybee07/result-distribution-system/initializers"
 	"github.com/mysterybee07/result-distribution-system/models"
 	"github.com/mysterybee07/result-distribution-system/utils"
-	"gorm.io/gorm"
 )
 
 // var initializers *gorm.DB
@@ -158,38 +157,26 @@ func LoginUser(c *fiber.Ctx) error {
 		Password   string `json:"password" form:"password"`
 	}
 
-	var data LoginData
-
-	// Parse the form data into the LoginData struct
-	if err := c.BodyParser(&data); err != nil {
+	// Parse the login form data
+	var loginData LoginData
+	if err := c.BodyParser(&loginData); err != nil {
 		log.Println("Unable to parse form data:", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid form data",
 		})
 	}
 
-	log.Printf("Parsed login data: %+v\n", data)
-
-	// Check if identifier (symbol number or email) and password are provided
-	if data.Identifier == "" || data.Password == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Identifier and password are required",
-		})
-	}
-
-	// Attempt to find the user by email or symbol number
+	// Find the user by email or symbol number
 	var user models.User
-	if err := initializers.DB.Where("email = ? OR symbol= ?", data.Identifier, data.Identifier).First(&user).Error; err != nil {
-		log.Printf("User not found with identifier: %s\n", data.Identifier)
+	if err := initializers.DB.Where("email = ? OR symbol = ?", loginData.Identifier, loginData.Identifier).First(&user).Error; err != nil {
+		log.Printf("User not found with identifier: %s\n", loginData.Identifier)
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Invalid identifier or password",
 		})
 	}
 
-	log.Printf("Found user: %+v\n", user)
-
 	// Verify the provided password against the stored hashed password
-	if !models.CheckPasswordHash(data.Password, user.Password) {
+	if !models.CheckPasswordHash(loginData.Password, user.Password) {
 		log.Println("Invalid password")
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Invalid identifier or password",
@@ -214,13 +201,8 @@ func LoginUser(c *fiber.Ctx) error {
 	}
 	c.Cookie(&cookie)
 
-	// return c.Status(fiber.StatusOK).JSON(fiber.Map{
-	// 	"message": "Successfully logged in",
-	// 	"user":    user,
-	// })
-	// return c.Redirect("/profile")
-	redirectURL := "/profile?userID=" + strconv.Itoa(int(user.ID))
-	return c.Redirect(redirectURL, fiber.StatusFound)
+	// Redirect or respond with success
+	return c.Redirect("/profile", fiber.StatusFound)
 }
 
 func ForgotPassword(c *fiber.Ctx) error {
@@ -230,42 +212,4 @@ func ForgotPassword(c *fiber.Ctx) error {
 		return err
 	}
 	return nil
-}
-func GetUserProfile(c *fiber.Ctx) error {
-	// Get the user ID from the query parameter
-	userIDStr := c.Query("userID")
-	userID, err := strconv.Atoi(userIDStr)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user ID"})
-	}
-
-	// Fetch the user with preloaded Batch and Program associations
-	var user models.User
-	if err := initializers.DB.
-		Preload("Batch").
-		Preload("Program").
-		First(&user, userID).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
-		}
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not retrieve user"})
-	}
-
-	// Fetch the student associated with the user
-	var student models.Student
-	if err := initializers.DB.
-		Where("symbol_number = ?", user.Symbol).
-		// Preload("Marks").
-		First(&student).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Student not found"})
-		}
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not retrieve student"})
-	}
-
-	// Return the user profile and student details
-	return c.Render("users/profile", fiber.Map{
-		"user":    user,
-		"student": student,
-	})
 }

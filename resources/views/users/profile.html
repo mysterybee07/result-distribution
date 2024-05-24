@@ -1,22 +1,48 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="./src/output.css" rel="stylesheet">
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>User Profile</title>
-</head>
-<body>
-    <h1 class="text-3xl font-bold">Hello {{ .student.Fullname }}</h1>
-    <div class="row justify-content-center">
-        <div class="col-lg-7">
-            <!-- Results will be shown here -->
-            {{ if .data.TotalMarks }}
-            <h2>Results</h2>
-            <p>Total Marks: {{ .data.TotalMarks }}</p>
-            <p>Status: {{ .data.Status }}</p>
-            {{ end }}
-        </div>
-    </div>
-</body>
+  </head>
+  <body>
+    <h1>User Profile</h1>
+    <h2>User Information</h2>
+    <p><strong>Name:</strong> {{ .student.Fullname }}</p>
+    <p><strong>Email:</strong> {{ .user.Email }}</p>
+
+    <h2>Student Information</h2>
+    <p><strong>Symbol Number:</strong> {{ .student.SymbolNumber }}</p>
+    <p><strong>Registration:</strong> {{ .student.Registration }}</p>
+    <p><strong>Batch:</strong> {{ .student.Batch.Year }}</p>
+    <p><strong>Program:</strong> {{ .student.Program.Name }}</p>
+
+    <h2>Marks</h2>
+    <table border="1">
+      <thead>
+        <tr>
+          <th>Course</th>
+          <th>Semester Marks</th>
+          <th>Assistant Marks</th>
+          <th>Practical Marks</th>
+          <th>Total Marks</th>
+          {{/* <th>Percentage Obtained</th> */}}
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{ range $index, $mark := .marks }}
+        <tr>
+          <td>{{ $mark.Course.Name }}</td>
+          <td>{{ $mark.SemesterMarks }}</td>
+          <td>{{ $mark.AssistantMarks }}</td>
+          <td>{{ $mark.PracticalMarks }}</td>
+          <td>{{ $mark.TotalMarks }}</td>
+          {{/* <td>{{ $mark.TotalMarks }}</td> */}}
+          <td>{{ $mark.Status }}</td>
+        </tr>
+        {{ end }}
+      </tbody>
+    </table>
+  </body>
 </html>
