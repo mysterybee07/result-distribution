@@ -1,34 +1,41 @@
+// utils/jwt.go
 package utils
 
 import (
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/dgrijalva/jwt-go"
 )
 
-var jwtKey = []byte("jasldfjlsahdflshdfl")
+var jwtSecret = []byte("Ajfdslfjlsdfjldslfj")
 
-// GenerateJwt generates a new JWT token
-func GenerateJwt(userId string) (string, error) {
+func GenerateJwt(userID string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"userId": userId,
-		"exp":    time.Now().Add(24 * time.Hour).Unix(),
+		"userID": userID,
+		"exp":    time.Now().Add(time.Hour * 24).Unix(),
 	})
-	tokenString, err := token.SignedString(jwtKey)
-	if err != nil {
-		return "", err
-	}
-	return tokenString, nil
+
+	return token.SignedString(jwtSecret)
 }
 
-func Parsejwt(cookie string) (string, error) {
-	token, err := jwt.ParseWithClaims(cookie, &jwt.StandardClaims{},
-		func(t *jwt.Token) (interface{}, error) {
-			return []byte(jwtKey), nil
-		})
-	if err != nil || token.Valid {
+func ParseJwt(tokenStr string) (string, error) {
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		return jwtSecret, nil
+	})
+
+	if err != nil || !token.Valid {
 		return "", err
 	}
-	claims := token.Claims.(*jwt.StandardClaims)
-	return claims.Issuer, nil
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		return "", err
+	}
+
+	userID, ok := claims["userID"].(string)
+	if !ok {
+		return "", err
+	}
+
+	return userID, nil
 }

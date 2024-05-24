@@ -1,13 +1,22 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="./src/output.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="./src/output.css" rel="stylesheet">
+    <title>User Profile</title>
 </head>
 <body>
-  <h1 class="text-3xl font-bold underline">
-    Hello world!
-  </h1>
+    <h1 class="text-3xl font-bold underline">Hello {{ .data.User.Name }}</h1>
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <!-- Results will be shown here -->
+            {{ if .data.TotalMarks }}
+            <h2>Results</h2>
+            <p>Total Marks: {{ .data.TotalMarks }}</p>
+            <p>Status: {{ .data.Status }}</p>
+            {{ end }}
+        </div>
+    </div>
 </body>
 </html>

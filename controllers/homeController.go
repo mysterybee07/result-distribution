@@ -10,6 +10,7 @@ import (
 	"github.com/mysterybee07/result-distribution-system/initializers"
 	"github.com/mysterybee07/result-distribution-system/models"
 	"github.com/mysterybee07/result-distribution-system/utils"
+	"gorm.io/gorm"
 )
 
 // var initializers *gorm.DB
@@ -229,24 +230,41 @@ func ForgotPassword(c *fiber.Ctx) error {
 	return nil
 }
 
-// func GetUsers(c *fiber.Ctx) error {
-// 	var users []models.User
+func GetUserProfile(c *fiber.Ctx) error {
+	userIDStr := c.Locals("userID").(string)
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Internal Server Error"})
+	}
 
-// 	initializers.DB.Find(&users)
-// 	return c.Status(200).JSON(users)
-// }
+	var user models.User
+	if err := initializers.DB.First(&user, userID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not retrieve user"})
+	}
 
-// func GetUserById(c *fiber.Ctx) error {
-// 	id := c.Params("user_id")
-// 	var user models.User
+	var marks []models.Mark
+	if err := initializers.DB.Where("student_id = ?", user.ID).Preload("Course").Find(&marks).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not retrieve marks"})
+	}
 
-// 	result := initializers.DB.Find(&user, id)
+	totalMarks := 0
+	status := "pass"
+	for _, mark := range marks {
+		if mark.SemesterMarks < mark.Course.SemesterPassMarks ||
+			(mark.Course.AssistantPassMarks != nil && mark.AssistantMarks < *mark.Course.AssistantPassMarks) ||
+			(mark.Course.PracticalPassMarks != nil && mark.PracticalMarks < *mark.Course.PracticalPassMarks) {
+			status = "failed"
+		}
+		totalMarks += mark.TotalMarks
+	}
 
-// 	if result.RowsAffected == 0 {
-// 		return c.SendStatus(404)
-// 	}
-// 	// return c.Status(200).JSON(&user)
-// 	return c.Render("users/forgot-password", fiber.Map{
-// 		"user": user,
-// 	})
-// }
+	return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+		// "user":       user,
+		// "marks":      marks,
+		"totalMarks": totalMarks,
+		"status":     status,
+	})
+}

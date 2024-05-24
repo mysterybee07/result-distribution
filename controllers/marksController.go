@@ -247,9 +247,9 @@ func GetMarksBySymbolNumber(c *fiber.Ctx) error {
 	}
 
 	// Return the marks and overall status
-	return c.Render("/", fiber.Map{
-		// "student":    student,
-		// "marks":      marks,
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"student":    student,
+		"marks":      marks,
 		"totalMarks": totalMarks,
 		"status":     status,
 	})

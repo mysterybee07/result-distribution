@@ -33,6 +33,7 @@ func main() {
 
 	app.Static("/", "./static")
 	routes.Home(app)
+	// app.Use(middleware.AuthRequired)
 	routes.Profile(app)
 	routes.Dashboard(app)
 	routes.Student(app)
