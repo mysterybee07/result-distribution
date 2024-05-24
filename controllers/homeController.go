@@ -214,11 +214,13 @@ func LoginUser(c *fiber.Ctx) error {
 	}
 	c.Cookie(&cookie)
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "Successfully logged in",
-		"user":    user,
-	})
+	// return c.Status(fiber.StatusOK).JSON(fiber.Map{
+	// 	"message": "Successfully logged in",
+	// 	"user":    user,
+	// })
 	// return c.Redirect("/profile")
+	redirectURL := "/profile?userID=" + strconv.Itoa(int(user.ID))
+	return c.Redirect(redirectURL, fiber.StatusFound)
 }
 
 func ForgotPassword(c *fiber.Ctx) error {
@@ -229,42 +231,41 @@ func ForgotPassword(c *fiber.Ctx) error {
 	}
 	return nil
 }
-
 func GetUserProfile(c *fiber.Ctx) error {
-	userIDStr := c.Locals("userID").(string)
+	// Get the user ID from the query parameter
+	userIDStr := c.Query("userID")
 	userID, err := strconv.Atoi(userIDStr)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Internal Server Error"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user ID"})
 	}
 
+	// Fetch the user with preloaded Batch and Program associations
 	var user models.User
-	if err := initializers.DB.First(&user, userID).Error; err != nil {
+	if err := initializers.DB.
+		Preload("Batch").
+		Preload("Program").
+		First(&user, userID).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
 		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not retrieve user"})
 	}
 
-	var marks []models.Mark
-	if err := initializers.DB.Where("student_id = ?", user.ID).Preload("Course").Find(&marks).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not retrieve marks"})
-	}
-
-	totalMarks := 0
-	status := "pass"
-	for _, mark := range marks {
-		if mark.SemesterMarks < mark.Course.SemesterPassMarks ||
-			(mark.Course.AssistantPassMarks != nil && mark.AssistantMarks < *mark.Course.AssistantPassMarks) ||
-			(mark.Course.PracticalPassMarks != nil && mark.PracticalMarks < *mark.Course.PracticalPassMarks) {
-			status = "failed"
+	// Fetch the student associated with the user
+	var student models.Student
+	if err := initializers.DB.
+		Where("symbol_number = ?", user.Symbol).
+		// Preload("Marks").
+		First(&student).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Student not found"})
 		}
-		totalMarks += mark.TotalMarks
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not retrieve student"})
 	}
 
-	return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-		// "user":       user,
-		// "marks":      marks,
-		"totalMarks": totalMarks,
-		"status":     status,
+	// Return the user profile and student details
+	return c.Render("users/profile", fiber.Map{
+		"user":    user,
+		"student": student,
 	})
 }

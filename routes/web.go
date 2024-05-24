@@ -3,7 +3,6 @@ package routes
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/mysterybee07/result-distribution-system/controllers"
-	"github.com/mysterybee07/result-distribution-system/middleware"
 )
 
 func Home(app *fiber.App) {
@@ -19,7 +18,7 @@ func Home(app *fiber.App) {
 
 func Profile(app *fiber.App) {
 	// app.Get("/profile/", controllers.Profile)
-	app.Get("/profile", middleware.AuthRequired, controllers.GetUserProfile)
+	app.Get("/profile", controllers.GetUserProfile)
 }
 
 func Dashboard(app *fiber.App) {
