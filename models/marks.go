@@ -25,16 +25,6 @@ type Mark struct {
 	Student        Student  `gorm:"foreignkey:StudentID"`
 }
 
-// BeforeSave hook to set status based on marks
-// func (m *Mark) BeforeSave(tx *gorm.DB) (err error) {
-// 	if m.SemesterMarks < 24 || m.AssistantMarks < 8 || m.PracticalMarks < 8 {
-// 		m.Status = "failed"
-// 	} else {
-// 		m.Status = "pass"
-// 	}
-// 	return
-// }
-
 func (m *Mark) BeforeSave(tx *gorm.DB) (err error) {
 	var course Course
 	if err := tx.First(&course, m.CourseID).Error; err != nil {
