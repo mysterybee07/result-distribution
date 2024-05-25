@@ -5,8 +5,10 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/gofiber/template/html/v2"
 	"github.com/mysterybee07/result-distribution-system/initializers"
+	"github.com/mysterybee07/result-distribution-system/middleware"
 	"github.com/mysterybee07/result-distribution-system/routes"
 )
 
@@ -18,28 +20,41 @@ func init() {
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
-		log.Fatal("The port:" + port + " is taken by another process.")
+		log.Fatal("The port is taken by another process.")
 		port = "8080"
 	}
 	log.Println("Starting the server on port " + port + "..........")
 
-	//Load templates
+	// Load templates
 	engine := html.New("./resources/views", ".html")
 
 	app := fiber.New(fiber.Config{
 		Views: engine,
-		// ViewsLayout:""
 	})
-	//middleware setup
-	// store := session.New()
-	// app.Use(store)
 
-	//loading static files
+	// Initialize session store
+	store := session.New()
+
+	// Use session middleware
+	app.Use(func(c *fiber.Ctx) error {
+		sess, err := store.Get(c)
+		if err != nil {
+			return err
+		}
+		c.Locals("session", sess)
+		return c.Next()
+	})
+
+	// Loading static files
 	app.Static("/", "./static")
 
-	//routes
+	// Authentication routes
 	routes.Home(app)
-	// app.Use(middleware.AuthRequired)
+
+	// Protected routes
+	app.Use(middleware.AuthRequired)
+
+	// Routes
 	routes.Profile(app)
 	routes.Dashboard(app)
 	routes.Student(app)
@@ -48,11 +63,10 @@ func main() {
 	routes.Semester(app)
 	routes.Subject(app)
 	routes.Mark(app)
+
 	err := app.Listen(":" + port)
 	if err != nil {
 		log.Fatalf("Server failed to listen: %v", err)
-
 	}
 	log.Println("Server exited")
-
 }
