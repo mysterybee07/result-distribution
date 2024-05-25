@@ -8,7 +8,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/gofiber/template/html/v2"
 	"github.com/mysterybee07/result-distribution-system/initializers"
-	"github.com/mysterybee07/result-distribution-system/middleware"
 	"github.com/mysterybee07/result-distribution-system/routes"
 )
 
@@ -52,7 +51,7 @@ func main() {
 	routes.Home(app)
 
 	// Protected routes
-	app.Use(middleware.AuthRequired)
+	// app.Use(middleware.AuthRequired)
 
 	// Routes
 	routes.Profile(app)

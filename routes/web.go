@@ -13,51 +13,47 @@ func Home(app *fiber.App) {
 	app.Get("/login", controllers.Login)
 	app.Post("/login", controllers.LoginUser)
 	app.Get("/forgot-password", controllers.ForgotPassword)
-	// app.Get("/users/:id", controllers.GetUserById)
-
 }
 
 func Profile(app *fiber.App) {
-	// app.Get("/profile/", controllers.Profile)
 	app.Get("/profile", middleware.AuthRequired, controllers.GetUserProfile)
 }
 
 func Dashboard(app *fiber.App) {
-	app.Get("/dashboard", controllers.Index)
+	app.Get("/dashboard", middleware.AuthRequired, middleware.AdminRequired, controllers.Index)
 }
 
 func Student(app *fiber.App) {
-	app.Get("/students/add", controllers.AddStudent)
-	app.Post("/students/add", controllers.StoreStudent)
-	app.Get("/students", controllers.GetStudents)
-	app.Get("/students/edit/:id", controllers.EditStudent)
-	app.Put("/students/edit/:id", controllers.UpdateStudent)
+	// app.Get("/students/add", middleware.AuthRequired, middleware.AdminRequired, controllers.AddStudentForm)
+	app.Post("/students/add", middleware.AuthRequired, middleware.AdminRequired, controllers.StoreStudent)
+	app.Get("/students", middleware.AuthRequired, middleware.AdminRequired, controllers.GetStudents)
+	// app.Get("/students/edit/:id", middleware.AuthRequired, middleware.AdminRequired, controllers.EditStudentForm)
+	app.Put("/students/edit/:id", middleware.AuthRequired, middleware.AdminRequired, controllers.UpdateStudent)
 }
 
 func Batch(app *fiber.App) {
-	app.Get("/batches/add", controllers.AddBatch)
-	app.Post("/batches/add", controllers.CreateBatch)
+	app.Get("/batches/add", middleware.AuthRequired, middleware.AdminRequired, controllers.AddBatch)
+	app.Post("/batches/add", middleware.AuthRequired, middleware.AdminRequired, controllers.CreateBatch)
 }
 
 func Program(app *fiber.App) {
-	app.Get("/programs/add", controllers.AddProgram)
-	app.Post("/programs/add", controllers.StoreProgram)
+	app.Get("/programs/add", middleware.AuthRequired, middleware.AdminRequired, controllers.AddProgram)
+	app.Post("/programs/add", middleware.AuthRequired, middleware.AdminRequired, controllers.StoreProgram)
 }
 
 func Semester(app *fiber.App) {
-	app.Get("/semesters/add", controllers.AddSemester)
-	app.Post("/semesters/add", controllers.StoreSemester)
+	app.Get("/semesters/add", middleware.AuthRequired, middleware.AdminRequired, controllers.AddSemester)
+	app.Post("/semesters/add", middleware.AuthRequired, middleware.AdminRequired, controllers.StoreSemester)
 }
 
 func Subject(app *fiber.App) {
-	app.Get("/courses/add", controllers.AddCourse)
-	app.Post("/courses/add", controllers.StoreCourse)
+	app.Get("/courses/add", middleware.AuthRequired, middleware.AdminRequired, controllers.AddCourse)
+	app.Post("/courses/add", middleware.AuthRequired, middleware.AdminRequired, controllers.StoreCourse)
 }
 
 func Mark(app *fiber.App) {
-	// app.Get("/marks/add", controllers.AddMark)
-	app.Post("/marks/add", controllers.CreateMarks)
-	app.Put("/marks/edit/:id", controllers.UpdateMarks)
-	app.Get("/marks/:symbolNumber", controllers.GetMarksBySymbolNumber)
-	app.Post("/publish-results", controllers.PublishResults)
+	app.Post("/marks/add", middleware.AuthRequired, middleware.AdminRequired, controllers.CreateMarks)
+	app.Put("/marks/edit/:id", middleware.AuthRequired, middleware.AdminRequired, controllers.UpdateMarks)
+	app.Get("/marks/:symbolNumber", middleware.AuthRequired, middleware.AdminRequired, controllers.GetMarksBySymbolNumber)
+	app.Post("/publish-results", middleware.AuthRequired, middleware.AdminRequired, controllers.PublishResults)
 }

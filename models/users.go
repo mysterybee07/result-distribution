@@ -7,16 +7,17 @@ import (
 
 // User represents the structure of the registration form data
 type User struct {
-	*gorm.Model
-	BatchID      uint    `gorm:"not null" json:"batch_id"`
-	ProgramID    uint    `gorm:"not null" json:"program_id"`
-	Symbol       string  `gorm:"type:varchar(100);not null" json:"symbol"`
-	Registration string  `gorm:"type:varchar(100);not null" json:"registration"`
-	Email        string  `gorm:"type:varchar(100);unique;not null" json:"email"`
-	Password     string  `gorm:"type:varchar(100);not null" json:"password"`
-	Terms        bool    `gorm:"not null" json:"terms"`
-	Batch        Batch   `gorm:"foreignkey:BatchID"`
-	Program      Program `gorm:"foreignkey:ProgramID"`
+	gorm.Model
+	BatchID      *uint    `gorm:"" json:"batch_id,omitempty"`
+	ProgramID    *uint    `gorm:"" json:"program_id,omitempty"`
+	Symbol       string   `gorm:"type:varchar(100);not null" json:"symbol"`
+	Registration string   `gorm:"type:varchar(100);not null" json:"registration"`
+	Email        string   `gorm:"type:varchar(100);unique;not null" json:"email"`
+	Password     string   `gorm:"type:varchar(100);not null" json:"password"`
+	Terms        bool     `gorm:"not null" json:"terms"`
+	Role         string   `gorm:"type:varchar(20);default:user" json:"role"`
+	Batch        *Batch   `gorm:"foreignkey:BatchID"`
+	Program      *Program `gorm:"foreignkey:ProgramID"`
 }
 
 // HashPassword hashes a plain text password
