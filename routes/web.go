@@ -58,3 +58,8 @@ func Mark(app *fiber.App) {
 	app.Get("/marks/:symbolNumber", middleware.AuthRequired, middleware.AdminRequired, controllers.GetMarksBySymbolNumber)
 	app.Post("/publish-results", middleware.AuthRequired, middleware.AdminRequired, controllers.PublishResults)
 }
+
+func Result(app *fiber.App) {
+	app.Get("/results", middleware.AuthRequired, middleware.AdminRequired, controllers.AddResult)
+	app.Post("/results", middleware.AuthRequired, middleware.AdminRequired, controllers.PublishResults)
+}

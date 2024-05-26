@@ -3,7 +3,12 @@ module.exports = {
   content: ["./resources/views/**/*.html"],
   darkMode: 'class',
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ['Poppins', 'sans-serif'],
+        serif: ['Georgia', 'serif'],
+      },
+    },
   },
   plugins: [],
 }

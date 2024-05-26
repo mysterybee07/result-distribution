@@ -10,6 +10,14 @@ import (
 	"gorm.io/gorm"
 )
 
+func AddResult(c *fiber.Ctx) error {
+	err := c.Render("dashboard/result/publishresult", fiber.Map{})
+	if err != nil {
+		c.Status(fiber.StatusInternalServerError).SendString("Error rendering page")
+		return err
+	}
+	return nil
+}
 func PublishResults(c *fiber.Ctx) error {
 	// Get batch and semester from request body or query params
 	type PublishRequest struct {
