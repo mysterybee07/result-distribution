@@ -25,7 +25,7 @@ func Dashboard(app *fiber.App) {
 }
 
 func Student(app *fiber.App) {
-	// app.Get("/students/add", middleware.AuthRequired, middleware.AdminRequired, controllers.AddStudentForm)
+	app.Get("/students/add", middleware.AuthRequired, middleware.AdminRequired, controllers.AddStudent)
 	app.Post("/students/add", middleware.AuthRequired, middleware.AdminRequired, controllers.StoreStudent)
 	app.Get("/students", middleware.AuthRequired, middleware.AdminRequired, controllers.GetStudents)
 	// app.Get("/students/edit/:id", middleware.AuthRequired, middleware.AdminRequired, controllers.EditStudentForm)

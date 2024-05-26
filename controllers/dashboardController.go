@@ -10,3 +10,7 @@ func Index(c *fiber.Ctx) error {
 	}
 	return nil
 }
+
+// func AddStudent(c *fiber.Ctx) error {
+
+// }
