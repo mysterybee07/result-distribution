@@ -4,7 +4,7 @@
     <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">
       Add Batch
     </h2>
-    <form action="#">
+    <form action="/batches" method="post">
       <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
         <div>
           <label
@@ -14,12 +14,14 @@
           >
           <select
             id="year"
+            name="year"
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
           ></select>
         </div>
       </div>
       <div class="w-full py-8">
         <button
+          type="submit"
           class="flex items-center justify-between px-4 py-2 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-purple-600 border border-transparent rounded-lg active:bg-purple-600 hover:bg-purple-700 focus:outline-none focus:shadow-outline-purple"
         >
           Submit Batch {{/*

@@ -1,18 +1,25 @@
 package controllers
 
 import (
+	"log"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/mysterybee07/result-distribution-system/initializers"
 	"github.com/mysterybee07/result-distribution-system/models"
 )
 
 func AddSemester(c *fiber.Ctx) error {
-	err := c.Render("dashboard/semester/semester", fiber.Map{})
-	if err != nil {
-		c.Status(fiber.StatusInternalServerError).SendString("Error rendering page")
-		return err
+	// Fetch programs from the database
+	var programs []models.Program
+	if err := initializers.DB.Find(&programs).Error; err != nil {
+		log.Printf("Failed to fetch programs: %v\n", err)
+		return c.Status(fiber.StatusInternalServerError).SendString("Failed to fetch programs")
 	}
-	return nil
+
+	// Render the add semester form with programs
+	return c.Render("dashboard/semester/semester", fiber.Map{
+		"Programs": programs,
+	})
 }
 
 func StoreSemester(c *fiber.Ctx) error {
@@ -51,8 +58,5 @@ func StoreSemester(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"message":  "Semester created successfully",
-		"semester": semester,
-	})
+	return c.Redirect("/semesters")
 }

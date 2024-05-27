@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"log"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/mysterybee07/result-distribution-system/initializers"
 	"github.com/mysterybee07/result-distribution-system/models"
@@ -18,14 +20,18 @@ func AddProgram(c *fiber.Ctx) error {
 func StoreProgram(c *fiber.Ctx) error {
 	program := new(models.Program)
 
-	if err := c.BodyParser(&program); err != nil {
+	// Parse the form data
+	if err := c.BodyParser(program); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Cannot parse JSON",
+			"error": "Cannot parse form data",
 		})
 	}
 
+	// Log the parsed data for debugging
+	log.Printf("Parsed Program: %+v\n", program)
+
 	var existingProgram models.Program
-	// Corrected the column name to 'name' and fixed the logic
+	// Check if the program already exists
 	if err := initializers.DB.Where("name = ?", program.Name).First(&existingProgram).Error; err == nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Program already exists",

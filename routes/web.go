@@ -39,12 +39,12 @@ func Batch(app *fiber.App) {
 
 func Program(app *fiber.App) {
 	app.Get("/programs", middleware.AuthRequired, middleware.AdminRequired, controllers.AddProgram)
-	app.Post("/programs/add", middleware.AuthRequired, middleware.AdminRequired, controllers.StoreProgram)
+	app.Post("/programs", middleware.AuthRequired, middleware.AdminRequired, controllers.StoreProgram)
 }
 
 func Semester(app *fiber.App) {
 	app.Get("/semesters", middleware.AuthRequired, middleware.AdminRequired, controllers.AddSemester)
-	app.Post("/semesters/add", middleware.AuthRequired, middleware.AdminRequired, controllers.StoreSemester)
+	app.Post("/semesters", middleware.AuthRequired, middleware.AdminRequired, controllers.StoreSemester)
 }
 
 func Subject(app *fiber.App) {
