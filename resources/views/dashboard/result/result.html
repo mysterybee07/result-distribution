@@ -1,0 +1,72 @@
+{{template "dashboard/layouts/top" .}}
+<main class="bg-white dark:bg-gray-900">
+  <div class="py-8 px-4 mx-auto max-w-2xl lg:py-16">
+    <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">
+      Publish Results
+    </h2>
+    <form action="#">
+      <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
+        <div>
+          <label
+            for="category"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Batch</label
+          >
+          <select
+            id="category"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+          >
+            <option selected="">Select Batch</option>
+            <option value="TV">TV/Monitors</option>
+            <option value="PC">PC</option>
+            <option value="GA">Gaming/Console</option>
+            <option value="PH">Phones</option>
+          </select>
+        </div>
+        <div>
+          <label
+            for="category"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Program</label
+          >
+          <select
+            id="category"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+          >
+            <option selected="">Select Program</option>
+            <option value="TV">TV/Monitors</option>
+            <option value="PC">PC</option>
+            <option value="GA">Gaming/Console</option>
+            <option value="PH">Phones</option>
+          </select>
+        </div>
+        <div>
+          <label
+            for="category"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Semester</label
+          >
+          <select
+            id="category"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+          >
+            <option selected="">Select Semester</option>
+            <option value="TV">TV/Monitors</option>
+            <option value="PC">PC</option>
+            <option value="GA">Gaming/Console</option>
+            <option value="PH">Phones</option>
+          </select>
+        </div>
+      </div>
+      <div class="w-full py-8">
+        <button
+          class="flex items-center justify-between px-4 py-2 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-purple-600 border border-transparent rounded-lg active:bg-purple-600 hover:bg-purple-700 focus:outline-none focus:shadow-outline-purple"
+        >
+          Publish Result {{/*
+          <span class="ml-2" aria-hidden="true">+</span> */}}
+        </button>
+      </div>
+    </form>
+  </div>
+</main>
+{{template "dashboard/layouts/bottom" .}}

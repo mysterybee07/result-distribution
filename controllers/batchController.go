@@ -7,7 +7,7 @@ import (
 )
 
 func AddBatch(c *fiber.Ctx) error {
-	err := c.Render("dashboard/batch/addbatch", fiber.Map{})
+	err := c.Render("dashboard/batch/batch", fiber.Map{})
 	if err != nil {
 		c.Status(fiber.StatusInternalServerError).SendString("Error rendering page")
 		return err

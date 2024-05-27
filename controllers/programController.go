@@ -7,7 +7,7 @@ import (
 )
 
 func AddProgram(c *fiber.Ctx) error {
-	err := c.Render("dashboard/program/addprogram", fiber.Map{})
+	err := c.Render("dashboard/program/program", fiber.Map{})
 	if err != nil {
 		c.Status(fiber.StatusInternalServerError).SendString("Error rendering page")
 		return err

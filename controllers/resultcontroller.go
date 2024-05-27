@@ -11,7 +11,7 @@ import (
 )
 
 func AddResult(c *fiber.Ctx) error {
-	err := c.Render("dashboard/result/publishresult", fiber.Map{})
+	err := c.Render("dashboard/result/result", fiber.Map{})
 	if err != nil {
 		c.Status(fiber.StatusInternalServerError).SendString("Error rendering page")
 		return err
