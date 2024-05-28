@@ -27,12 +27,45 @@
           type="submit"
           class="flex items-center justify-between px-4 py-2 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-purple-600 border border-transparent rounded-lg active:bg-purple-600 hover:bg-purple-700 focus:outline-none focus:shadow-outline-purple"
         >
-          Submit Program {{/*
-          <span class="ml-2" aria-hidden="true">+</span> */}}
+          Submit Program
         </button>
       </div>
     </form>
+
+    <!-- Section to display added programs -->
+    <div class="mt-8">
+      <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-white">
+        Added Programs
+      </h3>
+      <div class="overflow-x-auto relative shadow-md sm:rounded-lg">
+        <table
+          class="w-full text-sm text-left text-gray-500 dark:text-gray-400"
+        >
+          <thead
+            class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+          >
+            <tr>
+              <th scope="col" class="py-3 px-6">S.No.</th>
+              <th scope="col" class="py-3 px-6">Name</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{range $index, $program := .Programs}}
+            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+              <td class="py-4 px-6">{{$index}}</td>
+              <td class="py-4 px-6">{{$program.Name}}</td>
+            </tr>
+            {{else}}
+            <tr>
+              <td colspan="2" class="py-4 px-6 text-center">
+                No programs available
+              </td>
+            </tr>
+            {{end}}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </main>
-
 {{template "dashboard/layouts/bottom" .}}

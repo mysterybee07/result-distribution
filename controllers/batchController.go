@@ -42,8 +42,5 @@ func CreateBatch(c *fiber.Ctx) error {
 	}
 
 	// Return a success response with the created batch
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"message": "Batch created successfully",
-		"batch":   batch,
-	})
+	return c.Redirect("/batches")
 }

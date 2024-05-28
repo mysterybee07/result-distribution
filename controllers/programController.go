@@ -9,11 +9,22 @@ import (
 )
 
 func AddProgram(c *fiber.Ctx) error {
-	err := c.Render("dashboard/program/program", fiber.Map{})
-	if err != nil {
-		c.Status(fiber.StatusInternalServerError).SendString("Error rendering page")
-		return err
+	// Fetch all programs from the database
+	var programs []models.Program
+	if err := initializers.DB.Find(&programs).Error; err != nil {
+		log.Printf("Failed to fetch programs: %v\n", err)
+		return c.Status(fiber.StatusInternalServerError).SendString("Failed to fetch programs")
 	}
+
+	// Render the form with the list of programs
+	err := c.Render("dashboard/program/program", fiber.Map{
+		"Programs": programs,
+	})
+	if err != nil {
+		log.Printf("Failed to render page: %v\n", err)
+		return c.Status(fiber.StatusInternalServerError).SendString("Error rendering page")
+	}
+
 	return nil
 }
 
