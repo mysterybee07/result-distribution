@@ -38,8 +38,6 @@ func validateEmail(email string) bool {
 	return regex.MatchString(email)
 }
 
-// StoreRegister handles the registration of a new userpackage controllers
-
 // StoreRegister handles the registration of a new user
 func StoreRegister(c *fiber.Ctx) error {
 	var data models.User
@@ -52,20 +50,41 @@ func StoreRegister(c *fiber.Ctx) error {
 		})
 	}
 
-	// Validate fields
-	if data.BatchID == 0 ||
-		data.ProgramID == 0 ||
-		data.Symbol == "" ||
-		data.Registration == "" ||
-		data.Email == "" ||
-		data.Password == "" {
-		log.Println("Missing required fields")
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "All fields are required",
-		})
+	// Check if the user is an admin
+	if data.Role == "admin" {
+		// Validate required fields for admin
+		if data.Email == "" || data.Password == "" || data.Symbol == "" {
+			log.Println("Missing required fields for admin")
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "Email, Password, and Symbol are required for admin",
+			})
+		}
+		data.BatchID = nil
+		data.ProgramID = nil
+	} else {
+		// Validate required fields for regular user
+		if data.BatchID == nil || *data.BatchID == 0 ||
+			data.ProgramID == nil || *data.ProgramID == 0 ||
+			data.Symbol == "" || data.Registration == "" ||
+			data.Email == "" || data.Password == "" {
+			log.Println("Missing required fields for user")
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "All fields are required for user",
+			})
+		}
+
+		// Check if symbol and registration exist in the students table for the given batch and program
+		var student models.Student
+		if err := initializers.DB.Where("symbol_number = ? AND registration = ? AND batch_id = ? AND program_id = ?",
+			data.Symbol, data.Registration, data.BatchID, data.ProgramID).First(&student).Error; err != nil {
+			log.Println("Student record not found:", err)
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "Invalid symbol or registration for the specified batch and program",
+			})
+		}
 	}
 
-	// Check if the user password is less than 8 characters
+	// Check if the password is at least 8 characters long
 	if len(data.Password) < 8 {
 		log.Println("Password too short")
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -87,16 +106,6 @@ func StoreRegister(c *fiber.Ctx) error {
 		log.Println("Email already taken:", data.Email)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Email is already taken",
-		})
-	}
-
-	// Check if symbol and registration exist in the students table for the given batch and program
-	var student models.Student
-	if err := initializers.DB.Where("symbol_number = ? AND registration = ? AND batch_id = ? AND program_id = ?",
-		data.Symbol, data.Registration, data.BatchID, data.ProgramID).First(&student).Error; err != nil {
-		log.Println("Student record not found:", err)
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid symbol or registration for the specified batch and program",
 		})
 	}
 
@@ -183,8 +192,8 @@ func LoginUser(c *fiber.Ctx) error {
 		})
 	}
 
-	// Generate JWT token
-	token, err := utils.GenerateJwt(strconv.Itoa(int(user.ID)))
+	// Generate JWT token with user ID and role
+	token, err := utils.GenerateJwt(strconv.Itoa(int(user.ID)), user.Role)
 	if err != nil {
 		log.Println("Failed to generate token:", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -196,13 +205,29 @@ func LoginUser(c *fiber.Ctx) error {
 	cookie := fiber.Cookie{
 		Name:     "jwt",
 		Value:    token,
-		Expires:  time.Now().Add(time.Minute * 15),
+		Expires:  time.Now().Add(time.Hour * 24),
 		HTTPOnly: true,
 	}
 	c.Cookie(&cookie)
 
-	// Redirect or respond with success
+	// Redirect based on role
+	if user.Role == "admin" {
+		return c.Redirect("/dashboard", fiber.StatusFound)
+	}
 	return c.Redirect("/profile", fiber.StatusFound)
+}
+
+// LogoutUser logs out the user by clearing the JWT cookie
+func LogoutUser(c *fiber.Ctx) error {
+	// Clear the cookie
+	c.Cookie(&fiber.Cookie{
+		Name:     "jwt",
+		Value:    "",
+		Expires:  time.Now().Add(-1 * time.Second), // Set the cookie to expire immediately
+		HTTPOnly: true,
+	})
+
+	return c.Redirect("/login") // Redirect to login page or home page after logout
 }
 
 func ForgotPassword(c *fiber.Ctx) error {

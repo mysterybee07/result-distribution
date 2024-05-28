@@ -7,7 +7,7 @@ import (
 )
 
 func AddBatch(c *fiber.Ctx) error {
-	err := c.Render("batches/add", fiber.Map{})
+	err := c.Render("dashboard/batch/batch", fiber.Map{})
 	if err != nil {
 		c.Status(fiber.StatusInternalServerError).SendString("Error rendering page")
 		return err
@@ -16,27 +16,31 @@ func AddBatch(c *fiber.Ctx) error {
 }
 
 func CreateBatch(c *fiber.Ctx) error {
+	// Initialize a new Batch instance
 	batch := new(models.Batch)
-	if err := c.BodyParser(&batch); err != nil {
+
+	// Parse the request body into the Batch instance
+	if err := c.BodyParser(batch); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Cannot parse JSON",
 		})
 	}
-	var existingBatch models.Batch
 
-	if err := initializers.DB.Where("year=?", &batch.Year).First(&existingBatch).Error; err == nil {
+	// Check if a batch with the same year already exists
+	var existingBatch models.Batch
+	if err := initializers.DB.Where("year = ?", batch.Year).First(&existingBatch).Error; err == nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Batch already exists",
 		})
 	}
 
-	if err := initializers.DB.Create(&batch).Error; err != nil {
+	// Create the new batch in the database
+	if err := initializers.DB.Create(batch).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Could not create batch",
 		})
 	}
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"message": "Batch created successfully",
-		"batch":   batch,
-	})
+
+	// Return a success response with the created batch
+	return c.Redirect("/batches")
 }

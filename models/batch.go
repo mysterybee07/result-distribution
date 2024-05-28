@@ -4,6 +4,6 @@ import "gorm.io/gorm"
 
 type Batch struct {
 	gorm.Model
-	Year string `gorm:"not null" json:"year"`
+	Year uint `gorm:"not null" json:"year" form:"year"`
 	// Programs []Program `gorm:"foreignKey:BatchID"`
 }

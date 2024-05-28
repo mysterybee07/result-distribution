@@ -7,7 +7,7 @@ import (
 )
 
 func AddCourse(c *fiber.Ctx) error {
-	err := c.Render("subjects/add", fiber.Map{})
+	err := c.Render("dashboard/courses/course", fiber.Map{})
 	if err != nil {
 		c.Status(fiber.StatusInternalServerError).SendString("Error rendering page")
 		return err
