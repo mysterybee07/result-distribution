@@ -56,8 +56,5 @@ func StoreProgram(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"message": "Program created successfully",
-		"program": program,
-	})
+	return c.Redirect("/programs")
 }
