@@ -29,6 +29,40 @@
         </button>
       </div>
     </form>
+
+    <div class="mt-8">
+      <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-white">
+        Added Batch
+      </h3>
+      <div class="overflow-x-auto relative shadow-md sm:rounded-lg">
+        <table
+          class="w-full text-sm text-left text-gray-500 dark:text-gray-400"
+        >
+          <thead
+            class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+          >
+            <tr>
+              <th scope="col" class="py-3 px-6">S.No.</th>
+              <th scope="col" class="py-3 px-6">Name</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{range $index, $batch := .Batches}}
+            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+              <td class="py-4 px-6">{{$index}}</td>
+              <td class="py-4 px-6">{{$batch.Year}}</td>
+            </tr>
+            {{else}}
+            <tr>
+              <td colspan="2" class="py-4 px-6 text-center">
+                No Batches available
+              </td>
+            </tr>
+            {{end}}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </main>
 <script>
