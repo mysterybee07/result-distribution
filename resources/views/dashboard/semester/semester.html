@@ -20,13 +20,11 @@
           >
             <option value="">Select Program</option>
             {{range .Programs}}
-              <option value="{{.ID}}">{{.Name}}</option>
+            <option value="{{.ID}}">{{.Name}}</option>
             {{end}}
           </select>
           <span class="text-danger">
-            {{if .Errors}}
-              {{index .Errors "program_id"}}
-            {{end}}
+            {{if .Errors}} {{index .Errors "program_id"}} {{end}}
           </span>
         </div>
         <div>
@@ -44,9 +42,7 @@
             required
           />
           <span class="text-danger">
-            {{if .Errors}}
-              {{index .Errors "name"}}
-            {{end}}
+            {{if .Errors}} {{index .Errors "name"}} {{end}}
           </span>
         </div>
       </div>
@@ -59,6 +55,48 @@
         </button>
       </div>
     </form>
+
+    {{/* table to show the added semester according to */}}
+    <div class="mt-8">
+      <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-white">
+        Added Programs
+      </h3>
+      {{range $programIndex, $program := .Programs}}
+      <div class="overflow-x-auto relative shadow-md sm:rounded-lg mb-8">
+        <h4 class="mb-4 text-md font-semibold text-gray-900 dark:text-white">
+          {{$program.Name}}
+        </h4>
+        <table
+          class="w-full text-sm text-left text-gray-500 dark:text-gray-400"
+        >
+          <thead
+            class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+          >
+            <tr>
+              <th scope="col" class="py-3 px-6">S.No.</th>
+              <th scope="col" class="py-3 px-6">Semester</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{range $semesterIndex, $semester := $program.Semesters}}
+            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+              <td class="py-4 px-6">{{$semesterIndex}}</td>
+              <td class="py-4 px-6">{{$semester.Name}}</td>
+            </tr>
+            {{else}}
+            <tr>
+              <td colspan="2" class="py-4 px-6 text-center">
+                No semesters available
+              </td>
+            </tr>
+            {{end}}
+          </tbody>
+        </table>
+      </div>
+      {{else}}
+      <div class="py-4 px-6 text-center">No programs available</div>
+      {{end}}
+    </div>
   </div>
 </main>
 {{template "dashboard/layouts/bottom" .}}

@@ -9,17 +9,21 @@ import (
 )
 
 func AddSemester(c *fiber.Ctx) error {
-	// Fetch programs from the database
 	var programs []models.Program
-	if err := initializers.DB.Find(&programs).Error; err != nil {
+	if err := initializers.DB.Preload("Semesters").Find(&programs).Error; err != nil {
 		log.Printf("Failed to fetch programs: %v\n", err)
 		return c.Status(fiber.StatusInternalServerError).SendString("Failed to fetch programs")
 	}
 
-	// Render the add semester form with programs
-	return c.Render("dashboard/semester/semester", fiber.Map{
+	err := c.Render("dashboard/semester/semester", fiber.Map{
 		"Programs": programs,
 	})
+	if err != nil {
+		log.Printf("Failed to render page: %v\n", err)
+		return c.Status(fiber.StatusInternalServerError).SendString("Error rendering page")
+	}
+
+	return nil
 }
 
 func StoreSemester(c *fiber.Ctx) error {
