@@ -48,7 +48,7 @@ func Semester(app *fiber.App) {
 }
 
 func Subject(app *fiber.App) {
-	app.Get("/courses/add", middleware.AuthRequired, middleware.AdminRequired, controllers.AddCourse)
+	app.Get("/courses", middleware.AuthRequired, middleware.AdminRequired, controllers.AddCourse)
 	app.Post("/courses/add", middleware.AuthRequired, middleware.AdminRequired, controllers.StoreCourse)
 }
 

@@ -1,0 +1,167 @@
+{{template "dashboard/layouts/top" .}}
+<main class="bg-white dark:bg-gray-900">
+  <div class="py-8 px-4 mx-auto max-w-2xl lg:py-16">
+    <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">
+      Add Course
+    </h2>
+    <form action="/courses/add" method="post">
+      <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
+        <div>
+          <label
+            for="course_code"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Course Code</label
+          >
+          <input
+            type="text"
+            id="course_code"
+            name="course_code"            
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+            required
+          />
+        </div>
+        <div>
+          <label
+            for="name"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Name</label
+          >
+          <input
+            type="text"
+            id="name"
+            name="name"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+            required
+          />
+        </div>
+        <div>
+          <label
+            for="semester_pass_marks"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Semester Pass Marks</label
+          >
+          <input
+            type="number"
+            id="semester_pass_marks"
+            name="semester_pass_marks"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+            required
+          />
+        </div>
+        <div>
+          <label
+            for="practical_pass_marks"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Practical Pass Marks</label
+          >
+          <input
+            type="number"
+            id="practical_pass_marks"
+            name="practical_pass_marks"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+          />
+        </div>
+        <div>
+          <label
+            for="assistant_pass_marks"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Assistant Pass Marks</label
+          >
+          <input
+            type="number"
+            id="assistant_pass_marks"
+            name="assistant_pass_marks"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+          />
+        </div>
+        <div>
+          <label
+            for="semester_total_marks"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Semester Total Marks</label
+          >
+          <input
+            type="number"
+            id="semester_total_marks"
+            name="semester_total_marks"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+            required
+          />
+        </div>
+        <div>
+          <label
+            for="practical_total_marks"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Practical Total Marks</label
+          >
+          <input
+            type="number"
+            id="practical_total_marks"
+            name="practical_total_marks"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+          />
+        </div>
+        <div>
+          <label
+            for="assistant_total_marks"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Assistant Total Marks</label
+          >
+          <input
+            type="number"
+            id="assistant_total_marks"
+            name="assistant_total_marks"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+          />
+        </div>
+        <div>
+          <label
+            for="program_id"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Program</label
+          >
+          <select
+            id="program_id"
+            name="program_id"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+            required
+          >
+            <option value="">Select Program</option>
+            {{range .Programs}}
+            <option value="{{.ID}}">{{.Name}}</option>
+            {{end}}
+          </select>
+        </div>
+        <div>
+          <label
+            for="semester_id"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Semester</label
+          >
+          <select
+            id="semester_id"
+            name="semester_id"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+            required
+          >
+            <option value="">Select Semester</option>
+            {{range .Programs}}
+            {{range .Semesters}}
+            <option value="{{.ID}}">{{.Name}}</option>
+            {{end}}
+            {{end}}
+          </select>
+        </div>
+      </div>
+      <div class="w-full py-8">
+        <button
+          type="submit"
+          class="flex items-center justify-between px-4 py-2 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-purple-600 border border-transparent rounded-lg active:bg-purple-600 hover:bg-purple-700 focus:outline-none focus:shadow-outline-purple"
+        >
+          Add Course
+        </button>
+      </div>
+    </form>
+  </div>
+</main>
+{{template "dashboard/layouts/bottom" .}}

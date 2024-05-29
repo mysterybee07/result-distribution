@@ -7,7 +7,15 @@ import (
 )
 
 func AddCourse(c *fiber.Ctx) error {
-	err := c.Render("dashboard/courses/course", fiber.Map{})
+	var programs []models.Program
+	if err := initializers.DB.Preload("Semesters").Find(&programs).Error; err != nil {
+		c.Status(fiber.StatusInternalServerError).SendString("Error fetching programs")
+		return err
+	}
+
+	err := c.Render("dashboard/courses/addcourse", fiber.Map{
+		"Programs": programs,
+	})
 	if err != nil {
 		c.Status(fiber.StatusInternalServerError).SendString("Error rendering page")
 		return err
