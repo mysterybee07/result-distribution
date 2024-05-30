@@ -125,6 +125,7 @@
             name="program_id"
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
             required
+            onchange="fetchSemesters(this.value)"
           >
             <option value="">Select Program</option>
             {{range .Programs}}
@@ -145,11 +146,6 @@
             required
           >
             <option value="">Select Semester</option>
-            {{range .Programs}}
-            {{range .Semesters}}
-            <option value="{{.ID}}">{{.Name}}</option>
-            {{end}}
-            {{end}}
           </select>
         </div>
       </div>
@@ -164,4 +160,27 @@
     </form>
   </div>
 </main>
+
+<script>
+function fetchSemesters(programId) {
+  if (!programId) {
+    document.getElementById("semester_id").innerHTML = '<option value="">Select Semester</option>';
+    return;
+  }
+
+  fetch(`/programs/${programId}/semesters`)
+    .then(response => response.json())
+    .then(data => {
+      let semesterSelect = document.getElementById("semester_id");
+      semesterSelect.innerHTML = '<option value="">Select Semester</option>';
+      data.semesters.forEach(semester => {
+        let option = document.createElement("option");
+        option.value = semester.ID;
+        option.textContent = semester.Name;
+        semesterSelect.appendChild(option);
+      });
+    })
+    .catch(error => console.error('Error fetching semesters:', error));
+}
+</script>
 {{template "dashboard/layouts/bottom" .}}

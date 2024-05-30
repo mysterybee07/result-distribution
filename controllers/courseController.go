@@ -23,6 +23,15 @@ func AddCourse(c *fiber.Ctx) error {
 	return nil
 }
 
+func GetSemestersByProgram(c *fiber.Ctx) error {
+	programId := c.Params("id")
+	var semesters []models.Semester
+	if err := initializers.DB.Where("program_id = ?", programId).Find(&semesters).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching semesters"})
+	}
+	return c.JSON(fiber.Map{"semesters": semesters})
+}
+
 func StoreCourse(c *fiber.Ctx) error {
 	course := new(models.Course)
 
