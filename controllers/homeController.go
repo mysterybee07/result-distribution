@@ -211,10 +211,13 @@ func LoginUser(c *fiber.Ctx) error {
 	c.Cookie(&cookie)
 
 	// Redirect based on role
-	if user.Role == "admin" {
-		return c.Redirect("/dashboard", fiber.StatusFound)
-	}
-	return c.Redirect("/profile", fiber.StatusFound)
+	// if user.Role == "admin" {
+	// 	return c.Redirect("/dashboard", fiber.StatusFound)
+	// }
+	// return c.Redirect("/profile", fiber.StatusFound)
+	return c.JSON(fiber.Map{
+		"token": token,
+	})
 }
 
 // LogoutUser logs out the user by clearing the JWT cookie
