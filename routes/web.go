@@ -33,7 +33,7 @@ func Student(app *fiber.App) {
 }
 
 func Batch(app *fiber.App) {
-	app.Get("/batches", middleware.AuthRequired, middleware.AdminRequired, controllers.AddBatch)
+	app.Get("/batches", middleware.AuthRequired, middleware.SuperadminRequired, controllers.AddBatch)
 	app.Post("/batches", middleware.AuthRequired, middleware.AdminRequired, controllers.CreateBatch)
 }
 
@@ -62,5 +62,5 @@ func Mark(app *fiber.App) {
 
 func Result(app *fiber.App) {
 	app.Get("/results", middleware.AuthRequired, middleware.AdminRequired, controllers.AddResult)
-	app.Post("/results", middleware.AuthRequired, middleware.AdminRequired, controllers.PublishResults)
+	app.Post("/results", middleware.AuthRequired, middleware.SuperadminRequired, controllers.PublishResults)
 }

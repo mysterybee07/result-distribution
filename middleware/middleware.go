@@ -54,3 +54,28 @@ func AdminRequired(c *fiber.Ctx) error {
 
 	return c.Next()
 }
+
+func SuperadminRequired(c *fiber.Ctx) error {
+	// Get user ID from locals
+	userID, ok := c.Locals("userID").(uint)
+	if !ok {
+		log.Println("User ID not found in locals")
+		return c.Redirect("/login", fiber.StatusFound)
+	}
+
+	// Fetch user from the database to check role
+	var user models.User
+	if err := initializers.DB.Where("id = ?", userID).First(&user).Error; err != nil {
+		log.Printf("Failed to fetch user: %v\n", err)
+		return c.Redirect("/login", fiber.StatusFound)
+	}
+
+	// Check if the user is a superadmin
+	if user.Role != "superadmin" {
+		log.Println("User is not a superadmin")
+		// Redirect to another route (404 page or dashboard)
+		return c.Redirect("/dashboard", fiber.StatusFound)
+	}
+
+	return c.Next()
+}
