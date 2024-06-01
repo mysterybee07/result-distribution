@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Page Not Found</title>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			text-align: center;
+			background-color: #f8f8f8;
+			color: #333;
+		}
+		.container {
+			margin-top: 50px;
+		}
+		h1 {
+			font-size: 48px;
+			margin-bottom: 20px;
+		}
+		p {
+			font-size: 18px;
+			margin-bottom: 30px;
+		}
+		a {
+			color: #007BFF;
+			text-decoration: none;
+		}
+		a:hover {
+			text-decoration: underline;
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<h1>Oops! Page Not Found</h1>
+		<p>The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.</p>
+		<p><a href="/">Go to Homepage</a> | <a href="/help">Help Center</a></p>
+		<p>Try searching for what you need:</p>
+		<form action="/search" method="get">
+			<input type="text" name="query" placeholder="Search..." required>
+			<button type="submit">Search</button>
+		</form>
+		<p>Need help? <a href="/contact">Contact our support team</a>.</p>
+	</div>
+</body>
+</html>

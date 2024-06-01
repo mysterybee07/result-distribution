@@ -47,7 +47,7 @@ func AdminRequired(c *fiber.Ctx) error {
 		return c.Redirect("/login", fiber.StatusFound)
 	}
 
-	if user.Role != "admin" {
+	if user.Role != "admin" && user.Role != "superadmin" {
 		log.Println("User is not an admin")
 		return c.Redirect("/login", fiber.StatusFound)
 	}
@@ -57,8 +57,8 @@ func AdminRequired(c *fiber.Ctx) error {
 
 func SuperadminRequired(c *fiber.Ctx) error {
 	// Get user ID from locals
-	userID, ok := c.Locals("userID").(uint)
-	if !ok {
+	userID := c.Locals("userID")
+	if userID == nil {
 		log.Println("User ID not found in locals")
 		return c.Redirect("/login", fiber.StatusFound)
 	}
@@ -74,7 +74,7 @@ func SuperadminRequired(c *fiber.Ctx) error {
 	if user.Role != "superadmin" {
 		log.Println("User is not a superadmin")
 		// Redirect to another route (404 page or dashboard)
-		return c.Redirect("/dashboard", fiber.StatusFound)
+		return c.Redirect("/404", fiber.StatusFound)
 	}
 
 	return c.Next()

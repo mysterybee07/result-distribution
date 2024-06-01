@@ -63,6 +63,7 @@ func main() {
 	routes.Subject(app)
 	routes.Mark(app)
 	routes.Result(app)
+	routes.Error(app)
 
 	err := app.Listen(":" + port)
 	if err != nil {

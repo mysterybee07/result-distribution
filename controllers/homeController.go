@@ -51,7 +51,7 @@ func StoreRegister(c *fiber.Ctx) error {
 	}
 
 	// Check if the user is an admin
-	if data.Role == "admin" {
+	if data.Role == "admin" || data.Role == "superadmin" {
 		// Validate required fields for admin
 		if data.Email == "" || data.Password == "" || data.Symbol == "" {
 			log.Println("Missing required fields for admin")
