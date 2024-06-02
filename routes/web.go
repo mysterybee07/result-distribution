@@ -38,19 +38,19 @@ func Batch(app *fiber.App) {
 }
 
 func Program(app *fiber.App) {
-	app.Get("/programs", middleware.AuthRequired, middleware.AdminRequired, controllers.AddProgram)
-	app.Post("/programs", middleware.AuthRequired, middleware.AdminRequired, controllers.StoreProgram)
+	app.Get("/programs", middleware.AuthRequired, middleware.SuperadminRequired, controllers.AddProgram)
+	app.Post("/programs", middleware.AuthRequired, middleware.SuperadminRequired, controllers.StoreProgram)
 }
 
 func Semester(app *fiber.App) {
-	app.Get("/semesters", middleware.AuthRequired, middleware.AdminRequired, controllers.AddSemester)
-	app.Post("/semesters", middleware.AuthRequired, middleware.AdminRequired, controllers.StoreSemester)
+	app.Get("/semesters", middleware.AuthRequired, middleware.SuperadminRequired, controllers.AddSemester)
+	app.Post("/semesters", middleware.AuthRequired, middleware.SuperadminRequired, controllers.StoreSemester)
 }
 
 func Subject(app *fiber.App) {
-	app.Get("/courses", middleware.AuthRequired, middleware.AdminRequired, controllers.AddCourse)
+	app.Get("/courses", middleware.AuthRequired, middleware.SuperadminRequired, controllers.AddCourse)
 	app.Get("/programs/:id/semesters", controllers.GetSemestersByProgram)
-	app.Post("/courses", middleware.AuthRequired, middleware.AdminRequired, controllers.StoreCourse)
+	app.Post("/courses", middleware.AuthRequired, middleware.SuperadminRequired, controllers.StoreCourse)
 }
 
 func Mark(app *fiber.App) {
@@ -61,7 +61,7 @@ func Mark(app *fiber.App) {
 }
 
 func Result(app *fiber.App) {
-	app.Get("/results", middleware.AuthRequired, middleware.AdminRequired, controllers.AddResult)
+	app.Get("/results", middleware.AuthRequired, middleware.SuperadminRequired, controllers.AddResult)
 	app.Post("/results", middleware.AuthRequired, middleware.SuperadminRequired, controllers.PublishResults)
 }
 
