@@ -58,3 +58,48 @@ func StoreProgram(c *fiber.Ctx) error {
 
 	return c.Redirect("/programs")
 }
+
+func EditProgram(c *fiber.Ctx) error {
+	err := c.Render("dashboard/program/editprogram", fiber.Map{})
+	if err != nil {
+		c.Status(fiber.StatusInternalServerError).SendString("Error rendering page")
+		return err
+	}
+	return nil
+}
+
+func UpdateProgram(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	var program models.Program
+
+	if err := initializers.DB.First(&program, id).Error; err != nil {
+		c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "Program not found",
+		})
+	}
+	if err := c.BodyParser(&program); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Cannot parse JSON",
+		})
+	}
+
+	var existingProgram models.Program
+	// Check if the program already exists
+	if err := initializers.DB.Where("name = ?", program.Name).First(&existingProgram).Error; err == nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Program already exists",
+		})
+	}
+
+	if err := initializers.DB.Save(&program).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Could not update program",
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Program updated successfully",
+		"program": program,
+	})
+
+}
