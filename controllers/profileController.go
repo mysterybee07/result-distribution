@@ -46,9 +46,15 @@ func GetUserProfile(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Student not found"})
 	}
 
-	// Fetch marks for the student
+	// Determine the previous semester
+	previousSemester := student.CurrentSemester - 1
+
+	// Fetch marks for the student that belong to the previous semester in the results table
 	var marks []models.Mark
-	if err := initializers.DB.Where("student_id = ?", student.ID).Preload("Course").Find(&marks).Error; err != nil {
+	if err := initializers.DB.Joins("JOIN results ON results.batch_id = ? AND results.program_id = ? AND results.semester_id = ? AND results.status = 'Published'", student.BatchID, student.ProgramID, previousSemester).
+		Where("marks.student_id = ?", student.ID).
+		Preload("Course").
+		Find(&marks).Error; err != nil {
 		log.Printf("Failed to find marks for student with ID %d: %v\n", student.ID, err)
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Marks not found"})
 	}
