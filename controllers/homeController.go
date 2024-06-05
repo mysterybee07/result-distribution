@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"log"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -33,15 +34,75 @@ func Register(c *fiber.Ctx) error {
 // StoreRegister handles the registration of a new user
 
 func StoreRegister(c *fiber.Ctx) error {
-	var data models.User
-
-	// Parse the form data into the User struct
-	if err := c.BodyParser(&data); err != nil {
-		log.Println("Unable to parse form data:", err)
+	// Parse the form data
+	form, err := c.MultipartForm()
+	if err != nil {
+		log.Println("Failed to get multipart form data:", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid form data",
+			"message": "Failed to get multipart form data",
 		})
 	}
+
+	// Create a new User instance
+	var data models.User
+
+	// Parse form values into the User struct
+	batchID, err := strconv.ParseUint(form.Value["batch_id"][0], 10, 32)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid batch_id",
+		})
+	}
+	batchIDPtr := uint(batchID)
+	data.BatchID = &batchIDPtr
+
+	programID, err := strconv.ParseUint(form.Value["program_id"][0], 10, 32)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid program_id",
+		})
+	}
+	programIDPtr := uint(programID)
+	data.ProgramID = &programIDPtr
+
+	data.Symbol = form.Value["symbol"][0]
+	data.Registration = form.Value["registration"][0]
+	data.Email = form.Value["email"][0]
+	data.Password = form.Value["password"][0]
+	data.Terms, err = strconv.ParseBool(form.Value["terms"][0])
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid terms value",
+		})
+	}
+	data.Role = form.Value["role"][0]
+
+	// Handle the image upload
+	files := form.File["image_url"]
+	if len(files) == 0 {
+		log.Println("No image file found in the form data")
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "No image file found in the form data",
+		})
+	}
+	file := files[0]
+	fileName := utils.RandLetter(5) + "-" + utils.SanitizeFileName(file.Filename)
+	if len(files) > 0 {
+		file := files[0] // assuming only one image file is uploaded
+		fileName = utils.RandLetter(5) + "-" + utils.SanitizeFileName(file.Filename)
+		filePath := filepath.Join("./static/images/uploads", fileName)
+
+		log.Println("Saving file to:", filePath)
+		if err := c.SaveFile(file, filePath); err != nil {
+			log.Println("Failed to save image file:", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "Failed to save image file",
+			})
+		}
+	}
+
+	// Set image URL regardless of upload success (empty string if no upload)
+	data.ImageURL = "/static/images/uploads/" + fileName
 
 	// Check if the user is an admin
 	if data.Role == "admin" || data.Role == "superadmin" {
@@ -56,10 +117,7 @@ func StoreRegister(c *fiber.Ctx) error {
 		data.ProgramID = nil
 	} else {
 		// Validate required fields for regular user
-		if data.BatchID == nil || *data.BatchID == 0 ||
-			data.ProgramID == nil || *data.ProgramID == 0 ||
-			data.Symbol == "" || data.Registration == "" ||
-			data.Email == "" || data.Password == "" {
+		if data.BatchID == nil || data.ProgramID == nil || data.Symbol == "" || data.Registration == "" || data.Email == "" || data.Password == "" {
 			log.Println("Missing required fields for user")
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "All fields are required for user",
@@ -69,7 +127,7 @@ func StoreRegister(c *fiber.Ctx) error {
 		// Check if symbol and registration exist in the students table for the given batch and program
 		var student models.Student
 		if err := initializers.DB.Where("symbol_number = ? AND registration = ? AND batch_id = ? AND program_id = ?",
-			data.Symbol, data.Registration, data.BatchID, data.ProgramID).First(&student).Error; err != nil {
+			data.Symbol, data.Registration, *data.BatchID, *data.ProgramID).First(&student).Error; err != nil {
 			log.Println("Student record not found:", err)
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "Invalid symbol or registration for the specified batch and program",
@@ -116,8 +174,6 @@ func StoreRegister(c *fiber.Ctx) error {
 		})
 	}
 
-	// Handle image upload
-
 	// Hash password
 	hashedPassword, err := models.HashPassword(data.Password)
 	if err != nil {
@@ -142,7 +198,6 @@ func StoreRegister(c *fiber.Ctx) error {
 		"message": "Account created successfully",
 	})
 }
-
 func Login(c *fiber.Ctx) error {
 	err := c.Render("users/login", fiber.Map{})
 	if err != nil {
