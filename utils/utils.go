@@ -56,12 +56,9 @@ func ValidateEmail(email string) bool {
 	return regex.MatchString(email)
 }
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
-
 func RandLetter(n int) string {
 	b := make([]rune, n)
+	rand.Seed(time.Now().UnixNano())
 	for i := range b {
 		b[i] = letters[rand.Intn(len(letters))]
 	}
@@ -69,10 +66,7 @@ func RandLetter(n int) string {
 }
 
 func SanitizeFileName(fileName string) string {
-	return strings.Map(func(r rune) rune {
-		if r == '/' || r == '\\' {
-			return -1
-		}
-		return r
-	}, fileName)
+	// Remove any characters that are not alphanumeric, dot, or underscore
+	re := regexp.MustCompile(`[^a-zA-Z0-9._-]`)
+	return strings.ToLower(re.ReplaceAllString(fileName, "_"))
 }
