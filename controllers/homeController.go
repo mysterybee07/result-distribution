@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"log"
-	"regexp"
 	"strconv"
 	"time"
 
@@ -13,7 +12,6 @@ import (
 )
 
 // var initializers *gorm.DB
-
 func Home(c *fiber.Ctx) error {
 	err := c.Render("index", fiber.Map{})
 	if err != nil {
@@ -32,13 +30,8 @@ func Register(c *fiber.Ctx) error {
 	return nil
 }
 
-func validateEmail(email string) bool {
-	pattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
-	regex := regexp.MustCompile(pattern)
-	return regex.MatchString(email)
-}
-
 // StoreRegister handles the registration of a new user
+
 func StoreRegister(c *fiber.Ctx) error {
 	var data models.User
 
@@ -93,7 +86,7 @@ func StoreRegister(c *fiber.Ctx) error {
 	}
 
 	// Validate email
-	if !validateEmail(data.Email) {
+	if !utils.ValidateEmail(data.Email) {
 		log.Println("Invalid email format")
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid email",
@@ -122,6 +115,8 @@ func StoreRegister(c *fiber.Ctx) error {
 			"message": "Registration Number is already taken for the specified batch and program",
 		})
 	}
+
+	// Handle image upload
 
 	// Hash password
 	hashedPassword, err := models.HashPassword(data.Password)

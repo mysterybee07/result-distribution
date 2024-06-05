@@ -16,6 +16,7 @@ type User struct {
 	Password     string   `gorm:"type:varchar(100);not null" json:"password"`
 	Terms        bool     `gorm:"not null" json:"terms"`
 	Role         string   `gorm:"type:varchar(20);default:user" json:"role"`
+	ImageURL     string   `gorm:"type:varchar(255)" json:"image_url,omitempty"`
 	Batch        *Batch   `gorm:"foreignkey:BatchID"`
 	Program      *Program `gorm:"foreignkey:ProgramID"`
 }
