@@ -8,6 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/mysterybee07/result-distribution-system/initializers"
+	"github.com/mysterybee07/result-distribution-system/middleware/validation"
 	"github.com/mysterybee07/result-distribution-system/models"
 	"github.com/mysterybee07/result-distribution-system/utils"
 )
@@ -77,100 +78,10 @@ func StoreRegister(c *fiber.Ctx) error {
 	}
 	data.Role = form.Value["role"][0]
 
-	// Handle the image upload
-	files := form.File["image_url"]
-	if len(files) == 0 {
-		log.Println("No image file found in the form data")
+	// Validate the user data
+	if err := validation.ValidateUser(&data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "No image file found in the form data",
-		})
-	}
-	file := files[0]
-	fileName := utils.RandLetter(5) + "-" + utils.SanitizeFileName(file.Filename)
-	if len(files) > 0 {
-		file := files[0] // assuming only one image file is uploaded
-		fileName = utils.RandLetter(5) + "-" + utils.SanitizeFileName(file.Filename)
-		filePath := filepath.Join("./static/images/uploads", fileName)
-
-		log.Println("Saving file to:", filePath)
-		if err := c.SaveFile(file, filePath); err != nil {
-			log.Println("Failed to save image file:", err)
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"message": "Failed to save image file",
-			})
-		}
-	}
-
-	// Set image URL regardless of upload success (empty string if no upload)
-	data.ImageURL = "/static/images/uploads/" + fileName
-
-	// Check if the user is an admin
-	if data.Role == "admin" || data.Role == "superadmin" {
-		// Validate required fields for admin
-		if data.Email == "" || data.Password == "" || data.Symbol == "" {
-			log.Println("Missing required fields for admin")
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"message": "Email, Password, and Symbol are required for admin",
-			})
-		}
-		data.BatchID = nil
-		data.ProgramID = nil
-	} else {
-		// Validate required fields for regular user
-		if data.BatchID == nil || data.ProgramID == nil || data.Symbol == "" || data.Registration == "" || data.Email == "" || data.Password == "" {
-			log.Println("Missing required fields for user")
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"message": "All fields are required for user",
-			})
-		}
-
-		// Check if symbol and registration exist in the students table for the given batch and program
-		var student models.Student
-		if err := initializers.DB.Where("symbol_number = ? AND registration = ? AND batch_id = ? AND program_id = ?",
-			data.Symbol, data.Registration, *data.BatchID, *data.ProgramID).First(&student).Error; err != nil {
-			log.Println("Student record not found:", err)
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"message": "Invalid symbol or registration for the specified batch and program",
-			})
-		}
-	}
-
-	// Check if the password is at least 8 characters long
-	if len(data.Password) < 8 {
-		log.Println("Password too short")
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Password must be at least 8 characters long",
-		})
-	}
-
-	// Validate email
-	if !utils.ValidateEmail(data.Email) {
-		log.Println("Invalid email format")
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid email",
-		})
-	}
-
-	// Check if email already exists
-	var existingUser models.User
-	if err := initializers.DB.Where("email = ?", data.Email).First(&existingUser).Error; err == nil {
-		log.Println("Email already taken:", data.Email)
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Email is already taken",
-		})
-	}
-
-	// Check if symbol number and registration number are unique in users table
-	if err := initializers.DB.Where("symbol = ? AND batch_id = ? AND program_id = ?", data.Symbol, data.BatchID, data.ProgramID).First(&existingUser).Error; err == nil {
-		log.Println("Symbol Number already taken in users for the specified batch and program:", data.Symbol)
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Symbol Number is already taken for the specified batch and program",
-		})
-	}
-	if err := initializers.DB.Where("registration = ? AND batch_id = ? AND program_id = ?", data.Registration, data.BatchID, data.ProgramID).First(&existingUser).Error; err == nil {
-		log.Println("Registration Number already taken in users for the specified batch and program:", data.Registration)
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Registration Number is already taken for the specified batch and program",
+			"message": err.Error(),
 		})
 	}
 
@@ -192,12 +103,44 @@ func StoreRegister(c *fiber.Ctx) error {
 		})
 	}
 
+	// Handle the image upload
+	files := form.File["image_url"]
+	if len(files) == 0 {
+		log.Println("No image file found in the form data")
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "No image file found in the form data",
+		})
+	}
+	file := files[0]
+	fileName := utils.RandLetter(5) + "-" + utils.SanitizeFileName(file.Filename)
+	filePath := filepath.Join("./static/images/uploads", fileName)
+
+	log.Println("Saving file to:", filePath)
+	if err := c.SaveFile(file, filePath); err != nil {
+		// Rollback user creation if image upload fails
+		initializers.DB.Delete(&data)
+		log.Println("Failed to save image file:", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to save image file",
+		})
+	}
+
+	// Update the user's image URL
+	data.ImageURL = "/static/images/uploads/" + fileName
+	if err := initializers.DB.Save(&data).Error; err != nil {
+		log.Println("Failed to update user with image URL:", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to update user with image URL",
+		})
+	}
+
 	// Return success message as JSON
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"user":    data,
 		"message": "Account created successfully",
 	})
 }
+
 func Login(c *fiber.Ctx) error {
 	err := c.Render("users/login", fiber.Map{})
 	if err != nil {
@@ -270,6 +213,123 @@ func LoginUser(c *fiber.Ctx) error {
 	// return c.JSON(fiber.Map{
 	// 	"token": token,
 	// })
+}
+func UpdateUser(c *fiber.Ctx) error {
+	userID := c.Params("id")
+
+	// Fetch the existing user
+	var existingUser models.User
+	if err := initializers.DB.First(&existingUser, userID).Error; err != nil {
+		log.Println("User not found:", err)
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"message": "User not found",
+		})
+	}
+
+	// Parse the form data
+	form, err := c.MultipartForm()
+	if err != nil {
+		log.Println("Failed to get multipart form data:", err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Failed to get multipart form data",
+		})
+	}
+
+	// Update User instance with new data
+	batchID, err := strconv.ParseUint(form.Value["batch_id"][0], 10, 32)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid batch_id",
+		})
+	}
+	batchIDPtr := uint(batchID)
+	existingUser.BatchID = &batchIDPtr
+
+	programID, err := strconv.ParseUint(form.Value["program_id"][0], 10, 32)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid program_id",
+		})
+	}
+	programIDPtr := uint(programID)
+	existingUser.ProgramID = &programIDPtr
+
+	existingUser.Symbol = form.Value["symbol"][0]
+	existingUser.Registration = form.Value["registration"][0]
+	existingUser.Email = form.Value["email"][0]
+	existingUser.Password = form.Value["password"][0]
+	existingUser.Terms, err = strconv.ParseBool(form.Value["terms"][0])
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid terms value",
+		})
+	}
+	existingUser.Role = form.Value["role"][0]
+
+	// Handle the image upload
+	files := form.File["image_url"]
+	if len(files) == 0 {
+		log.Println("No image file found in the form data")
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "No image file found in the form data",
+		})
+	}
+	file := files[0]
+	fileName := utils.RandLetter(5) + "-" + utils.SanitizeFileName(file.Filename)
+	if len(files) > 0 {
+		file := files[0] // assuming only one image file is uploaded
+		fileName = utils.RandLetter(5) + "-" + utils.SanitizeFileName(file.Filename)
+		filePath := filepath.Join("./static/images/uploads", fileName)
+
+		log.Println("Saving file to:", filePath)
+		if err := c.SaveFile(file, filePath); err != nil {
+			log.Println("Failed to save image file:", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "Failed to save image file",
+			})
+		}
+	}
+
+	// Set image URL regardless of upload success (empty string if no upload)
+	existingUser.ImageURL = "/static/images/uploads/" + fileName
+
+	// Validate the updated user data
+	if err := validation.ValidateUser(&existingUser); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	// Hash password if changed
+	if len(existingUser.Password) < 8 {
+		log.Println("Password too short")
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Password must be at least 8 characters long",
+		})
+	} else if existingUser.Password != form.Value["password"][0] {
+		hashedPassword, err := models.HashPassword(existingUser.Password)
+		if err != nil {
+			log.Println("Failed to hash password:", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to hash password",
+			})
+		}
+		existingUser.Password = hashedPassword
+	}
+
+	// Save the updated user in the database
+	if err := initializers.DB.Save(&existingUser).Error; err != nil {
+		log.Println("Failed to update user:", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to update user",
+		})
+	}
+
+	// Return success message as JSON
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"user":    existingUser,
+		"message": "Account updated successfully",
+	})
 }
 
 // LogoutUser logs out the user by clearing the JWT cookie
