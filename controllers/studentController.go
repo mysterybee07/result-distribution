@@ -16,35 +16,59 @@ func AddStudent(c *fiber.Ctx) error {
 	return nil
 }
 
-func StoreStudent(c *fiber.Ctx) error {
-	student := new(models.Student)
-	if err := c.BodyParser(student); err != nil {
+func StoreStudents(c *fiber.Ctx) error {
+	// Parse JSON data
+	var requestData struct {
+		BatchID   uint             `json:"batch_id"`
+		ProgramID uint             `json:"program_id"`
+		Students  []models.Student `json:"students"`
+	}
+
+	if err := c.BodyParser(&requestData); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Cannot parse JSON",
 		})
 	}
 
-	if err := validation.ValidateStudent(student, false); err != nil {
-		return c.Status(err.(*fiber.Error).Code).JSON(fiber.Map{
-			"error": err.Error(),
+	// Begin a transaction
+	tx := initializers.DB.Begin()
+	if tx.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Could not begin transaction",
 		})
 	}
 
-	// Save the student
-	if err := initializers.DB.Create(&student).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Could not create student",
-		})
+	// Iterate over the students and validate/save each one
+	for _, student := range requestData.Students {
+		student.BatchID = requestData.BatchID
+		student.ProgramID = requestData.ProgramID
+
+		// Validate the student
+		if err := validation.ValidateStudent(&student, false); err != nil {
+			tx.Rollback()
+			return c.Status(err.(*fiber.Error).Code).JSON(fiber.Map{
+				"message": err.Error(),
+			})
+		}
+
+		// Save the student
+		if err := tx.Create(&student).Error; err != nil {
+			tx.Rollback()
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "Could not create student",
+			})
+		}
 	}
-	if err := initializers.DB.Preload("Batch").Preload("Program").First(&student, student.ID).Error; err != nil {
+
+	// Commit the transaction
+	if err := tx.Commit().Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Could not retrieve student with associations",
+			"message": "Could not commit transaction",
 		})
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"message": "Student created successfully",
-		"student": student,
+		"message": "Students created successfully",
 	})
 }
 
