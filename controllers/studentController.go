@@ -8,7 +8,20 @@ import (
 )
 
 func AddStudent(c *fiber.Ctx) error {
-	err := c.Render("dashboard/students/addstudent", fiber.Map{})
+	var programs []models.Program
+	if err := initializers.DB.Find(&programs).Error; err != nil {
+		c.Status(fiber.StatusInternalServerError).SendString("Error fetching programs")
+		return err
+	}
+	var batches []models.Batch
+	if err := initializers.DB.Find(&batches).Error; err != nil {
+		c.Status(fiber.StatusInternalServerError).SendString("Error fetching batches")
+		return err
+	}
+	err := c.Render("dashboard/students/addstudent", fiber.Map{
+		"Programs": programs,
+		"Batches":  batches,
+	})
 	if err != nil {
 		c.Status(fiber.StatusInternalServerError).SendString("Error rendering page")
 		return err
