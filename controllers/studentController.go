@@ -1,6 +1,9 @@
 package controllers
 
 import (
+	"log"
+	"strconv"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/mysterybee07/result-distribution-system/initializers"
 	"github.com/mysterybee07/result-distribution-system/middleware/validation"
@@ -149,4 +152,44 @@ func GetStudents(c *fiber.Ctx) error {
 		"message":  "Students retrieved successfully",
 		"students": students,
 	})
+}
+
+// example
+
+func PostStudents(c *fiber.Ctx) error {
+	var req struct {
+		BatchID   string           `json:"batch_id"`
+		ProgramID string           `json:"program_id"`
+		Students  []models.Student `json:"students"`
+	}
+
+	if err := c.BodyParser(&req); err != nil {
+		log.Printf("Error parsing body: %v", err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	// Convert batch_id and program_id to uint
+	batchID, err := strconv.ParseUint(req.BatchID, 10, 64)
+	if err != nil {
+		log.Printf("Error parsing batch_id: %v", err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid batch_id"})
+	}
+
+	programID, err := strconv.ParseUint(req.ProgramID, 10, 64)
+	if err != nil {
+		log.Printf("Error parsing program_id: %v", err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid program_id"})
+	}
+
+	// Create students
+	for _, student := range req.Students {
+		student.BatchID = uint(batchID)
+		student.ProgramID = uint(programID)
+		if err := initializers.DB.Create(&student).Error; err != nil {
+			log.Printf("Error creating student: %v", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		}
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Students created successfully"})
 }

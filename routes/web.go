@@ -103,7 +103,8 @@ func Dashboard(app *fiber.App) {
 
 func Student(app *fiber.App) {
 	app.Get("/students/add", controllers.AddStudent)
-	app.Post("/students/add", controllers.StoreStudents)
+	// app.Post("/students/add", controllers.StoreStudents)
+	app.Post("/students/add", controllers.PostStudents)
 	app.Get("/students", controllers.GetStudents)
 	app.Get("/students/edit/:id", controllers.EditStudent)
 	app.Put("/students/edit/:id", controllers.UpdateStudent)

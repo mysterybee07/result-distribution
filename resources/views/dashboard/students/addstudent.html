@@ -23,7 +23,6 @@
                 <div>
                     <label for="batch_id" class="block text-sm font-medium text-gray-700">Batch</label>
                     <select id="batch_id" name="batch_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                        <!-- Replace with dynamic options from your backend -->
                         {{range .Batches}}
                         <option value="{{.ID}}">{{.Year}}</option>
                         {{end}}
@@ -32,7 +31,6 @@
                 <div>
                     <label for="program_id" class="block text-sm font-medium text-gray-700">Program</label>
                     <select id="program_id" name="program_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                        <!-- Replace with dynamic options from your backend -->
                         {{range .Programs}}
                         <option value="{{.ID}}">{{.Name}}</option>
                         {{end}}
@@ -78,7 +76,7 @@
                 </div>
                 <div class="mt-4">
                     <button type="button" onclick="prevScreen()" class="mr-4 bg-gray-400 text-white px-4 py-2 rounded-md">Previous</button>
-                    <button type="button" onclick="submitForm()" class="bg-blue-500 text-white px-4 py-2 rounded-md">Submit</button>
+                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md">Submit</button>
                 </div>
             </form>
         </div>
@@ -147,20 +145,26 @@
             document.getElementById('fullname').value = '';
         }
 
-        function submitForm() {
+        document.getElementById('formScreen2').addEventListener('submit', function(event) {
+            event.preventDefault();
+
             const batchId = document.getElementById('batch_id_hidden').value;
             const programId = document.getElementById('program_id_hidden').value;
+
+            const payload = {
+                batch_id: batchId,
+                program_id: programId,
+                students: students
+            };
+
+            console.log('Payload:', payload); // Debug log
 
             fetch('/students/add', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        batch_id: batchId,
-                        program_id: programId,
-                        students: students
-                    }),
+                    body: JSON.stringify(payload),
                 })
                 .then(response => {
                     if (!response.ok) {
@@ -174,12 +178,13 @@
                     students = []; // Clear students array after successful submission
                     renderStudentTable(); // Optionally update UI after successful submission
                     clearFormFields(); // Clear form fields after successful submission
+                    prevScreen(); // Go back to screen 1 after successful submission
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('An error occurred while creating students');
+                    alert('An error occurred while creating students: ' + error.message);
                 });
-        }
+        });
     </script>
 </body>
 
