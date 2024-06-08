@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"log"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -35,8 +34,8 @@ func AddStudent(c *fiber.Ctx) error {
 func StoreStudents(c *fiber.Ctx) error {
 	// Parse JSON data
 	var requestData struct {
-		BatchID   uint             `json:"batch_id"`
-		ProgramID uint             `json:"program_id"`
+		BatchID   string           `json:"batch_id"`
+		ProgramID string           `json:"program_id"`
 		Students  []models.Student `json:"students"`
 	}
 
@@ -44,6 +43,36 @@ func StoreStudents(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Cannot parse JSON",
 		})
+	}
+
+	// Convert batchID and ProgramID to uint
+	batchID, err := strconv.ParseUint(requestData.BatchID, 10, 64)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid batch_id",
+		})
+	}
+	programID, err := strconv.ParseUint(requestData.ProgramID, 10, 64)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid program_id",
+		})
+	}
+
+	// Create students
+	for _, student := range requestData.Students {
+		student.BatchID = uint(batchID)
+		student.ProgramID = uint(programID)
+		if err := validation.ValidateStudent(&student, false); err != nil {
+			return c.Status(err.(*fiber.Error).Code).JSON(fiber.Map{
+				"message": err.Error(),
+			})
+		}
+		if err := initializers.DB.Create(&student).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "Could not create student",
+			})
+		}
 	}
 
 	// Begin a transaction
@@ -55,34 +84,6 @@ func StoreStudents(c *fiber.Ctx) error {
 	}
 
 	// Iterate over the students and validate/save each one
-	for _, student := range requestData.Students {
-		student.BatchID = requestData.BatchID
-		student.ProgramID = requestData.ProgramID
-
-		// Validate the student
-		if err := validation.ValidateStudent(&student, false); err != nil {
-			tx.Rollback()
-			return c.Status(err.(*fiber.Error).Code).JSON(fiber.Map{
-				"message": err.Error(),
-			})
-		}
-
-		// Save the student
-		if err := tx.Create(&student).Error; err != nil {
-			tx.Rollback()
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"message": "Could not create student",
-			})
-		}
-	}
-
-	// Commit the transaction
-	if err := tx.Commit().Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Could not commit transaction",
-		})
-	}
-
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"message": "Students created successfully",
 	})
@@ -155,41 +156,3 @@ func GetStudents(c *fiber.Ctx) error {
 }
 
 // example
-
-func PostStudents(c *fiber.Ctx) error {
-	var req struct {
-		BatchID   string           `json:"batch_id"`
-		ProgramID string           `json:"program_id"`
-		Students  []models.Student `json:"students"`
-	}
-
-	if err := c.BodyParser(&req); err != nil {
-		log.Printf("Error parsing body: %v", err)
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-
-	// Convert batch_id and program_id to uint
-	batchID, err := strconv.ParseUint(req.BatchID, 10, 64)
-	if err != nil {
-		log.Printf("Error parsing batch_id: %v", err)
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid batch_id"})
-	}
-
-	programID, err := strconv.ParseUint(req.ProgramID, 10, 64)
-	if err != nil {
-		log.Printf("Error parsing program_id: %v", err)
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid program_id"})
-	}
-
-	// Create students
-	for _, student := range req.Students {
-		student.BatchID = uint(batchID)
-		student.ProgramID = uint(programID)
-		if err := initializers.DB.Create(&student).Error; err != nil {
-			log.Printf("Error creating student: %v", err)
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
-		}
-	}
-
-	return c.JSON(fiber.Map{"status": "success", "message": "Students created successfully"})
-}
