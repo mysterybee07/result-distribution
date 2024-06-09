@@ -155,4 +155,35 @@ func GetStudents(c *fiber.Ctx) error {
 	})
 }
 
-// example
+func GetStudentById(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var student models.Student
+	if err := initializers.DB.Preload("Batch").Preload("Program").Preload("Semester").First(&student, id).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Student not found",
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Student retrieved successfully",
+		"student": student,
+	})
+}
+
+func DeleteStudent(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var student models.Student
+	if err := initializers.DB.First(&student, id).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "Student not found",
+		})
+	}
+	if err := initializers.DB.Delete(&student).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Could not delete student",
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Student deleted successfully",
+		"student": student,
+	})
+}
