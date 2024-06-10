@@ -1,85 +1,69 @@
-<!DOCTYPE html>
-<html lang="en">
+{{template "dashboard/layouts/top" .}}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Screen Form</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <style>
-        html,
-        body {
-            height: 100%;
-        }
-    </style>
-</head>
+<main class="bg-white dark:bg-gray-900 py-8 px-4 mx-auto max-w-2xl lg:py-16">
+    <!-- Screen 1: Batch and Program Selection -->
+    <div id="screen1" class="block">
+        <h2 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Select Batch and Program</h2>
+        <form id="formScreen1" class="space-y-4">
+            <div>
+                <label for="batch_id" class="block text-sm font-medium text-gray-900 dark:text-white">Batch</label>
+                <select id="batch_id" name="batch_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 dark:text-white">
+                    {{range .Batches}}
+                    <option value="{{.ID}}">{{.Year}}</option>
+                    {{end}}
+                </select>
+            </div>
+            <div>
+                <label for="program_id" class="block text-sm font-medium text-gray-900 dark:text-white">Program</label>
+                <select id="program_id" name="program_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 dark:text-white">
+                    {{range .Programs}}
+                    <option value="{{.ID}}">{{.Name}}</option>
+                    {{end}}
+                </select>
+            </div>
+            <button type="button" onclick="nextScreen()" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Next</button>
+        </form>
+    </div>
 
-<body class="bg-gray-100 flex items-center justify-center">
-    <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-        <!-- Screen 1: Batch and Program Selection -->
-        <div id="screen1" class="block">
-            <h2 class="text-2xl font-bold mb-4">Select Batch and Program</h2>
-            <form id="formScreen1" class="space-y-4">
-                <div>
-                    <label for="batch_id" class="block text-sm font-medium text-gray-700">Batch</label>
-                    <select id="batch_id" name="batch_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                        {{range .Batches}}
-                        <option value="{{.ID}}">{{.Year}}</option>
-                        {{end}}
-                    </select>
+    <!-- Screen 2: Student Data Table Form -->
+    <div id="screen2" class="hidden w-full">
+        <h2 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Add Student Data</h2>
+        <form id="formScreen2">
+            <input type="hidden" id="batch_id_hidden" name="batch_id" value="">
+            <input type="hidden" id="program_id_hidden" name="program_id" value="">
+            <div class="overflow-x-auto mb-4">
+                <table class="w-full border-collapse border border-gray-300 dark:border-gray-600">
+                    <thead>
+                        <tr class="bg-gray-100 dark:bg-gray-800">
+                            <th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-900 dark:text-white">Symbol Number</th>
+                            <th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-900 dark:text-white">Registration</th>
+                            <th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-900 dark:text-white">Fullname</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentTableBody">
+                        <!-- Table rows will be added dynamically -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex space-x-4">
+                <div class="flex-1">
+                    <input type="text" id="symbol_number" name="symbol_number" placeholder="Symbol Number" class="w-full border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md px-4 py-2 bg-gray-50 dark:bg-gray-700 dark:text-white">
                 </div>
-                <div>
-                    <label for="program_id" class="block text-sm font-medium text-gray-700">Program</label>
-                    <select id="program_id" name="program_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                        {{range .Programs}}
-                        <option value="{{.ID}}">{{.Name}}</option>
-                        {{end}}
-                    </select>
+                <div class="flex-1">
+                    <input type="text" id="registration" name="registration" placeholder="Registration" class="w-full border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md px-4 py-2 bg-gray-50 dark:bg-gray-700 dark:text-white">
                 </div>
-                <button type="button" onclick="nextScreen()" class="bg-blue-500 text-white px-4 py-2 rounded-md">Next</button>
-            </form>
-        </div>
-
-        <!-- Screen 2: Student Data Table Form -->
-        <div id="screen2" class="hidden w-full">
-            <h2 class="text-2xl font-bold mb-4">Add Student Data</h2>
-            <form id="formScreen2">
-                <input type="hidden" id="batch_id_hidden" name="batch_id" value="">
-                <input type="hidden" id="program_id_hidden" name="program_id" value="">
-                <div class="overflow-x-auto mb-4">
-                    <table class="w-full border-collapse border border-gray-300">
-                        <thead>
-                            <tr class="bg-gray-100">
-                                <th class="border border-gray-300 px-4 py-2 text-left">Symbol Number</th>
-                                <th class="border border-gray-300 px-4 py-2 text-left">Registration</th>
-                                <th class="border border-gray-300 px-4 py-2 text-left">Fullname</th>
-                            </tr>
-                        </thead>
-                        <tbody id="studentTableBody">
-                            <!-- Table rows will be added dynamically -->
-                        </tbody>
-                    </table>
+                <div class="flex-1">
+                    <input type="text" id="fullname" name="fullname" placeholder="Fullname" class="w-full border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md px-4 py-2 bg-gray-50 dark:bg-gray-700 dark:text-white">
                 </div>
-                <div class="flex space-x-4">
-                    <div class="flex-1">
-                        <input type="text" id="symbol_number" name="symbol_number" placeholder="Symbol Number" class="w-full border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md px-4 py-2">
-                    </div>
-                    <div class="flex-1">
-                        <input type="text" id="registration" name="registration" placeholder="Registration" class="w-full border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md px-4 py-2">
-                    </div>
-                    <div class="flex-1">
-                        <input type="text" id="fullname" name="fullname" placeholder="Fullname" class="w-full border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md px-4 py-2">
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <button type="button" onclick="addStudent()" class="bg-blue-500 text-white px-4 py-2 rounded-md">Add Student</button>
-                </div>
-                <div class="mt-4">
-                    <button type="button" onclick="prevScreen()" class="mr-4 bg-gray-400 text-white px-4 py-2 rounded-md">Previous</button>
-                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md">Submit</button>
-                </div>
-            </form>
-        </div>
+            </div>
+            <div class="mt-4">
+                <button type="button" onclick="addStudent()" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Add Student</button>
+            </div>
+            <div class="mt-4">
+                <button type="button" onclick="prevScreen()" class="mr-4 bg-gray-400 text-white px-4 py-2 rounded-md hover:bg-gray-500">Previous</button>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Submit</button>
+            </div>
+        </form>
     </div>
 
     <script>
@@ -130,9 +114,9 @@
             students.forEach((student, index) => {
                 const row = `
                     <tr>
-                        <td class="border border-gray-300 px-4 py-2">${student.symbol_number}</td>
-                        <td class="border border-gray-300 px-4 py-2">${student.registration}</td>
-                        <td class="border border-gray-300 px-4 py-2">${student.fullname}</td>
+                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${student.symbol_number}</td>
+                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${student.registration}</td>
+                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${student.fullname}</td>
                     </tr>
                 `;
                 tbody.insertAdjacentHTML('beforeend', row);
@@ -186,6 +170,5 @@
                 });
         });
     </script>
-</body>
-
-</html>
+</main>
+{{template "dashboard/layouts/bottom" .}}
