@@ -9,19 +9,30 @@ import (
 )
 
 func AddCourse(c *fiber.Ctx) error {
+	// Fetch programs with their associated semesters
 	var programs []models.Program
 	if err := initializers.DB.Preload("Semesters").Find(&programs).Error; err != nil {
 		c.Status(fiber.StatusInternalServerError).SendString("Error fetching programs")
 		return err
 	}
 
+	// Fetch batches
+	var batches []models.Batch
+	if err := initializers.DB.Find(&batches).Error; err != nil {
+		c.Status(fiber.StatusInternalServerError).SendString("Error fetching batches")
+		return err
+	}
+
+	// Render the template with both programs and batches
 	err := c.Render("dashboard/courses/addcourse", fiber.Map{
 		"Programs": programs,
+		"Batches":  batches,
 	})
 	if err != nil {
 		c.Status(fiber.StatusInternalServerError).SendString("Error rendering page")
 		return err
 	}
+
 	return nil
 }
 
