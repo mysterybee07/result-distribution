@@ -14,8 +14,8 @@
                 </select>
             </div>
             <div>
-                <label for="program_id" class="block text-sm font-medium text-gray-900 dark:text-white">Semester</label>
-                <select id="program_id" name="program_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 dark:text-white">
+                <label for="semester_id" class="block text-sm font-medium text-gray-900 dark:text-white">Semester</label>
+                <select id="semester_id" name="semester_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 dark:text-white">
                   {{range .Programs}}
                       <optgroup label="{{.Name}}">
                           {{range .Semesters}}
@@ -32,54 +32,74 @@
 
     <!-- Screen 2: Student Data Table Form -->
     <div id="screen2" class="hidden w-full">
-        <h2 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Add Student Data</h2>
+        <h2 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Add Course</h2>
         <form id="formScreen2">
-            <input type="hidden" id="batch_id_hidden" name="batch_id" value="">
             <input type="hidden" id="program_id_hidden" name="program_id" value="">
+            <input type="hidden" id="semester_id_hidden" name="semester_id" value="">
             <div class="overflow-x-auto mb-4">
                 <table class="w-full border-collapse border border-gray-300 dark:border-gray-600">
                     <thead>
                         <tr class="bg-gray-100 dark:bg-gray-800">
-                            <th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-900 dark:text-white">Symbol Number</th>
-                            <th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-900 dark:text-white">Registration</th>
-                            <th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-900 dark:text-white">Fullname</th>
+                            <th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-900 dark:text-white">Course Code</th>
+                            <th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-900 dark:text-white">Course Name</th>
+                            <th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-900 dark:text-white">Sem Pass Marks</th>
+                            <th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-900 dark:text-white">Practical Pass Marks</th>
+                            <th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-900 dark:text-white">Assistant Pass Marks</th>
+                            <th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-900 dark:text-white">Semester Total Marks</th>
+                            <th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-900 dark:text-white">Practical Total Marks</th>
+                            <th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-900 dark:text-white">Assistant Total Marks</th>
                         </tr>
                     </thead>
-                    <tbody id="studentTableBody">
+                    <tbody id="courseTableBody">
                         <!-- Table rows will be added dynamically -->
                     </tbody>
                 </table>
             </div>
             <div class="flex space-x-4">
                 <div class="flex-1">
-                    <input type="text" id="symbol_number" name="symbol_number" placeholder="Symbol Number" class="w-full border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md px-4 py-2 bg-gray-50 dark:bg-gray-700 dark:text-white">
+                    <input type="text" id="course_code" name="course_code" placeholder="Course Code" class="w-full border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md px-4 py-2 bg-gray-50 dark:bg-gray-700 dark:text-white">
                 </div>
                 <div class="flex-1">
-                    <input type="text" id="registration" name="registration" placeholder="Registration" class="w-full border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md px-4 py-2 bg-gray-50 dark:bg-gray-700 dark:text-white">
+                    <input type="text" id="name" name="name" placeholder="Course Name" class="w-full border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md px-4 py-2 bg-gray-50 dark:bg-gray-700 dark:text-white">
                 </div>
                 <div class="flex-1">
-                    <input type="text" id="fullname" name="fullname" placeholder="Fullname" class="w-full border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md px-4 py-2 bg-gray-50 dark:bg-gray-700 dark:text-white">
+                    <input type="number" id="semester_pass_marks" name="semester_pass_marks" placeholder="Semester Pass Marks" class="w-full border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md px-4 py-2 bg-gray-50 dark:bg-gray-700 dark:text-white">
+                </div>
+                <div class="flex-1">
+                    <input type="number" id="practical_pass_marks" name="practical_pass_marks" placeholder="Practical Pass Marks" class="w-full border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md px-4 py-2 bg-gray-50 dark:bg-gray-700 dark:text-white">
+                </div>
+                <div class="flex-1">
+                    <input type="number" id="assistant_pass_marks" name="assistant_pass_marks" placeholder="Assistant Pass Marks" class="w-full border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md px-4 py-2 bg-gray-50 dark:bg-gray-700 dark:text-white">
+                </div>
+                <div class="flex-1">
+                    <input type="number" id="semester_total_marks" name="semester_total_marks" placeholder="Semester Total Marks" class="w-full border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md px-4 py-2 bg-gray-50 dark:bg-gray-700 dark:text-white">
+                </div>
+                <div class="flex-1">
+                    <input type="number" id="practical_total_marks" name="practical_total_marks" placeholder="Practical Total Marks" class="w-full border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md px-4 py-2 bg-gray-50 dark:bg-gray-700 dark:text-white">
+                </div>
+                <div class="flex-1">
+                    <input type="number" id="assistant_total_marks" name="assistant_total_marks" placeholder="Assistant Total Marks" class="w-full border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md px-4 py-2 bg-gray-50 dark:bg-gray-700 dark:text-white">
                 </div>
             </div>
             <div class="mt-4">
-                <button type="button" onclick="addStudent()" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Add Student</button>
+                <button type="button" onclick="addCourse()" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Add Course</button>
             </div>
             <div class="mt-4">
-                <button type="button" onclick="prevScreen()" class="mr-4 bg-gray-400 text-white px-4 py-2 rounded-md hover:bg-gray-500">Previous</button>
+                <button type="button" onclick="prevScreen()" class="mr-4 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-gray-500">Previous</button>
                 <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Submit</button>
             </div>
         </form>
     </div>
 
     <script>
-        let students = [];
+        let courses = [];
 
         function nextScreen() {
-            const batchId = document.getElementById('batch_id').value;
             const programId = document.getElementById('program_id').value;
+            const semesterId = document.getElementById('semester_id').value;
 
-            document.getElementById('batch_id_hidden').value = batchId;
             document.getElementById('program_id_hidden').value = programId;
+            document.getElementById('semester_id_hidden').value = semesterId;
 
             document.getElementById('screen1').classList.add('hidden');
             document.getElementById('screen2').classList.remove('hidden');
@@ -90,38 +110,53 @@
             document.getElementById('screen2').classList.add('hidden');
         }
 
-        function addStudent() {
-            const symbolNumber = document.getElementById('symbol_number').value;
-            const registration = document.getElementById('registration').value;
-            const fullname = document.getElementById('fullname').value;
+        function addCourse() {
+            const courseCode = document.getElementById('course_code').value;
+            const name = document.getElementById('name').value;
+            const semesterPassMarks = document.getElementById('semester_pass_marks').value;
+            const practicalPassMarks = document.getElementById('practical_pass_marks').value;
+            const assistantPassMarks = document.getElementById('assistant_pass_marks').value;
+            const semesterTotalMarks = document.getElementById('semester_total_marks').value;
+            const practicalTotalMarks = document.getElementById('practical_total_marks').value;
+            const assistantTotalMarks = document.getElementById('assistant_total_marks').value;
 
-            if (!symbolNumber || !registration || !fullname) {
+            if (!courseCode || !name || !semesterPassMarks || !practicalPassMarks || !assistantPassMarks || !semesterTotalMarks || !practicalTotalMarks || !assistantTotalMarks) {
                 alert('Please fill in all fields');
                 return;
             }
 
-            const student = {
-                symbol_number: symbolNumber,
-                registration: registration,
-                fullname: fullname
+            const course = {
+                course_code: courseCode,
+                name: name,
+                semester_pass_marks: semesterPassMarks,
+                practical_pass_marks: practicalPassMarks,
+                assistant_pass_marks: assistantPassMarks,
+                semester_total_marks: semesterTotalMarks,
+                practical_total_marks: practicalTotalMarks,
+                assistant_total_marks: assistantTotalMarks
             };
 
-            students.push(student);
+            courses.push(course);
 
-            renderStudentTable();
+            renderCourseTable();
             clearFormFields();
         }
 
-        function renderStudentTable() {
-            const tbody = document.getElementById('studentTableBody');
+        function renderCourseTable() {
+            const tbody = document.getElementById('courseTableBody');
             tbody.innerHTML = '';
 
-            students.forEach((student, index) => {
+            courses.forEach((course, index) => {
                 const row = `
                     <tr>
-                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${student.symbol_number}</td>
-                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${student.registration}</td>
-                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${student.fullname}</td>
+                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${course.course_code}</td>
+                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${course.name}</td>
+                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${course.semester_pass_marks}</td>
+                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${course.practical_pass_marks}</td>
+                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${course.assistant_pass_marks}</td>
+                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${course.semester_total_marks}</td>
+                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${course.practical_total_marks}</td>
+                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${course.assistant_total_marks}</td>
                     </tr>
                 `;
                 tbody.insertAdjacentHTML('beforeend', row);
@@ -129,26 +164,31 @@
         }
 
         function clearFormFields() {
-            document.getElementById('symbol_number').value = '';
-            document.getElementById('registration').value = '';
-            document.getElementById('fullname').value = '';
+            document.getElementById('course_code').value = '';
+            document.getElementById('name').value = '';
+            document.getElementById('semester_pass_marks').value = '';
+            document.getElementById('practical_pass_marks').value = '';
+            document.getElementById('assistant_pass_marks').value = '';
+            document.getElementById('semester_total_marks').value = '';
+            document.getElementById('practical_total_marks').value = '';
+            document.getElementById('assistant_total_marks').value = '';
         }
 
         document.getElementById('formScreen2').addEventListener('submit', function(event) {
             event.preventDefault();
 
-            const batchId = document.getElementById('batch_id_hidden').value;
             const programId = document.getElementById('program_id_hidden').value;
+            const semesterId = document.getElementById('semester_id_hidden').value;
 
             const payload = {
-                batch_id: batchId,
                 program_id: programId,
-                students: students
+                semester_id: semesterId,
+                courses: courses
             };
 
             console.log('Payload:', payload); // Debug log
 
-            fetch('/students/add', {
+            fetch('/courses', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -163,15 +203,15 @@
                 })
                 .then(data => {
                     console.log('Success:', data);
-                    alert('Students created successfully');
-                    students = []; // Clear students array after successful submission
-                    renderStudentTable(); // Optionally update UI after successful submission
+                    alert('Courses created successfully');
+                    courses = []; // Clear courses array after successful submission
+                    renderCourseTable(); // Optionally update UI after successful submission
                     clearFormFields(); // Clear form fields after successful submission
                     prevScreen(); // Go back to screen 1 after successful submission
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('An error occurred while creating students: ' + error.message);
+                    alert('An error occurred while creating courses: ' + error.message);
                 });
         });
     </script>
