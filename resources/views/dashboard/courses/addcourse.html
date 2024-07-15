@@ -16,21 +16,21 @@
             <div>
                 <label for="semester_id" class="block text-sm font-medium text-gray-900 dark:text-white">Semester</label>
                 <select id="semester_id" name="semester_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 dark:text-white">
-                  {{range .Programs}}
-                      <optgroup label="{{.Name}}">
-                          {{range .Semesters}}
-                              <option value="{{.ID}}">{{.Name}}</option>
-                          {{end}}
-                      </optgroup>
-                  {{end}}
-              </select>
+                    {{range .Programs}}
+                    <optgroup label="{{.Name}}">
+                        {{range .Semesters}}
+                        <option value="{{.ID}}">{{.Name}}</option>
+                        {{end}}
+                    </optgroup>
+                    {{end}}
+                </select>
             </div>
 
             <button type="button" onclick="nextScreen()" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Next</button>
         </form>
     </div>
 
-    <!-- Screen 2: Student Data Table Form -->
+    <!-- Screen 2: Course Entry Form -->
     <div id="screen2" class="hidden w-full">
         <h2 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Add Course</h2>
         <form id="formScreen2">
@@ -42,7 +42,7 @@
                         <tr class="bg-gray-100 dark:bg-gray-800">
                             <th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-900 dark:text-white">Course Code</th>
                             <th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-900 dark:text-white">Course Name</th>
-                            <th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-900 dark:text-white">Sem Pass Marks</th>
+                            <th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-900 dark:text-white">Semester Pass Marks</th>
                             <th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-900 dark:text-white">Practical Pass Marks</th>
                             <th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-900 dark:text-white">Assistant Pass Marks</th>
                             <th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-900 dark:text-white">Semester Total Marks</th>
@@ -114,14 +114,14 @@
             const courseCode = document.getElementById('course_code').value;
             const name = document.getElementById('name').value;
             const semesterPassMarks = document.getElementById('semester_pass_marks').value;
-            const practicalPassMarks = document.getElementById('practical_pass_marks').value;
-            const assistantPassMarks = document.getElementById('assistant_pass_marks').value;
+            const practicalPassMarks = document.getElementById('practical_pass_marks').value || null;
+            const assistantPassMarks = document.getElementById('assistant_pass_marks').value || null;
             const semesterTotalMarks = document.getElementById('semester_total_marks').value;
-            const practicalTotalMarks = document.getElementById('practical_total_marks').value;
-            const assistantTotalMarks = document.getElementById('assistant_total_marks').value;
+            const practicalTotalMarks = document.getElementById('practical_total_marks').value || null;
+            const assistantTotalMarks = document.getElementById('assistant_total_marks').value || null;
 
-            if (!courseCode || !name || !semesterPassMarks || !practicalPassMarks || !assistantPassMarks || !semesterTotalMarks || !practicalTotalMarks || !assistantTotalMarks) {
-                alert('Please fill in all fields');
+            if (!courseCode || !name || !semesterPassMarks || !semesterTotalMarks) {
+                alert('Please fill in all required fields');
                 return;
             }
 
@@ -152,11 +152,11 @@
                         <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${course.course_code}</td>
                         <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${course.name}</td>
                         <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${course.semester_pass_marks}</td>
-                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${course.practical_pass_marks}</td>
-                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${course.assistant_pass_marks}</td>
+                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${course.practical_pass_marks || '-'}</td>
+                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${course.assistant_pass_marks || '-'}</td>
                         <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${course.semester_total_marks}</td>
-                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${course.practical_total_marks}</td>
-                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${course.assistant_total_marks}</td>
+                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${course.practical_total_marks || '-'}</td>
+                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${course.assistant_total_marks || '-'}</td>
                     </tr>
                 `;
                 tbody.insertAdjacentHTML('beforeend', row);
@@ -181,12 +181,19 @@
             const semesterId = document.getElementById('semester_id_hidden').value;
 
             const payload = {
-                program_id: programId,
-                semester_id: semesterId,
-                courses: courses
+                program_id: parseInt(programId),
+                semester_id: parseInt(semesterId),
+                courses: courses.map(course => ({
+                    course_code: course.course_code,
+                    name: course.name,
+                    semester_pass_marks: parseInt(course.semester_pass_marks),
+                    practical_pass_marks: course.practical_pass_marks ? parseInt(course.practical_pass_marks) : null,
+                    assistant_pass_marks: course.assistant_pass_marks ? parseInt(course.assistant_pass_marks) : null,
+                    semester_total_marks: parseInt(course.semester_total_marks),
+                    practical_total_marks: course.practical_total_marks ? parseInt(course.practical_total_marks) : null,
+                    assistant_total_marks: course.assistant_total_marks ? parseInt(course.assistant_total_marks) : null
+                }))
             };
-
-            console.log('Payload:', payload); // Debug log
 
             fetch('/courses', {
                     method: 'POST',
@@ -216,4 +223,5 @@
         });
     </script>
 </main>
+
 {{template "dashboard/layouts/bottom" .}}

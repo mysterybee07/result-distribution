@@ -1,11 +1,14 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
+	"log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/mysterybee07/result-distribution-system/initializers"
 	"github.com/mysterybee07/result-distribution-system/models"
+	"gorm.io/gorm"
 )
 
 func AddCourse(c *fiber.Ctx) error {
@@ -45,92 +48,77 @@ func GetSemestersByProgram(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"semesters": semesters})
 }
 
+// StoreCourse handles storing multiple courses in a single request
 func StoreCourse(c *fiber.Ctx) error {
-	// Struct to parse the incoming JSON request body
-	type CourseInput struct {
-		CourseCode          string `json:"course_code"`
-		Name                string `json:"name" validate:"required"`
-		SemesterPassMarks   int    `json:"semester_pass_marks" validate:"required"`
-		PracticalPassMarks  *int   `json:"practical_pass_marks,omitempty"`
-		AssistantPassMarks  *int   `json:"assistant_pass_marks,omitempty"`
-		SemesterTotalMarks  int    `json:"semester_total_marks" validate:"required"`
-		PracticalTotalMarks *int   `json:"practical_total_marks,omitempty"`
-		AssistantTotalMarks *int   `json:"assistant_total_marks,omitempty"`
-	}
-
-	type RequestPayload struct {
-		ProgramID  uint          `json:"program_id" validate:"required"`
-		SemesterID uint          `json:"semester_id" validate:"required"`
-		Courses    []CourseInput `json:"courses" validate:"required"`
-	}
-
-	payload := new(RequestPayload)
-
-	// Parse the incoming JSON request body into the payload struct
-	if err := c.BodyParser(payload); err != nil {
+	// Parse incoming JSON request body into payload struct
+	var payload models.CoursesPayload
+	if err := c.BodyParser(&payload); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Cannot parse JSON",
+			"error": "Invalid JSON",
 		})
 	}
 
 	// Check if the program exists
 	var program models.Program
 	if err := initializers.DB.First(&program, payload.ProgramID).Error; err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Program not found",
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Program not found",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Database error",
 		})
 	}
 
 	// Check if the semester exists
 	var semester models.Semester
 	if err := initializers.DB.First(&semester, payload.SemesterID).Error; err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Semester not found",
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Semester not found",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Database error",
 		})
 	}
 
 	// Create and validate courses
 	var createdCourses []models.Course
-	for _, courseInput := range payload.Courses {
+	for _, course := range payload.Courses {
 		// Check if the course already exists for the same program
 		var existingCourse models.Course
-		if err := initializers.DB.Where("name = ? AND program_id = ?", courseInput.Name, payload.ProgramID).First(&existingCourse).Error; err == nil {
+		if err := initializers.DB.Where("name = ? AND program_id = ?", course.Name, payload.ProgramID).First(&existingCourse).Error; err == nil {
 			return c.Status(fiber.StatusConflict).JSON(fiber.Map{
-				"error": fmt.Sprintf("Course '%s' already exists for the given program", courseInput.Name),
+				"error": fmt.Sprintf("Course '%s' already exists for the given program", course.Name),
 			})
 		}
-
-		// Create the new course
-		course := models.Course{
-			CourseCode:          courseInput.CourseCode,
-			Name:                courseInput.Name,
-			SemesterPassMarks:   courseInput.SemesterPassMarks,
-			PracticalPassMarks:  courseInput.PracticalPassMarks,
-			AssistantPassMarks:  courseInput.AssistantPassMarks,
-			SemesterTotalMarks:  courseInput.SemesterTotalMarks,
-			PracticalTotalMarks: courseInput.PracticalTotalMarks,
-			AssistantTotalMarks: courseInput.AssistantTotalMarks,
+		newCourse := models.Course{
+			CourseCode:          course.CourseCode,
+			Name:                course.Name,
+			SemesterPassMarks:   course.SemesterPassMarks,
+			PracticalPassMarks:  course.PracticalPassMarks,
+			AssistantPassMarks:  course.AssistantPassMarks,
+			SemesterTotalMarks:  course.SemesterTotalMarks,
+			PracticalTotalMarks: course.PracticalTotalMarks,
+			AssistantTotalMarks: course.AssistantTotalMarks,
 			ProgramID:           payload.ProgramID,
 			SemesterID:          payload.SemesterID,
 		}
 
-		if err := initializers.DB.Create(&course).Error; err != nil {
+		if err := initializers.DB.Create(&newCourse).Error; err != nil {
+			log.Printf("Error creating course: %v\n", err)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Could not create course",
 			})
 		}
 
-		// Preload the Program and Semester associations
-		if err := initializers.DB.Preload("Program").Preload("Semester.Program").First(&course, course.ID).Error; err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Could not retrieve course with associations",
-			})
-		}
-
-		createdCourses = append(createdCourses, course)
+		// Append created course to response
+		createdCourses = append(createdCourses, newCourse)
 	}
 
-	// Return the created courses with a success message
+	// Return success response with created courses
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"message": "Courses created successfully",
 		"courses": createdCourses,
