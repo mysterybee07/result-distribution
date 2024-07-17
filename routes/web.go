@@ -129,6 +129,7 @@ func Semester(app *fiber.App) {
 func Subject(app *fiber.App) {
 	app.Get("/courses", controllers.AddCourse)
 	app.Post("/courses", controllers.StoreCourse)
+	app.Get("/api/semesters/:programID", controllers.GetSemestersByProgramID)
 }
 
 func Mark(app *fiber.App) {

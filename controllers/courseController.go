@@ -19,17 +19,9 @@ func AddCourse(c *fiber.Ctx) error {
 		return err
 	}
 
-	// Fetch batches
-	var batches []models.Batch
-	if err := initializers.DB.Find(&batches).Error; err != nil {
-		c.Status(fiber.StatusInternalServerError).SendString("Error fetching batches")
-		return err
-	}
-
-	// Render the template with both programs and batches
+	// Render the template with programs
 	err := c.Render("dashboard/courses/addcourse", fiber.Map{
 		"Programs": programs,
-		"Batches":  batches,
 	})
 	if err != nil {
 		c.Status(fiber.StatusInternalServerError).SendString("Error rendering page")
@@ -39,13 +31,21 @@ func AddCourse(c *fiber.Ctx) error {
 	return nil
 }
 
-func GetSemestersByProgram(c *fiber.Ctx) error {
-	programId := c.Params("id")
+func GetSemestersByProgramID(c *fiber.Ctx) error {
+	programID := c.Params("programID")
+
+	// Fetch semesters for the given programID
 	var semesters []models.Semester
-	if err := initializers.DB.Where("program_id = ?", programId).Find(&semesters).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching semesters"})
+	if err := initializers.DB.Where("program_id = ?", programID).Find(&semesters).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to fetch semesters",
+		})
 	}
-	return c.JSON(fiber.Map{"semesters": semesters})
+
+	// Return semesters as JSON response
+	return c.JSON(fiber.Map{
+		"semesters": semesters,
+	})
 }
 
 // StoreCourse handles storing multiple courses in a single request
@@ -84,43 +84,28 @@ func StoreCourse(c *fiber.Ctx) error {
 		})
 	}
 
-	// Create and validate courses
-	var createdCourses []models.Course
+	// Validate and create courses
 	for _, course := range payload.Courses {
+		course.ProgramID = payload.ProgramID
+		course.SemesterID = payload.SemesterID
+
 		// Check if the course already exists for the same program
 		var existingCourse models.Course
-		if err := initializers.DB.Where("name = ? AND program_id = ?", course.Name, payload.ProgramID).First(&existingCourse).Error; err == nil {
+		if err := initializers.DB.Where("course_code = ? AND program_id = ?", course.CourseCode, payload.ProgramID).First(&existingCourse).Error; err == nil {
 			return c.Status(fiber.StatusConflict).JSON(fiber.Map{
 				"error": fmt.Sprintf("Course '%s' already exists for the given program", course.Name),
 			})
 		}
-		newCourse := models.Course{
-			CourseCode:          course.CourseCode,
-			Name:                course.Name,
-			SemesterPassMarks:   course.SemesterPassMarks,
-			PracticalPassMarks:  course.PracticalPassMarks,
-			AssistantPassMarks:  course.AssistantPassMarks,
-			SemesterTotalMarks:  course.SemesterTotalMarks,
-			PracticalTotalMarks: course.PracticalTotalMarks,
-			AssistantTotalMarks: course.AssistantTotalMarks,
-			ProgramID:           payload.ProgramID,
-			SemesterID:          payload.SemesterID,
-		}
 
-		if err := initializers.DB.Create(&newCourse).Error; err != nil {
+		if err := initializers.DB.Create(&course).Error; err != nil {
 			log.Printf("Error creating course: %v\n", err)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Could not create course",
 			})
 		}
-
-		// Append created course to response
-		createdCourses = append(createdCourses, newCourse)
 	}
 
-	// Return success response with created courses
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"message": "Courses created successfully",
-		"courses": createdCourses,
 	})
 }
