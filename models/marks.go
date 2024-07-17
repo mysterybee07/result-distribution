@@ -24,6 +24,18 @@ type Mark struct {
 	Course         Course   `gorm:"foreignkey:CourseID"`
 	Student        Student  `gorm:"foreignkey:StudentID"`
 }
+type MarksPayload struct {
+	BatchID    uint `json:"batch_id" validate:"required"`
+	ProgramID  uint `json:"program_id" validate:"required"`
+	SemesterID uint `json:"semester_id" validate:"required"`
+	CourseID   uint `json:"course_id" validate:"required"`
+	Marks      []struct {
+		StudentID      uint `json:"student_id" validate:"required"`
+		SemesterMarks  int  `json:"semester_marks" validate:"required"`
+		AssistantMarks int  `json:"assistant_marks" validate:"required"`
+		PracticalMarks int  `json:"practical_marks" validate:"required"`
+	} `json:"marks" validate:"required,dive"`
+}
 
 func (m *Mark) BeforeSave(tx *gorm.DB) (err error) {
 	var course Course
