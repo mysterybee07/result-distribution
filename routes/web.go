@@ -144,7 +144,7 @@ func Mark(app *fiber.App) {
 }
 
 func Result(app *fiber.App) {
-	app.Get("/results", middleware.AuthRequired, middleware.SuperadminRequired, controllers.AddResult)
+	app.Get("/results", controllers.AddResult)
 	app.Post("/results", controllers.PublishResults)
 }
 
