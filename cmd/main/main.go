@@ -27,6 +27,13 @@ func main() {
 
 	// Load templates
 	engine := html.New("./resources/views", ".html")
+	engine.AddFunc("add", func(values ...int) int {
+		sum := 0
+		for _, v := range values {
+			sum += v
+		}
+		return sum
+	})
 
 	app := fiber.New(fiber.Config{
 		Views: engine,
@@ -47,7 +54,7 @@ func main() {
 	// Use flash messages middleware
 	app.Use(middleware.FlashMessages)
 	// Loading static files
-	app.Static("/", "./static")
+	app.Static("/static", "./static")
 
 	// Authentication routes
 	routes.Home(app)

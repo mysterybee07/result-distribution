@@ -1,16 +1,13 @@
 {{template "dashboard/layouts/top" .}}
 <main class="bg-white dark:bg-gray-900">
-  <div class="py-8 px-4 mx-auto max-w-2xl lg:py-16">
-    <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">
-      Add Batch
-    </h2>
-    <form action="/batches" method="post">
-      <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
-        <div>
-          <label
-            for="year"
-            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-            >Select Batch</label
+    <div class="py-8 px-4 mx-auto max-w-2xl lg:py-16">
+        <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">
+            Add Batch
+        </h2>
+        <form action="/batches" method="post">
+            <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
+                <div>
+                    <label for="year" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Select Batch</label
           >
           <select
             id="year"
@@ -49,7 +46,7 @@
           <tbody>
             {{range $index, $batch := .Batches}}
             <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-              <td class="py-4 px-6">{{$index}}</td>
+              <td class="py-4 px-6">{{add $index 1}}</td>
               <td class="py-4 px-6">{{$batch.Year}}</td>
             </tr>
             {{else}}

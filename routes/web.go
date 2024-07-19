@@ -86,6 +86,7 @@ func Home(app *fiber.App) {
 	app.Post("/login", controllers.LoginUser)
 	app.Get("/forgot-password", controllers.ForgotPassword)
 	app.Put("/edit-user/:id", controllers.UpdateUser)
+	app.Get("/logout", controllers.LogoutUser)
 	// app.Post("/upload", controllers.Upload)
 	// app.Static("/uploads", "./static/images/uploads")
 	// app.Get("/users/:id", controllers.GetUserById)
