@@ -1,4 +1,4 @@
-function fetchSemesters(fetchCoursesFlag = true) {
+function fetchSemesters() {
     const programId = document.getElementById('program_id').value;
 
     fetch(`/getfiltersemesters?program_id=${programId}`)
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
     form.reset();
 
     // Fetch initial semesters and courses based on the selected program
-    fetchSemesters(false);
+    // fetchSemesters(false);
 
     // Event listeners for dynamic updates
     document.getElementById('program_id').addEventListener('change', () => fetchSemesters(true));
