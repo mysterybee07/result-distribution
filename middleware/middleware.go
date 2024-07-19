@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/mysterybee07/result-distribution-system/initializers"
 	"github.com/mysterybee07/result-distribution-system/models"
 	"github.com/mysterybee07/result-distribution-system/utils"
@@ -75,6 +76,25 @@ func SuperadminRequired(c *fiber.Ctx) error {
 		log.Println("User is not a superadmin")
 		// Redirect to another route (404 page or dashboard)
 		return c.Redirect("/404", fiber.StatusFound)
+	}
+
+	return c.Next()
+}
+
+var store = session.New()
+
+func FlashMessages(c *fiber.Ctx) error {
+	sess, err := store.Get(c)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Failed to get session")
+	}
+
+	if msg := sess.Get("success"); msg != nil {
+		c.Locals("flash_success", msg)
+		sess.Delete("success")
+		if err := sess.Save(); err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString("Failed to save session")
+		}
 	}
 
 	return c.Next()

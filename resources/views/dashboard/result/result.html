@@ -2,6 +2,13 @@
 <main class="bg-white dark:bg-gray-900">
     <div class="py-8 px-4 mx-auto max-w-2xl lg:py-16">
         <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">Publish Results</h2>
+
+        {{if .flash_success}}
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+            <span class="block sm:inline">{{.flash_success}}</span>
+        </div>
+        {{end}}
+
         <form action="/results" method="post">
             <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
                 <div>
@@ -45,25 +52,28 @@
 
         <div class="mt-8">
             <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-white">Published Results</h3>
-            {{range $programIndex, $program := .Programs}}
+            {{if .Results}}
             <div class="overflow-x-auto relative shadow-md sm:rounded-lg mb-8">
-                <h4 class="mb-4 text-md font-semibold text-gray-900 dark:text-white">{{$program.Name}}</h4>
                 <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                         <tr>
                             <th scope="col" class="py-3 px-6">S.No.</th>
+                            <th scope="col" class="py-3 px-6">Batch</th>
+                            <th scope="col" class="py-3 px-6">Program</th>
                             <th scope="col" class="py-3 px-6">Semester</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {{range $semesterIndex, $semester := $program.Semesters}}
+                        {{range $resultIndex, $result := .Results}}
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                            <td class="py-4 px-6">{{$semesterIndex}}</td>
-                            <td class="py-4 px-6">{{$semester.Name}}</td>
+                            <td class="py-4 px-6">{{$resultIndex}}</td>
+                            <td class="py-4 px-6">{{$result.Batch.Year}}</td>
+                            <td class="py-4 px-6">{{$result.Program.Name}}</td>
+                            <td class="py-4 px-6">{{$result.Semester.Name}}</td>
                         </tr>
                         {{else}}
                         <tr>
-                            <td colspan="2" class="py-4 px-6 text-center">No semesters available</td>
+                            <td colspan="4" class="py-4 px-6 text-center">No results available</td>
                         </tr>
                         {{end}}
                     </tbody>

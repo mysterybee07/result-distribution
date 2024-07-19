@@ -5,7 +5,15 @@ function fetchSemesters(fetchCoursesFlag = true) {
         .then(response => response.json())
         .then(data => {
             const semesterSelect = document.getElementById('semester_id');
-            // semesterSelect.innerHTML = 'select';
+            semesterSelect.innerHTML = ''; // Clear existing options
+
+            // Add the default option
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'Select Semester';
+            semesterSelect.appendChild(defaultOption);
+
+            // Add new options
             data.semesters.forEach(semester => {
                 const option = document.createElement('option');
                 option.value = semester.ID;
@@ -13,6 +21,10 @@ function fetchSemesters(fetchCoursesFlag = true) {
                 semesterSelect.appendChild(option);
             });
 
+            // Optionally fetch courses if needed
+            // if (fetchCoursesFlag) {
+            //     fetchCourses();
+            // }
         })
         .catch(error => {
             console.error('Error fetching semesters:', error);
@@ -28,10 +40,17 @@ function fetchCourses() {
         .then(response => response.json())
         .then(data => {
             const courseSelect = document.getElementById('course_id');
-            // courseSelect.innerHTML = '';
+            courseSelect.innerHTML = ''; // Clear existing options
+
+            // Add the default option
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'Select Course';
+            courseSelect.appendChild(defaultOption);
+
+            // Add new options
             data.courses.forEach(course => {
                 const option = document.createElement('option');
-
                 option.value = course.ID;
                 option.textContent = course.name;
                 courseSelect.appendChild(option);
@@ -46,12 +65,11 @@ function fetchCourses() {
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('formScreen1'); // Replace with your form ID
     form.reset();
-    // Fetch initial semesters and courses based on the selected program
 
-    // fetchSemesters();
+    // Fetch initial semesters and courses based on the selected program
+    fetchSemesters(false);
 
     // Event listeners for dynamic updates
-    // document.getElementById('program_id').addEventListener('change', fetchSemesters);
+    document.getElementById('program_id').addEventListener('change', () => fetchSemesters(true));
     document.getElementById('semester_id').addEventListener('change', fetchCourses);
-
 });
