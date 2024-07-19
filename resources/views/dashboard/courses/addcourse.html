@@ -7,7 +7,8 @@
         <form id="formScreen1" class="space-y-4">
             <div>
                 <label for="program_id" class="block text-sm font-medium text-gray-900 dark:text-white">Program</label>
-                <select id="program_id" name="program_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 dark:text-white">
+                <select id="program_id" name="program_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 dark:text-white"
+                    onchange="fetchSemesters()">
                     {{range .Programs}}
                     <option value="{{.ID}}">{{.Name}}</option>
                     {{end}}
@@ -16,13 +17,7 @@
             <div>
                 <label for="semester_id" class="block text-sm font-medium text-gray-900 dark:text-white">Semester</label>
                 <select id="semester_id" name="semester_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 dark:text-white">
-                    {{range .Programs}}
-                    <optgroup label="{{.Name}}">
-                        {{range .Semesters}}
-                        <option value="{{.ID}}">{{.Name}}</option>
-                        {{end}}
-                    </optgroup>
-                    {{end}}
+                   
                 </select>
             </div>
 

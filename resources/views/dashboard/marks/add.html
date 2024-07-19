@@ -8,31 +8,34 @@
             <div>
                 <label for="batch_id" class="block text-sm font-medium text-gray-900 dark:text-white">Batch</label>
                 <select id="batch_id" name="batch_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 dark:text-white">
-                    {{range .Students}}
-                    <option value="{{.ID}}">{{.Batch.Year}}</option>
+                    <option value="default">Select</option>
+                    {{range .Batches}}
+                    <option value="{{.ID}}">{{.Year}}</option>
                     {{end}}
                 </select>
             </div>
             <div>
                 <label for="program_id" class="block text-sm font-medium text-gray-900 dark:text-white">Program</label>
-                <select id="program_id" name="program_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 dark:text-white">
-                    {{range .Students}}
-                    <option value="{{.ID}}">{{.Program.Name}}</option>
+                <select id="program_id" name="program_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 dark:text-white"
+                    onchange="fetchSemesters()">
+                    <option value="default">Select</option>
+                    {{range .Programs}}
+                    <option value="{{.ID}}">{{.Name}}</option>
                     {{end}}
                 </select>
             </div>
             <div>
                 <label for="semester_id" class="block text-sm font-medium text-gray-900 dark:text-white">Semester</label>
                 <select id="semester_id" name="semester_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 dark:text-white">
-                    {{range .Students}}
-                    <option value="{{.ID}}">{{.Semester.Name}}</option>
-                    {{end}}
+                    <option value="default">Select Semester</option>
+                    <!-- Options will be populated dynamically -->
                 </select>
             </div>
             <div>
                 <label for="course_id" class="block text-sm font-medium text-gray-900 dark:text-white">Course</label>
                 <select id="course_id" name="course_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 dark:text-white">
-                    <!-- Options will be populated dynamically based on program and semester selection -->
+                    <option value="default">Select Course</option>
+                    <!-- Options will be populated dynamically -->
                 </select>
             </div>
 
@@ -42,16 +45,27 @@
 
     <!-- Screen 2: Marks Entry Form -->
     <div id="screen2" class="hidden w-full">
-        <h2 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Add Marks</h2>
+        <h2 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Enter Marks</h2>
         <form id="formScreen2">
             <input type="hidden" id="batch_id_hidden" name="batch_id" value="">
             <input type="hidden" id="program_id_hidden" name="program_id" value="">
             <input type="hidden" id="semester_id_hidden" name="semester_id" value="">
             <input type="hidden" id="course_id_hidden" name="course_id" value="">
-
-            <!-- Input fields for marks entry -->
-            <!-- Include fields for semester marks, practical marks, assistant marks, etc. -->
-
+            <div class="overflow-x-auto mb-4">
+                <table class="w-full border-collapse border border-gray-300 dark:border-gray-600">
+                    <thead>
+                        <tr class="bg-gray-100 dark:bg-gray-800">
+                            <th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-900 dark:text-white">Symbol Number</th>
+                            <th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-900 dark:text-white">Semester Marks</th>
+                            <th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-900 dark:text-white">Assistant Marks</th>
+                            <th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-900 dark:text-white">Practical Marks</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentTableBody">
+                        <!-- Table rows will be added dynamically -->
+                    </tbody>
+                </table>
+            </div>
             <div class="mt-4">
                 <button type="button" onclick="prevScreen()" class="mr-4 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-gray-500">Previous</button>
                 <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Submit</button>
@@ -60,19 +74,32 @@
     </div>
 
     <script>
+        let marks = [];
+
         function nextScreen() {
             const batchId = document.getElementById('batch_id').value;
             const programId = document.getElementById('program_id').value;
             const semesterId = document.getElementById('semester_id').value;
             const courseId = document.getElementById('course_id').value;
 
+            // Set hidden input values
             document.getElementById('batch_id_hidden').value = batchId;
             document.getElementById('program_id_hidden').value = programId;
             document.getElementById('semester_id_hidden').value = semesterId;
             document.getElementById('course_id_hidden').value = courseId;
 
-            document.getElementById('screen1').classList.add('hidden');
-            document.getElementById('screen2').classList.remove('hidden');
+            // Fetch students based on batch, program, and semester
+            fetch(`/getstudents?batch_id=${batchId}&program_id=${programId}&semester_id=${semesterId}`)
+                .then(response => response.json())
+                .then(data => {
+                    renderStudentTable(data.students);
+                    document.getElementById('screen1').classList.add('hidden');
+                    document.getElementById('screen2').classList.remove('hidden');
+                })
+                .catch(error => {
+                    console.error('Error fetching students:', error);
+                    alert('An error occurred while fetching students');
+                });
         }
 
         function prevScreen() {
@@ -80,55 +107,89 @@
             document.getElementById('screen2').classList.add('hidden');
         }
 
+        function renderStudentTable(students) {
+            const tbody = document.getElementById('studentTableBody');
+            tbody.innerHTML = '';
+
+            students.forEach(student => {
+                const row = `
+                    <tr>
+                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${student.symbol_number}</td>
+                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2"><input type="number" name="semester_marks" class="w-full border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md px-4 py-2 bg-gray-50 dark:bg-gray-700 dark:text-white" data-student-id="${student.ID}"></td>
+                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2"><input type="number" name="assistant_marks" class="w-full border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md px-4 py-2 bg-gray-50 dark:bg-gray-700 dark:text-white" data-student-id="${student.ID}"></td>
+                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2"><input type="number" name="practical_marks" class="w-full border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md px-4 py-2 bg-gray-50 dark:bg-gray-700 dark:text-white" data-student-id="${student.ID}"></td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
         document.getElementById('formScreen2').addEventListener('submit', function(event) {
             event.preventDefault();
 
-            const batchId = document.getElementById('batch_id_hidden').value;
-            const programId = document.getElementById('program_id_hidden').value;
-            const semesterId = document.getElementById('semester_id_hidden').value;
-            const courseId = document.getElementById('course_id_hidden').value;
+            const batchId = parseInt(document.getElementById('batch_id_hidden').value, 10);
+            const programId = parseInt(document.getElementById('program_id_hidden').value, 10);
+            const semesterId = parseInt(document.getElementById('semester_id_hidden').value, 10);
+            const courseId = parseInt(document.getElementById('course_id_hidden').value, 10);
 
-            // Fetch values for marks entry (semester marks, practical marks, assistant marks, etc.)
-            // Construct payload and submit using fetch API to your backend endpoint (/marks)
+            const marks = [];
+            const inputs = document.querySelectorAll('#studentTableBody input');
+
+            const studentMarks = {};
+
+            inputs.forEach(input => {
+                const studentId = parseInt(input.getAttribute('data-student-id'), 10);
+                const name = input.getAttribute('name');
+                const value = parseInt(input.value, 10);
+
+                if (!studentMarks[studentId]) {
+                    studentMarks[studentId] = {
+                        student_id: studentId,
+                        semester_marks: 0,
+                        assistant_marks: 0,
+                        practical_marks: 0
+                    };
+                }
+
+                studentMarks[studentId][name] = value;
+            });
+
+            for (const studentId in studentMarks) {
+                marks.push(studentMarks[studentId]);
+            }
 
             const payload = {
                 batch_id: batchId,
                 program_id: programId,
                 semester_id: semesterId,
                 course_id: courseId,
-                // Include marks data here based on your form structure
+                marks: marks
             };
 
-            fetch('/marks', {
+            console.log('Payload:', JSON.stringify(payload, null, 2));
+
+            fetch('/marks/add', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(payload),
+                    body: JSON.stringify(payload)
                 })
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
+                        throw new Error('Network response was not ok');
                     }
                     return response.json();
                 })
                 .then(data => {
-                    console.log('Success:', data);
-                    alert('Marks added successfully');
-                    // Optionally update UI or clear form fields after successful submission
-                    prevScreen(); // Go back to screen 1 after successful submission
+                    alert('Marks saved successfully');
+                    // Optionally, redirect to another page or reset the form
                 })
                 .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while adding marks: ' + error.message);
+                    console.error('Error saving marks:', error);
+                    alert('An error occurred while saving marks');
                 });
         });
-
-        // Function to populate course options based on program and semester selection (not fully implemented here)
-        function populateCourses(programId, semesterId) {
-            // Fetch courses based on programId and semesterId
-            // Populate select options dynamically
-        }
     </script>
 </main>
 

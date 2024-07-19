@@ -11,7 +11,24 @@ import (
 )
 
 func AddResult(c *fiber.Ctx) error {
-	err := c.Render("dashboard/result/result", fiber.Map{})
+	var batch []models.Batch
+	if err := initializers.DB.Find(&batch).Error; err != nil {
+		c.Status(fiber.StatusInternalServerError).SendString("Error fetching batches")
+		return err
+	}
+
+	var programs []models.Program
+	if err := initializers.DB.Preload("Semesters").Find(&programs).Error; err != nil {
+		log.Printf("Failed to fetch programs: %v\n", err)
+		return c.Status(fiber.StatusInternalServerError).SendString("Failed to fetch programs")
+	}
+
+	err := c.Render("dashboard/result/result", fiber.Map{
+		"Batches":  batch,
+		"Programs": programs,
+		// "Semesters": []models.Semester{}, // Empty semesters slice for now, will be filled later when fetching semesters for the selected program
+		// "Students":  []models.Student{},  // Empty students slice for now, will be filled later when fetching students for the selected batch and semester
+	})
 	if err != nil {
 		c.Status(fiber.StatusInternalServerError).SendString("Error rendering page")
 		return err

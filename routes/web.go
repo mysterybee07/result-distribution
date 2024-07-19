@@ -137,10 +137,14 @@ func Mark(app *fiber.App) {
 	app.Post("/marks/add", controllers.CreateMarks)
 	app.Put("/marks/edit/:id", controllers.UpdateMarks)
 	app.Get("/marks/:symbolNumber", controllers.GetMarksBySymbolNumber)
+	app.Get("/getstudents", controllers.GetFilteredStudents)
+	app.Get("/getfiltercourses", controllers.GetFilteredCourses)
+	app.Get("/getfiltersemesters", controllers.GetFilteredSemesters)
+
 }
 
 func Result(app *fiber.App) {
-	app.Get("/results", middleware.AuthRequired, middleware.SuperadminRequired, controllers.AddResult)
+	app.Get("/results", controllers.AddResult)
 	app.Post("/results", controllers.PublishResults)
 }
 
