@@ -54,7 +54,7 @@ func main() {
 	// Use flash messages middleware
 	app.Use(middleware.FlashMessages)
 	// Loading static files
-	app.Static("/static", "./static")
+	app.Static("/", "./static")
 
 	// Authentication routes
 	routes.Home(app)
