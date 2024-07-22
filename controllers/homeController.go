@@ -24,7 +24,20 @@ func Home(c *fiber.Ctx) error {
 
 }
 func Register(c *fiber.Ctx) error {
-	err := c.Render("users/signup", fiber.Map{})
+	var batches []models.Batch
+	if err := initializers.DB.Find(&batches).Error; err != nil {
+		c.Status(fiber.StatusInternalServerError).SendString("Error fetching batches")
+		return err
+	}
+	var programs []models.Program
+	if err := initializers.DB.Find(&programs).Error; err != nil {
+		c.Status(fiber.StatusInternalServerError).SendString("Error fetching programs")
+		return err
+	}
+	err := c.Render("users/signup", fiber.Map{
+		"Programs": programs,
+		"Batches":  batches,
+	})
 	if err != nil {
 		c.Status(fiber.StatusInternalServerError).SendString("Error rendering page")
 		return err
@@ -35,6 +48,8 @@ func Register(c *fiber.Ctx) error {
 // StoreRegister handles the registration of a new user
 
 func StoreRegister(c *fiber.Ctx) error {
+	log.Println("Starting registration process")
+
 	// Parse the form data
 	form, err := c.MultipartForm()
 	if err != nil {
@@ -43,6 +58,7 @@ func StoreRegister(c *fiber.Ctx) error {
 			"message": "Failed to get multipart form data",
 		})
 	}
+	log.Println("Form data received")
 
 	// Create a new User instance
 	var data models.User
@@ -50,6 +66,7 @@ func StoreRegister(c *fiber.Ctx) error {
 	// Parse form values into the User struct
 	batchID, err := strconv.ParseUint(form.Value["batch_id"][0], 10, 32)
 	if err != nil {
+		log.Println("Invalid batch_id:", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid batch_id",
 		})
@@ -59,6 +76,7 @@ func StoreRegister(c *fiber.Ctx) error {
 
 	programID, err := strconv.ParseUint(form.Value["program_id"][0], 10, 32)
 	if err != nil {
+		log.Println("Invalid program_id:", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid program_id",
 		})
@@ -68,22 +86,28 @@ func StoreRegister(c *fiber.Ctx) error {
 
 	data.Symbol = form.Value["symbol"][0]
 	data.Registration = form.Value["registration"][0]
+	// data.Fullname = form.Value["fullname"][0]
 	data.Email = form.Value["email"][0]
 	data.Password = form.Value["password"][0]
-	data.Terms, err = strconv.ParseBool(form.Value["terms"][0])
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid terms value",
-		})
+
+	// Check the value of the terms checkbox
+	if form.Value["terms"][0] == "on" {
+		data.Terms = true
+	} else {
+		data.Terms = false
 	}
-	data.Role = form.Value["role"][0]
+	data.Role = "user"
+
+	log.Println("Form values parsed successfully")
 
 	// Validate the user data
 	if err := validation.ValidateUser(&data); err != nil {
+		log.Println("Validation failed:", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": err.Error(),
 		})
 	}
+	log.Println("Validation passed")
 
 	// Hash password
 	hashedPassword, err := models.HashPassword(data.Password)
@@ -94,14 +118,7 @@ func StoreRegister(c *fiber.Ctx) error {
 		})
 	}
 	data.Password = hashedPassword
-
-	// Create user in database
-	if err := initializers.DB.Create(&data).Error; err != nil {
-		log.Println("Failed to create user:", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to create user",
-		})
-	}
+	log.Println("Password hashed successfully")
 
 	// Handle the image upload
 	files := form.File["image_url"]
@@ -124,21 +141,22 @@ func StoreRegister(c *fiber.Ctx) error {
 			"message": "Failed to save image file",
 		})
 	}
+	log.Println("File saved successfully")
 
 	// Update the user's image URL
 	data.ImageURL = "/static/images/uploads/" + fileName
-	if err := initializers.DB.Save(&data).Error; err != nil {
-		log.Println("Failed to update user with image URL:", err)
+
+	// Create user in database
+	if err := initializers.DB.Create(&data).Error; err != nil {
+		log.Println("Failed to create user:", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to update user with image URL",
+			"error": "Failed to create user",
 		})
 	}
+	log.Println("User created successfully")
 
 	// Return success message as JSON
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"user":    data,
-		"message": "Account created successfully",
-	})
+	return c.Redirect("/login")
 }
 
 func Login(c *fiber.Ctx) error {
