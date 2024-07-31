@@ -35,19 +35,18 @@
                 </div>
                 <div>
                     <label for="semester" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Semester</label>
-                    <select id="semester_id" name="semester_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                    <select id="semester" name="semester_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                         required>
                         <option value="">Select Semester</option>
                        
                     </select>
-                    <span class="text-danger">{{if .Errors}}{{index .Errors "semester_id"}}{{end}}</span>
+                    <!-- <span class="text-danger">{{if .Errors}}{{index .Errors "semester_id"}}{{end}}</span> -->
                 </div>
             </div>
             <div class="w-full py-8">
                 <button type="submit" class="flex items-center justify-between px-4 py-2 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-purple-600 border border-transparent rounded-lg active:bg-purple-600 hover:bg-purple-700 focus:outline-none focus:shadow-outline-purple">Publish Result</button>
             </div>
         </form>
-
         <div class="mt-8">
             <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-white">Published Results</h3>
             {{if .Results}}
@@ -83,4 +82,43 @@
         </div>
     </div>
 </main>
+<script>
+    function fetchSemesters() {
+        const programId = document.getElementById('program_id').value;
+        console.log('Fetching semesters for program ID:', programId);
+
+        fetch(`/getfiltersemesters?program_id=${programId}`)
+            .then(response => {
+                console.log('Semesters response status:', response.status);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const semesterSelect = document.getElementById('semester');
+                semesterSelect.innerHTML = ''; // Clear existing options
+
+                // Add the default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Select Semester';
+                semesterSelect.appendChild(defaultOption);
+
+                // Add new options
+                data.semesters.forEach(semester => {
+                    const option = document.createElement('option');
+                    option.value = semester.ID;
+                    option.textContent = semester.name;
+                    semesterSelect.appendChild(option);
+                });
+
+                // Conditionally fetch courses if needed
+            })
+            .catch(error => {
+                console.error('Error fetching semesters:', error);
+                alert('An error occurred while fetching semesters');
+            });
+    }
+</script>
 {{template "dashboard/layouts/bottom" .}}

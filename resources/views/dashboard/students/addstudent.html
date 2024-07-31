@@ -16,7 +16,7 @@
             </div>
             <div>
                 <label for="program_id" class="block text-sm font-medium text-gray-900 dark:text-white">Program</label>
-                <select id="program_id" name="program_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 dark:text-white">
+                <select id="program" name="program_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 dark:text-white">
                     <option value="">Select Programs</option>
                     {{range .Programs}}
                     <option value="{{.ID}}">{{.Name}}</option>
@@ -32,7 +32,7 @@
         <h2 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Add Student Data</h2>
         <form id="formScreen2">
             <input type="hidden" id="batch_id_hidden" name="batch_id" value="">
-            <input type="hidden" id="program_id_hidden" name="program_id" value="">
+            <input type="hidden" id="program_hidden" name="program_id" value="">
             <div class="overflow-x-auto mb-4">
                 <table class="w-full border-collapse border border-gray-300 dark:border-gray-600">
                     <thead>
@@ -62,7 +62,7 @@
                 <button type="button" onclick="addStudent()" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Add Student</button>
             </div>
             <div class="mt-4">
-                <button type="button" onclick="prevScreen()" class="mr-4 bg-gray-400 text-white px-4 py-2 rounded-md hover:bg-gray-500">Previous</button>
+                <button type="button" onclick="prevScreen()" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Previous</button>
                 <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Submit</button>
             </div>
         </form>
@@ -73,10 +73,10 @@
 
         function nextScreen() {
             const batchId = document.getElementById('batch_id').value;
-            const programId = document.getElementById('program_id').value;
+            const programId = document.getElementById('program').value;
 
             document.getElementById('batch_id_hidden').value = batchId;
-            document.getElementById('program_id_hidden').value = programId;
+            document.getElementById('program_hidden').value = programId;
 
             document.getElementById('screen1').classList.add('hidden');
             document.getElementById('screen2').classList.remove('hidden');
@@ -135,7 +135,7 @@
             event.preventDefault();
 
             const batchId = document.getElementById('batch_id_hidden').value;
-            const programId = document.getElementById('program_id_hidden').value;
+            const programId = document.getElementById('program_hidden').value;
 
             const payload = {
                 batch_id: batchId,
