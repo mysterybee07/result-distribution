@@ -23,9 +23,9 @@ func Profile(app *fiber.App) {
 	app.Get("/profile", middleware.AuthRequired, controllers.GetUserProfile)
 }
 
-func Dashboard(app *fiber.App) {
-	app.Get("/dashboard", middleware.AuthRequired, middleware.AdminRequired, controllers.Index)
-}
+// func Dashboard(app *fiber.App) {
+// 	app.Get("/dashboard", middleware.AuthRequired, middleware.AdminRequired, controllers.Index)
+// }
 
 func Student(app *fiber.App) {
 	app.Get("/students/add", middleware.AuthRequired, middleware.AdminRequired, controllers.AddStudent)
@@ -93,3 +93,7 @@ func Error(app *fiber.App) {
 // 	app.Get("/getfiltersemesters", controllers.GetFilteredSemesters)
 
 // }
+func Dashboard(app *fiber.App) {
+	app.Get("/dashboard", controllers.Index)
+	app.Get("/failstudents", controllers.FailStudents)
+}
