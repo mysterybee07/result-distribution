@@ -91,11 +91,11 @@ func StoreRegister(c *fiber.Ctx) error {
 	data.Password = form.Value["password"][0]
 
 	// Check the value of the terms checkbox
-	if form.Value["terms"][0] == "on" {
-		data.Terms = true
-	} else {
-		data.Terms = false
-	}
+	// if form.Value["terms"][0] == "on" {
+	// 	data.Terms = true
+	// } else {
+	// 	data.Terms = false
+	// }
 	data.Role = "user"
 
 	log.Println("Form values parsed successfully")
@@ -276,12 +276,12 @@ func UpdateUser(c *fiber.Ctx) error {
 	existingUser.Registration = form.Value["registration"][0]
 	existingUser.Email = form.Value["email"][0]
 	existingUser.Password = form.Value["password"][0]
-	existingUser.Terms, err = strconv.ParseBool(form.Value["terms"][0])
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid terms value",
-		})
-	}
+	// existingUser.Terms, err = strconv.ParseBool(form.Value["terms"][0])
+	// if err != nil {
+	// 	return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+	// 		"message": "Invalid terms value",
+	// 	})
+	// }
 	existingUser.Role = form.Value["role"][0]
 
 	// Handle the image upload
