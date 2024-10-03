@@ -13,7 +13,7 @@ type User struct {
 	Symbol       string   `gorm:"type:varchar(100);not null" json:"symbol"`
 	Registration string   `gorm:"type:varchar(100);not null" json:"registration"`
 	Email        string   `gorm:"type:varchar(100);unique;not null" json:"email"`
-	Password     string   `gorm:"type:varchar(100);not null" json:"password"`
+	Password     string   `gorm:"type:varchar(100);not null" json:"-"`
 	Role         string   `gorm:"type:varchar(20);default:user" json:"role"`
 	ImageURL     string   `gorm:"type:varchar(255)" json:"image_url,omitempty"`
 	Batch        *Batch   `gorm:"foreignkey:BatchID;constraint:OnDelete:SET NULL;"`   // Nullable foreign key

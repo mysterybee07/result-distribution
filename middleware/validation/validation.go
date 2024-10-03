@@ -92,29 +92,32 @@ func ValidateMarksInput(input *models.MarksPayload, isUpdate bool) error {
 	return nil
 }
 
-func ValidateUser(data *models.User) error {
-	// Validate email
+func ValidateUser(data *models.User, isUpdate bool) error {
+	// Validate email format
 	if !utils.ValidateEmail(data.Email) {
 		return errors.New("invalid email format")
 	}
 
-	// Check if the password is at least 8 characters long
-	if len(data.Password) < 8 {
-		return errors.New("password must be at least 8 characters long")
+	// Check password length for new user registration or if updating password
+	if !isUpdate || (isUpdate && len(data.Password) > 0) {
+		if len(data.Password) < 8 {
+			return errors.New("password must be at least 8 characters long")
+		}
 	}
 
-	// Validate required fields based on role
+	// Role-based validation
 	if data.Role == "admin" || data.Role == "superadmin" {
-		// Validate required fields for admin
+		// Admin validation: Email and Password are required
 		if data.Email == "" || data.Password == "" {
-			return errors.New("email, password, and symbol are required for admin")
+			return errors.New("email and password are required for admin")
 		}
+		// Admin doesn't need batch and program
 		data.BatchID = nil
 		data.ProgramID = nil
 	} else {
-		// Validate required fields for regular user
+		// Regular user validation: All fields are required
 		if data.BatchID == nil || data.ProgramID == nil || data.Symbol == "" || data.Registration == "" || data.Email == "" || data.Password == "" {
-			return errors.New("all fields are required for user")
+			return errors.New("batch ID, program ID, symbol, registration, email, and password are required for regular users")
 		}
 
 		// Check if symbol and registration exist in the students table for the given batch and program
@@ -124,17 +127,19 @@ func ValidateUser(data *models.User) error {
 		}
 	}
 
-	// Check if email already exists
+	// Check for unique email if not updating or email has changed
 	var existingUser models.User
-	if err := initializers.DB.Where("email = ?", data.Email).First(&existingUser).Error; err == nil {
+	if err := initializers.DB.Where("email = ?", data.Email).First(&existingUser).Error; err == nil && existingUser.ID != data.ID {
 		return errors.New("email is already taken")
 	}
 
-	// Check if symbol number and registration number are unique in users table
-	if err := initializers.DB.Where("symbol = ? AND batch_id = ? AND program_id = ?", data.Symbol, data.BatchID, data.ProgramID).First(&existingUser).Error; err == nil {
+	// Check if symbol number is unique for the given batch and program
+	if err := initializers.DB.Where("symbol = ? AND batch_id = ? AND program_id = ?", data.Symbol, data.BatchID, data.ProgramID).First(&existingUser).Error; err == nil && existingUser.ID != data.ID {
 		return errors.New("symbol number is already taken for the specified batch and program")
 	}
-	if err := initializers.DB.Where("registration = ? AND batch_id = ? AND program_id = ?", data.Registration, data.BatchID, data.ProgramID).First(&existingUser).Error; err == nil {
+
+	// Check if registration number is unique for the given batch and program
+	if err := initializers.DB.Where("registration = ? AND batch_id = ? AND program_id = ?", data.Registration, data.BatchID, data.ProgramID).First(&existingUser).Error; err == nil && existingUser.ID != data.ID {
 		return errors.New("registration number is already taken for the specified batch and program")
 	}
 

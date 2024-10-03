@@ -2,30 +2,50 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gofiber/fiber/v2"
 )
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
-var jwtSecret = []byte("Ajfdslfjlsdfjldslfj")
+var JwtSecret = []byte("Ajfdslfjlsdfjldslfj")
 
-func GenerateJwt(userID string, role string) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"userID": userID,
+func GenerateJwt(userID uint, role string, c *fiber.Ctx) (string, error) {
+	expirationTime := time.Now().Add(5 * time.Minute) // Set token expiration time
+	claims := jwt.MapClaims{
+		"issuer": strconv.Itoa(int(userID)),
 		"role":   role,
-		"exp":    time.Now().Add(24 * time.Hour).Unix(),
-	})
-	return token.SignedString(jwtSecret)
+		"exp":    expirationTime.Unix(),
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	tokenString, err := token.SignedString(JwtSecret) // Use the correct signing key (HS256)
+	if err != nil {
+		return "", fmt.Errorf("failed to sign token: %w", err)
+	}
+
+	// Set JWT token as a cookie
+	cookie := fiber.Cookie{
+		Name:     "jwt",
+		Value:    tokenString,
+		Expires:  expirationTime,
+		HTTPOnly: true, // Prevent JavaScript from accessing the cookie
+	}
+
+	c.Cookie(&cookie)
+	return tokenString, nil
 }
 
 func ParseJwt(tokenStr string) (string, string, error) {
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
-		return jwtSecret, nil
+		return JwtSecret, nil
 	})
 
 	if err != nil || !token.Valid {

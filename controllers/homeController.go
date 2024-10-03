@@ -66,7 +66,7 @@ func StoreRegister(c *fiber.Ctx) error {
 	}
 	user.Password = hashedPassword
 
-	if err := validation.ValidateUser(&user); err != nil {
+	if err := validation.ValidateUser(&user, false); err != nil {
 		log.Println("Validation Failed")
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
@@ -99,67 +99,51 @@ func Login(c *fiber.Ctx) error {
 // LoginUser handles user login
 
 func LoginUser(c *fiber.Ctx) error {
-	// Define a struct to parse the login form data
 	type LoginData struct {
-		Identifier string `json:"identifier" form:"identifier"`
-		Password   string `json:"password" form:"password"`
+		Identifier string `json:"identifier"`
+		Password   string `json:"password"`
 	}
 
-	// Parse the login form data
 	var loginData LoginData
+
+	// Parse the login data
 	if err := c.BodyParser(&loginData); err != nil {
-		log.Println("Unable to parse form data:", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid form data",
+			"message": "Unable to parse login data",
 		})
 	}
 
-	// Find the user by email or symbol number
+	// Find user by email or symbol
 	var user models.User
 	if err := initializers.DB.Where("email = ? OR symbol = ?", loginData.Identifier, loginData.Identifier).First(&user).Error; err != nil {
-		log.Printf("User not found with identifier: %s\n", loginData.Identifier)
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"message": "Invalid identifier or password",
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"message": "No user found for the email or symbol",
 		})
 	}
 
-	// Verify the provided password against the stored hashed password
+	// Check if the password is correct
 	if !models.CheckPasswordHash(loginData.Password, user.Password) {
-		log.Println("Invalid password")
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"message": "Invalid identifier or password",
+			"message": "Incorrect password or identifier",
 		})
 	}
 
-	// Generate JWT token with user ID and role
-	token, err := utils.GenerateJwt(strconv.Itoa(int(user.ID)), user.Role)
+	// Create JWT token
+	_, err := utils.GenerateJwt(user.ID, user.Role, c)
 	if err != nil {
-		log.Println("Failed to generate token:", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Failed to generate token",
+			"message": "Failed to Generate JWT tokens",
 		})
 	}
 
-	// Set the token as a cookie
-	cookie := fiber.Cookie{
-		Name:     "jwt",
-		Value:    token,
-		Expires:  time.Now().Add(time.Hour * 24),
-		HTTPOnly: true,
-	}
-	c.Cookie(&cookie)
-
-	// Redirect based on role
-	if user.Role == "admin" || user.Role == "superadmin" {
-		return c.Redirect("/dashboard", fiber.StatusFound)
-	}
-
-	return c.Redirect("/profile", fiber.StatusFound)
-
-	// return c.JSON(fiber.Map{
-	// 	"token": token,
-	// })
+	// Return success response
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "User login successful",
+		"user":    user,
+		// "token":   token, // Optional: you can return the token in the response as well
+	})
 }
+
 func UpdateUser(c *fiber.Ctx) error {
 	userID := c.Params("id")
 
@@ -240,7 +224,7 @@ func UpdateUser(c *fiber.Ctx) error {
 	existingUser.ImageURL = "/static/images/uploads/" + fileName
 
 	// Validate the updated user data
-	if err := validation.ValidateUser(&existingUser); err != nil {
+	if err := validation.ValidateUser(&existingUser, true); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": err.Error(),
 		})
