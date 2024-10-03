@@ -116,3 +116,42 @@ func SeedUsers() {
 		}
 	}
 }
+
+func SeedStudents() {
+	var count int64
+	DB.Model(&models.Student{}).Count(&count)
+
+	if count == 0 {
+
+		var batch models.Batch
+		var program models.Program
+
+		// Get the first batch
+		if err := DB.First(&batch).Error; err != nil {
+			log.Println("Failed to fetch the first batch:", err)
+			return
+		}
+		// Get the first program
+		if err := DB.First(&program).Error; err != nil {
+			log.Println("Failed to fetch the first program:", err)
+			return
+		}
+
+		students := []models.Student{
+			{
+				BatchID:         batch.ID,
+				ProgramID:       program.ID,
+				SymbolNumber:    "SYM001",
+				Registration:    "REG001",
+				Fullname:        "Biraj Pudasaini",
+				CurrentSemester: 1,
+				Status:          "active",
+			},
+		}
+		if err := DB.Create(&students).Error; err != nil {
+			log.Println("Failed to seed users:", err)
+		} else {
+			log.Println("Students table seeded successfully")
+		}
+	}
+}

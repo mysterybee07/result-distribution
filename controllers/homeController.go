@@ -55,9 +55,6 @@ func StoreRegister(c *fiber.Ctx) error {
 			"message": "unable to parse json data",
 		})
 	}
-	if user.Role == "" {
-		user.Role = "user"
-	}
 
 	hashedPassword, err := models.HashPassword(user.Password)
 	if err != nil {

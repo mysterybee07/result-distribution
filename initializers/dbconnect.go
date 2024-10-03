@@ -41,4 +41,5 @@ func Connect() {
 	SeedBatches()
 	SeedProgramsAndSemesters()
 	SeedUsers()
+	SeedStudents()
 }
