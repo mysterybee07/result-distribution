@@ -8,15 +8,15 @@ import (
 
 func Home(app *fiber.App) {
 	app.Get("", controllers.Home)
-	app.Get("/register", controllers.Register)
+	app.Get("/user/register", controllers.Register)
 	// app.Get("/register-admin", middleware.AuthRequired, middleware.AdminRequired, controllers.RegisterAdmin)
-	app.Post("/register", controllers.StoreRegister)
-	app.Get("/login", controllers.Login)
-	app.Post("/login", controllers.LoginUser)
-	app.Get("/logout", controllers.LogoutUser)
-	app.Get("/forgot-password", controllers.ForgotPassword)
-	app.Put("/edit-user/:id", controllers.UpdateUser)
-	app.Get("/logout", controllers.LogoutUser)
+	app.Post("/user/register", controllers.StoreRegister)
+	app.Get("/user/login", controllers.Login)
+	app.Post("/user/login", controllers.LoginUser)
+	app.Get("/user/logout", controllers.LogoutUser)
+	app.Get("/user/forgot-password", controllers.ForgotPassword)
+	app.Put("/user/update/:id", controllers.UpdateUser)
+	// app.Get("/logout", controllers.LogoutUser)
 }
 
 func Profile(app *fiber.App) {

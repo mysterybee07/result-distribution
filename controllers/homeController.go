@@ -2,8 +2,6 @@ package controllers
 
 import (
 	"log"
-	"path/filepath"
-	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -145,119 +143,57 @@ func LoginUser(c *fiber.Ctx) error {
 }
 
 func UpdateUser(c *fiber.Ctx) error {
-	userID := c.Params("id")
+	// Take id
+	id := c.Params("id")
+	var user models.User
 
-	// Fetch the existing user
-	var existingUser models.User
-	if err := initializers.DB.First(&existingUser, userID).Error; err != nil {
-		log.Println("User not found:", err)
+	// Find user
+	if err := initializers.DB.First(&user, id).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"message": "User not found",
+			"message": "User with the UserID not found",
 		})
 	}
 
-	// Parse the form data
-	form, err := c.MultipartForm()
-	if err != nil {
-		log.Println("Failed to get multipart form data:", err)
+	var updateData models.User
+	if err := c.BodyParser(&updateData); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Failed to get multipart form data",
+			"message": "Failed to parse request body",
 		})
 	}
 
-	// Update User instance with new data
-	batchID, err := strconv.ParseUint(form.Value["batch_id"][0], 10, 32)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid batch_id",
-		})
-	}
-	batchIDPtr := uint(batchID)
-	existingUser.BatchID = &batchIDPtr
-
-	programID, err := strconv.ParseUint(form.Value["program_id"][0], 10, 32)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid program_id",
-		})
-	}
-	programIDPtr := uint(programID)
-	existingUser.ProgramID = &programIDPtr
-
-	existingUser.Symbol = form.Value["symbol"][0]
-	existingUser.Registration = form.Value["registration"][0]
-	existingUser.Email = form.Value["email"][0]
-	existingUser.Password = form.Value["password"][0]
-	// existingUser.Terms, err = strconv.ParseBool(form.Value["terms"][0])
-	// if err != nil {
-	// 	return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-	// 		"message": "Invalid terms value",
-	// 	})
-	// }
-	existingUser.Role = form.Value["role"][0]
-
-	// Handle the image upload
-	files := form.File["image_url"]
-	if len(files) == 0 {
-		log.Println("No image file found in the form data")
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "No image file found in the form data",
-		})
-	}
-	file := files[0]
-	fileName := utils.RandLetter(5) + "-" + utils.SanitizeFileName(file.Filename)
-	if len(files) > 0 {
-		file := files[0] // assuming only one image file is uploaded
-		fileName = utils.RandLetter(5) + "-" + utils.SanitizeFileName(file.Filename)
-		filePath := filepath.Join("./static/images/uploads", fileName)
-
-		log.Println("Saving file to:", filePath)
-		if err := c.SaveFile(file, filePath); err != nil {
-			log.Println("Failed to save image file:", err)
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"message": "Failed to save image file",
-			})
-		}
-	}
-
-	// Set image URL regardless of upload success (empty string if no upload)
-	existingUser.ImageURL = "/static/images/uploads/" + fileName
-
-	// Validate the updated user data
-	if err := validation.ValidateUser(&existingUser, true); err != nil {
+	if err := validation.ValidateUser(&updateData, true); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": err.Error(),
 		})
 	}
-
-	// Hash password if changed
-	if len(existingUser.Password) < 8 {
-		log.Println("Password too short")
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Password must be at least 8 characters long",
-		})
-	} else if existingUser.Password != form.Value["password"][0] {
-		hashedPassword, err := models.HashPassword(existingUser.Password)
-		if err != nil {
-			log.Println("Failed to hash password:", err)
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to hash password",
-			})
-		}
-		existingUser.Password = hashedPassword
+	// Update the user fields only if they are provided
+	if updateData.Email != "" && updateData.Email != user.Email {
+		user.Email = updateData.Email
 	}
 
-	// Save the updated user in the database
-	if err := initializers.DB.Save(&existingUser).Error; err != nil {
-		log.Println("Failed to update user:", err)
+	if updateData.Password != "" {
+		hashpassword, err := models.HashPassword(updateData.Password)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "Failed to hash password",
+			})
+		}
+		user.Password = hashpassword
+	}
+	// Update ImageURL if provided
+	if updateData.ImageURL != "" {
+		user.ImageURL = updateData.ImageURL
+	}
+
+	if err := initializers.DB.Save(&user).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to update user",
+			"message": "Failed to update user in the database",
 		})
 	}
 
 	// Return success message as JSON
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"user":    existingUser,
+		// "user":    existingUser,
 		"message": "Account updated successfully",
 	})
 }

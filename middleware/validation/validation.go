@@ -98,33 +98,34 @@ func ValidateUser(data *models.User, isUpdate bool) error {
 		return errors.New("invalid email format")
 	}
 
-	// Check password length for new user registration or if updating password
+	// Check password length only for new registrations or if updating the password
 	if !isUpdate || (isUpdate && len(data.Password) > 0) {
 		if len(data.Password) < 8 {
 			return errors.New("password must be at least 8 characters long")
 		}
 	}
 
-	// Role-based validation
-	if data.Role == "admin" || data.Role == "superadmin" {
-		// Admin validation: Email and Password are required
-		if data.Email == "" || data.Password == "" {
-			return errors.New("email and password are required for admin")
+	if isUpdate {
+		// If it's an update, we only validate email, password, and image URL
+		if data.Email == "" && data.Password == "" && data.ImageURL == "" {
+			return errors.New("at least one of email, password, or image URL must be provided for update")
 		}
-		// Admin doesn't need batch and program
-		data.BatchID = nil
-		data.ProgramID = nil
-	} else {
-		// Regular user validation: All fields are required
-		if data.BatchID == nil || data.ProgramID == nil || data.Symbol == "" || data.Registration == "" || data.Email == "" || data.Password == "" {
-			return errors.New("batch ID, program ID, symbol, registration, email, and password are required for regular users")
+		var existingUser models.User
+		if err := initializers.DB.Where("email = ?", data.Email).First(&existingUser).Error; err == nil && existingUser.ID != data.ID {
+			return errors.New("email is already taken")
 		}
+		return nil // No additional validation needed for updates
+	}
 
-		// Check if symbol and registration exist in the students table for the given batch and program
-		var student models.Student
-		if err := initializers.DB.Where("symbol_number = ? AND registration = ? AND batch_id = ? AND program_id = ?", data.Symbol, data.Registration, *data.BatchID, *data.ProgramID).First(&student).Error; err != nil {
-			return errors.New("invalid symbol or registration for the specified batch and program")
-		}
+	// If it's a new user registration, validate all required fields
+	if data.BatchID == nil || data.ProgramID == nil || data.Symbol == "" || data.Registration == "" || data.Email == "" || data.Password == "" {
+		return errors.New("batch ID, program ID, symbol, registration, email, and password are required for regular users")
+	}
+
+	// Check if symbol and registration exist in the students table for the given batch and program
+	var student models.Student
+	if err := initializers.DB.Where("symbol_number = ? AND registration = ? AND batch_id = ? AND program_id = ?", data.Symbol, data.Registration, *data.BatchID, *data.ProgramID).First(&student).Error; err != nil {
+		return errors.New("invalid symbol or registration for the specified batch and program")
 	}
 
 	// Check for unique email if not updating or email has changed
