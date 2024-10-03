@@ -201,12 +201,13 @@ func UpdateUser(c *fiber.Ctx) error {
 // LogoutUser logs out the user by clearing the JWT cookie
 func LogoutUser(c *fiber.Ctx) error {
 	// Clear the cookie
-	c.Cookie(&fiber.Cookie{
+	cookies := fiber.Cookie{
 		Name:     "jwt",
 		Value:    "",
 		Expires:  time.Now().Add(-1 * time.Second), // Set the cookie to expire immediately
 		HTTPOnly: true,
-	})
+	}
+	c.Cookie(&cookies)
 
 	return c.Redirect("/login") // Redirect to login page or home page after logout
 }
