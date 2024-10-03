@@ -48,115 +48,46 @@ func Register(c *fiber.Ctx) error {
 // StoreRegister handles the registration of a new user
 
 func StoreRegister(c *fiber.Ctx) error {
-	log.Println("Starting registration process")
-
-	// Parse the form data
-	form, err := c.MultipartForm()
-	if err != nil {
-		log.Println("Failed to get multipart form data:", err)
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Failed to get multipart form data",
+	var user models.User
+	if err := c.BodyParser(&user); err != nil {
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
+			"message": "unable to parse json data",
 		})
 	}
-	log.Println("Form data received")
+	if user.Role == "" {
+		user.Role = "user"
+	}
 
-	// Create a new User instance
-	var data models.User
-
-	// Parse form values into the User struct
-	batchID, err := strconv.ParseUint(form.Value["batch_id"][0], 10, 32)
+	hashedPassword, err := models.HashPassword(user.Password)
 	if err != nil {
-		log.Println("Invalid batch_id:", err)
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid batch_id",
+		log.Println("Failed to hash password")
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
+			"message": "Failed to process password",
 		})
 	}
-	batchIDPtr := uint(batchID)
-	data.BatchID = &batchIDPtr
+	user.Password = hashedPassword
 
-	programID, err := strconv.ParseUint(form.Value["program_id"][0], 10, 32)
-	if err != nil {
-		log.Println("Invalid program_id:", err)
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid program_id",
-		})
-	}
-	programIDPtr := uint(programID)
-	data.ProgramID = &programIDPtr
-
-	data.Symbol = form.Value["symbol"][0]
-	data.Registration = form.Value["registration"][0]
-	// data.Fullname = form.Value["fullname"][0]
-	data.Email = form.Value["email"][0]
-	data.Password = form.Value["password"][0]
-
-	// Check the value of the terms checkbox
-	// if form.Value["terms"][0] == "on" {
-	// 	data.Terms = true
-	// } else {
-	// 	data.Terms = false
-	// }
-	data.Role = "user"
-
-	log.Println("Form values parsed successfully")
-
-	// Validate the user data
-	if err := validation.ValidateUser(&data); err != nil {
-		log.Println("Validation failed:", err)
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+	if err := validation.ValidateUser(&user); err != nil {
+		log.Println("Validation Failed")
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
 			"message": err.Error(),
 		})
 	}
-	log.Println("Validation passed")
 
-	// Hash password
-	hashedPassword, err := models.HashPassword(data.Password)
-	if err != nil {
-		log.Println("Failed to hash password:", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to hash password",
+	if err := initializers.DB.Create(&user).Error; err != nil {
+		log.Println("Failed to create users")
+		c.Status(fiber.StatusInternalServerError)
+		return c.JSON(fiber.Map{
+			"message": "User creation Failed",
 		})
 	}
-	data.Password = hashedPassword
-	log.Println("Password hashed successfully")
-
-	// Handle the image upload
-	files := form.File["image_url"]
-	if len(files) == 0 {
-		log.Println("No image file found in the form data")
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "No image file found in the form data",
-		})
-	}
-	file := files[0]
-	fileName := utils.RandLetter(5) + "-" + utils.SanitizeFileName(file.Filename)
-	filePath := filepath.Join("./static/images/uploads", fileName)
-
-	log.Println("Saving file to:", filePath)
-	if err := c.SaveFile(file, filePath); err != nil {
-		// Rollback user creation if image upload fails
-		initializers.DB.Delete(&data)
-		log.Println("Failed to save image file:", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Failed to save image file",
-		})
-	}
-	log.Println("File saved successfully")
-
-	// Update the user's image URL
-	data.ImageURL = "/static/images/uploads/" + fileName
-
-	// Create user in database
-	if err := initializers.DB.Create(&data).Error; err != nil {
-		log.Println("Failed to create user:", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to create user",
-		})
-	}
-	log.Println("User created successfully")
-
-	// Return success message as JSON
-	return c.Redirect("/login")
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "User created successfully",
+		"data":    user,
+	})
 }
 
 func Login(c *fiber.Ctx) error {

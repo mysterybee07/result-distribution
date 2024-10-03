@@ -106,7 +106,7 @@ func ValidateUser(data *models.User) error {
 	// Validate required fields based on role
 	if data.Role == "admin" || data.Role == "superadmin" {
 		// Validate required fields for admin
-		if data.Email == "" || data.Password == "" || data.Symbol == "" {
+		if data.Email == "" || data.Password == "" {
 			return errors.New("email, password, and symbol are required for admin")
 		}
 		data.BatchID = nil
