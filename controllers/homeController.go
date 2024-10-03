@@ -209,7 +209,46 @@ func LogoutUser(c *fiber.Ctx) error {
 	}
 	c.Cookie(&cookies)
 
-	return c.Redirect("/login") // Redirect to login page or home page after logout
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "logout successfully",
+	})
+}
+
+func GetLoginUser(c *fiber.Ctx) error {
+	// Retrieve the JWT from the cookie
+	cookie := c.Cookies("jwt")
+	if cookie == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Missing or invalid JWT cookie",
+		})
+	}
+
+	// Parse the JWT and extract the userID and role
+	userID, role, err := utils.ParseJwt(cookie)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	// Retrieve user information from the database based on userID
+	var user models.User
+	if err := initializers.DB.First(&user, userID).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"message": "User not found",
+		})
+	}
+
+	// Return the logged-in user's details
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"user": fiber.Map{
+			"ID":    user.ID,
+			"email": user.Email,
+			"role":  role,
+			// "name":  user.Name,
+		},
+		"message": "User data retrieved successfully",
+	})
 }
 
 func ForgotPassword(c *fiber.Ctx) error {
