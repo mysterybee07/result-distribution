@@ -17,6 +17,8 @@ func Home(app *fiber.App) {
 	app.Get("/user/forgot-password", controllers.ForgotPassword)
 	app.Put("/user/update/:id", controllers.UpdateUser)
 	app.Get("/users", controllers.GetLoginUser)
+	app.Get("/all-users", controllers.GetAllUsers)
+	app.Get("/user/:id", controllers.GetUserById)
 	// app.Get("/logout", controllers.LogoutUser)
 }
 
@@ -52,8 +54,10 @@ func Program(app *fiber.App) {
 }
 
 func Semester(app *fiber.App) {
-	app.Get("/semesters", middleware.AuthRequired, middleware.SuperadminRequired, controllers.AddSemester)
-	app.Post("/semesters", middleware.AuthRequired, middleware.SuperadminRequired, controllers.StoreSemester)
+	app.Get("/semesters", middleware.AuthRequired, middleware.SuperadminRequired, controllers.Semester)
+	// app.Post("/semesters", middleware.AuthRequired, middleware.SuperadminRequired, controllers.CreateSemester)
+	app.Post("/semester/create", controllers.CreateSemester)
+	app.Put("/semester/update/:id", controllers.UpdateSemester)
 }
 
 func Subject(app *fiber.App) {

@@ -30,8 +30,8 @@ func ValidateStudent(student *models.Student, isUpdate bool) error {
 			log.Println("Symbol Number already taken:", student.SymbolNumber)
 			return fiber.NewError(fiber.StatusBadRequest, "Symbol Number is already taken for the specified batch and program")
 		}
-		if err := initializers.DB.Where("registration = ? AND batch_id = ? AND program_id = ?", student.Registration, student.BatchID, student.ProgramID).First(&existingStudent).Error; err == nil {
-			log.Println("Registration Number already taken:", student.Registration)
+		if err := initializers.DB.Where("registration_number = ? AND batch_id = ? AND program_id = ?", student.RegistrationNumber, student.BatchID, student.ProgramID).First(&existingStudent).Error; err == nil {
+			log.Println("Registration Number already taken:", student.RegistrationNumber)
 			return fiber.NewError(fiber.StatusBadRequest, "Registration Number is already taken for the specified batch and program")
 		}
 	} else {
@@ -40,8 +40,8 @@ func ValidateStudent(student *models.Student, isUpdate bool) error {
 			log.Println("Symbol Number already taken:", student.SymbolNumber)
 			return fiber.NewError(fiber.StatusBadRequest, "Symbol Number is already taken for the specified batch and program")
 		}
-		if err := initializers.DB.Where("id <> ? AND registration = ? AND batch_id = ? AND program_id = ?", student.ID, student.Registration, student.BatchID, student.ProgramID).First(&existingStudent).Error; err == nil {
-			log.Println("Registration Number already taken:", student.Registration)
+		if err := initializers.DB.Where("id <> ? AND registration_number = ? AND batch_id = ? AND program_id = ?", student.ID, student.RegistrationNumber, student.BatchID, student.ProgramID).First(&existingStudent).Error; err == nil {
+			log.Println("Registration Number already taken:", student.RegistrationNumber)
 			return fiber.NewError(fiber.StatusBadRequest, "Registration Number is already taken for the specified batch and program")
 		}
 	}
@@ -118,13 +118,13 @@ func ValidateUser(data *models.User, isUpdate bool) error {
 	}
 
 	// If it's a new user registration, validate all required fields
-	if data.BatchID == nil || data.ProgramID == nil || data.Symbol == "" || data.Registration == "" || data.Email == "" || data.Password == "" {
+	if data.BatchID == nil || data.ProgramID == nil || data.SymbolNumber == "" || data.RegistrationNumber == "" || data.Email == "" || data.Password == "" {
 		return errors.New("batch ID, program ID, symbol, registration, email, and password are required for regular users")
 	}
 
 	// Check if symbol and registration exist in the students table for the given batch and program
 	var student models.Student
-	if err := initializers.DB.Where("symbol_number = ? AND registration = ? AND batch_id = ? AND program_id = ?", data.Symbol, data.Registration, *data.BatchID, *data.ProgramID).First(&student).Error; err != nil {
+	if err := initializers.DB.Where("symbol_number = ? AND registration_number = ? AND batch_id = ? AND program_id = ?", data.SymbolNumber, data.RegistrationNumber, *data.BatchID, *data.ProgramID).First(&student).Error; err != nil {
 		return errors.New("invalid symbol or registration for the specified batch and program")
 	}
 
@@ -135,12 +135,12 @@ func ValidateUser(data *models.User, isUpdate bool) error {
 	}
 
 	// Check if symbol number is unique for the given batch and program
-	if err := initializers.DB.Where("symbol = ? AND batch_id = ? AND program_id = ?", data.Symbol, data.BatchID, data.ProgramID).First(&existingUser).Error; err == nil && existingUser.ID != data.ID {
+	if err := initializers.DB.Where("symbol_number = ? AND batch_id = ? AND program_id = ?", data.SymbolNumber, data.BatchID, data.ProgramID).First(&existingUser).Error; err == nil && existingUser.ID != data.ID {
 		return errors.New("symbol number is already taken for the specified batch and program")
 	}
 
 	// Check if registration number is unique for the given batch and program
-	if err := initializers.DB.Where("registration = ? AND batch_id = ? AND program_id = ?", data.Registration, data.BatchID, data.ProgramID).First(&existingUser).Error; err == nil && existingUser.ID != data.ID {
+	if err := initializers.DB.Where("registration_number = ? AND batch_id = ? AND program_id = ?", data.RegistrationNumber, data.BatchID, data.ProgramID).First(&existingUser).Error; err == nil && existingUser.ID != data.ID {
 		return errors.New("registration number is already taken for the specified batch and program")
 	}
 

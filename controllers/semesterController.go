@@ -8,7 +8,7 @@ import (
 	"github.com/mysterybee07/result-distribution-system/models"
 )
 
-func AddSemester(c *fiber.Ctx) error {
+func Semester(c *fiber.Ctx) error {
 	var programs []models.Program
 	if err := initializers.DB.Preload("Semesters").Find(&programs).Error; err != nil {
 		log.Printf("Failed to fetch programs: %v\n", err)
@@ -26,9 +26,9 @@ func AddSemester(c *fiber.Ctx) error {
 	return nil
 }
 
-func StoreSemester(c *fiber.Ctx) error {
-	semester := new(models.Semester)
-	if err := c.BodyParser(semester); err != nil {
+func CreateSemester(c *fiber.Ctx) error {
+	var semester models.Semester
+	if err := c.BodyParser(&semester); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Cannot parse JSON",
 		})
@@ -43,7 +43,7 @@ func StoreSemester(c *fiber.Ctx) error {
 
 	var existingSemester models.Semester
 	// Check if a semester with the same name exists within the same program
-	if err := initializers.DB.Where("name = ? AND program_id = ?", semester.Name, semester.ProgramID).First(&existingSemester).Error; err == nil {
+	if err := initializers.DB.Where("semester_name = ? AND program_id = ?", semester.SemesterName, semester.ProgramID).First(&existingSemester).Error; err == nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Semester already exists for this program",
 		})
@@ -62,7 +62,10 @@ func StoreSemester(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.Redirect("/semesters")
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message":  "semester created successfully",
+		"semester": semester,
+	})
 }
 
 func EditSemester(c *fiber.Ctx) error {
@@ -85,7 +88,7 @@ func UpdateSemester(c *fiber.Ctx) error {
 
 	if err := c.BodyParser(&semester); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Cannot parse JSON",
+			"error": "Cannot parse the request body",
 		})
 	}
 	var program models.Program
@@ -97,7 +100,7 @@ func UpdateSemester(c *fiber.Ctx) error {
 
 	var existingSemester models.Semester
 	// Check if a semester with the same name exists within the same program
-	if err := initializers.DB.Where("name = ? AND program_id = ?", semester.Name, semester.ProgramID).First(&existingSemester).Error; err == nil {
+	if err := initializers.DB.Where("semester_name = ? AND program_id = ?", semester.SemesterName, semester.ProgramID).First(&existingSemester).Error; err == nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Semester already exists for this program",
 		})
@@ -112,4 +115,15 @@ func UpdateSemester(c *fiber.Ctx) error {
 		"message":  "Semester updated successfully",
 		"semester": semester,
 	})
+}
+
+func GetFilteredSemesters(c *fiber.Ctx) error {
+	programID := c.Query("program_id")
+
+	var semesters []models.Semester
+	if err := initializers.DB.Where("program_id = ?", programID).Find(&semesters).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching semesters"})
+	}
+
+	return c.JSON(fiber.Map{"semesters": semesters})
 }

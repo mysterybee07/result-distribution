@@ -44,10 +44,10 @@ func SeedProgramsAndSemesters() {
 		// Seed semesters for each program
 		for _, program := range programs {
 			semesters := []models.Semester{
-				{Name: 1, ProgramID: program.ID},
-				{Name: 2, ProgramID: program.ID},
-				{Name: 3, ProgramID: program.ID},
-				{Name: 4, ProgramID: program.ID},
+				{SemesterName: 1, ProgramID: program.ID},
+				{SemesterName: 2, ProgramID: program.ID},
+				{SemesterName: 3, ProgramID: program.ID},
+				{SemesterName: 4, ProgramID: program.ID},
 			}
 
 			if err := DB.Create(&semesters).Error; err != nil {
@@ -90,22 +90,22 @@ func SeedUsers() {
 
 		users := []models.User{
 			{
-				Symbol:   "SYM001",
-				Email:    "admin@example.com",
-				Password: string(hashedPassword),
-				Role:     "admin",
-				ImageURL: "/static/images/uploads/default.png",
+				SymbolNumber: "SYM001",
+				Email:        "admin@example.com",
+				Password:     string(hashedPassword),
+				Role:         "admin",
+				ImageURL:     "/static/images/uploads/default.png",
 				// No batch and program for admin
 			},
 			{
-				BatchID:      &batch.ID,   // Should not be 0
-				ProgramID:    &program.ID, // Should not be 0
-				Symbol:       "SYM002",
-				Registration: "REG002",
-				Email:        "user1@example.com",
-				Password:     string(hashedPassword),
-				Role:         "user",
-				ImageURL:     "/static/images/uploads/default.png",
+				BatchID:            &batch.ID,   // Should not be 0
+				ProgramID:          &program.ID, // Should not be 0
+				SymbolNumber:       "SYM002",
+				RegistrationNumber: "REG002",
+				Email:              "user1@example.com",
+				Password:           string(hashedPassword),
+				Role:               "user",
+				ImageURL:           "/static/images/uploads/default.png",
 			},
 		}
 
@@ -139,13 +139,13 @@ func SeedStudents() {
 
 		students := []models.Student{
 			{
-				BatchID:         batch.ID,
-				ProgramID:       program.ID,
-				SymbolNumber:    "SYM001",
-				Registration:    "REG001",
-				Fullname:        "Biraj Pudasaini",
-				CurrentSemester: 1,
-				Status:          "active",
+				BatchID:            batch.ID,
+				ProgramID:          program.ID,
+				SymbolNumber:       "SYM001",
+				RegistrationNumber: "REG001",
+				Fullname:           "Biraj Pudasaini",
+				CurrentSemester:    1,
+				Status:             "active",
 			},
 		}
 		if err := DB.Create(&students).Error; err != nil {

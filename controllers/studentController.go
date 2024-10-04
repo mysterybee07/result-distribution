@@ -187,3 +187,22 @@ func DeleteStudent(c *fiber.Ctx) error {
 		"student": student,
 	})
 }
+
+func GetFilteredStudents(c *fiber.Ctx) error {
+	batchID := c.Query("batch_id")
+	programID := c.Query("program_id")
+	semesterID := c.Query("semester_id")
+
+	var students []models.Student
+	if err := initializers.DB.Preload("Batch").Preload("Program").Preload("Semester").
+		Where("batch_id = ? AND program_id = ? AND current_semester = ?", batchID, programID, semesterID).
+		Find(&students).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Error fetching students",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"students": students,
+	})
+}

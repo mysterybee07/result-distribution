@@ -251,6 +251,39 @@ func GetLoginUser(c *fiber.Ctx) error {
 	})
 }
 
+func GetAllUsers(c *fiber.Ctx) error {
+	var users []models.User
+
+	if err := initializers.DB.Find(&users).Error; err != nil {
+		c.Status(fiber.StatusInternalServerError)
+		return c.JSON(fiber.Map{
+			"message": "Unable to retrive users",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "user retrieved successfully",
+		"users":   users,
+	})
+}
+
+func GetUserById(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	var user models.User
+
+	if err := initializers.DB.First(&user, id).Error; err != nil {
+		c.Status(fiber.StatusInternalServerError)
+		return c.JSON(fiber.Map{
+			"message": "User with id not found",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"user": user,
+	})
+}
+
 func ForgotPassword(c *fiber.Ctx) error {
 	err := c.Render("users/forgot-password", fiber.Map{})
 	if err != nil {

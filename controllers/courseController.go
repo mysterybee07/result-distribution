@@ -109,3 +109,15 @@ func StoreCourse(c *fiber.Ctx) error {
 		"message": "Courses created successfully",
 	})
 }
+
+func GetFilteredCourses(c *fiber.Ctx) error {
+	programID := c.Query("program_id")
+	semesterID := c.Query("semester_id")
+
+	var courses []models.Course
+	if err := initializers.DB.Where("program_id = ? AND semester_id = ?", programID, semesterID).Find(&courses).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching courses"})
+	}
+
+	return c.JSON(fiber.Map{"courses": courses})
+}
