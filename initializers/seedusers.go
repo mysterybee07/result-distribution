@@ -14,7 +14,7 @@ func SeedBatches() {
 
 	if count == 0 {
 		batches := []models.Batch{
-			{Year: 2020},
+			{Batch: 2020},
 		}
 		if err := DB.Create(&batches).Error; err != nil {
 			log.Println("Failed to seed Batches:", err)

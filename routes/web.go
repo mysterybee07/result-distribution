@@ -11,7 +11,7 @@ func Home(app *fiber.App) {
 	app.Get("/user/register", controllers.Register)
 	// app.Get("/register-admin", middleware.AuthRequired, middleware.AdminRequired, controllers.RegisterAdmin)
 	app.Post("/user/register", controllers.StoreRegister)
-	app.Get("/user/login", controllers.Login)
+	app.Get("/login", controllers.Login)
 	app.Post("/user/login", controllers.LoginUser)
 	app.Post("/user/logout", controllers.LogoutUser)
 	app.Get("/user/forgot-password", controllers.ForgotPassword)
@@ -39,8 +39,9 @@ func Student(app *fiber.App) {
 }
 
 func Batch(app *fiber.App) {
-	app.Get("/batches", middleware.AuthRequired, middleware.SuperadminRequired, controllers.AddBatch)
-	app.Post("/batches", middleware.AuthRequired, middleware.SuperadminRequired, controllers.CreateBatch)
+	app.Get("/batches", middleware.AuthRequired, middleware.SuperadminRequired, controllers.Batch)
+	// app.Post("/batches", middleware.AuthRequired, middleware.SuperadminRequired, controllers.CreateBatch)
+	app.Post("/batch/add", controllers.AddBatch)
 }
 
 func Program(app *fiber.App) {

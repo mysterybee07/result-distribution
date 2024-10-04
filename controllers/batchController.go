@@ -6,7 +6,7 @@ import (
 	"github.com/mysterybee07/result-distribution-system/models"
 )
 
-func AddBatch(c *fiber.Ctx) error {
+func Batch(c *fiber.Ctx) error {
 	var batch []models.Batch
 	if err := initializers.DB.Find(&batch).Error; err != nil {
 		c.Status(fiber.StatusInternalServerError).SendString("Error fetching batch")
@@ -23,34 +23,36 @@ func AddBatch(c *fiber.Ctx) error {
 	return nil
 }
 
-func CreateBatch(c *fiber.Ctx) error {
+func AddBatch(c *fiber.Ctx) error {
 	// Initialize a new Batch instance
-	batch := new(models.Batch)
+	var batch models.Batch
 
 	// Parse the request body into the Batch instance
-	if err := c.BodyParser(batch); err != nil {
+	if err := c.BodyParser(&batch); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Cannot parse JSON",
+			"message": "Failed to parse request body",
 		})
 	}
 
 	// Check if a batch with the same year already exists
 	var existingBatch models.Batch
-	if err := initializers.DB.Where("year = ?", batch.Year).First(&existingBatch).Error; err == nil {
+	if err := initializers.DB.Where("batch = ?", batch.Batch).First(&existingBatch).Error; err == nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Batch already exists",
+			"message": "Batch already exists",
 		})
 	}
 
 	// Create the new batch in the database
-	if err := initializers.DB.Create(batch).Error; err != nil {
+	if err := initializers.DB.Create(&batch).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Could not create batch",
+			"message": "Could not create batch",
 		})
 	}
 
 	// Return a success response with the created batch
-	return c.Redirect("/batches")
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Batch created successfully",
+	})
 }
 
 func EditBatch(c *fiber.Ctx) error {
@@ -73,12 +75,12 @@ func UpdateBatch(c *fiber.Ctx) error {
 	}
 	if err := c.BodyParser(&batch); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Cannot parse JSON",
+			"error": "Cannot parse request body",
 		})
 	}
 	// Check if a batch with the same year already exists
 	var existingBatch models.Batch
-	if err := initializers.DB.Where("year = ?", batch.Year).First(&existingBatch).Error; err == nil {
+	if err := initializers.DB.Where("year = ?", batch.Batch).First(&existingBatch).Error; err == nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Batch already exists",
 		})
