@@ -1,11 +1,13 @@
 package validation
 
 import (
+	"errors"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/mysterybee07/result-distribution-system/initializers"
 	"github.com/mysterybee07/result-distribution-system/models"
+	"github.com/mysterybee07/result-distribution-system/utils"
 )
 
 func ValidateStudent(student *models.Student, isUpdate bool) error {
@@ -48,20 +50,8 @@ func ValidateStudent(student *models.Student, isUpdate bool) error {
 }
 
 // VAlidation for creating marks
-type CreateMarkInput struct {
-	BatchID    uint `json:"batch_id" validate:"required"`
-	ProgramID  uint `json:"program_id" validate:"required"`
-	SemesterID uint `json:"semester_id" validate:"required"`
-	CourseID   uint `json:"course_id" validate:"required"`
-	Marks      []struct {
-		StudentID      uint `json:"student_id" validate:"required"`
-		SemesterMarks  int  `json:"semester_marks" validate:"required"`
-		AssistantMarks int  `json:"assistant_marks" validate:"required"`
-		PracticalMarks int  `json:"practical_marks" validate:"required"`
-	} `json:"marks" validate:"required,dive"`
-}
 
-func ValidateMarksInput(input *CreateMarkInput, isUpdate bool) error {
+func ValidateMarksInput(input *models.MarksPayload, isUpdate bool) error {
 	// Check if the program exists
 	var program models.Program
 	if err := initializers.DB.First(&program, input.ProgramID).Error; err != nil {
@@ -97,6 +87,61 @@ func ValidateMarksInput(input *CreateMarkInput, isUpdate bool) error {
 				return fiber.NewError(fiber.StatusConflict, "Mark entry already exists for the student")
 			}
 		}
+	}
+
+	return nil
+}
+
+func ValidateUser(data *models.User, isUpdate bool) error {
+	// Validate email format
+	if !utils.ValidateEmail(data.Email) {
+		return errors.New("invalid email format")
+	}
+
+	// Check password length only for new registrations or if updating the password
+	if !isUpdate || (isUpdate && len(data.Password) > 0) {
+		if len(data.Password) < 8 {
+			return errors.New("password must be at least 8 characters long")
+		}
+	}
+
+	if isUpdate {
+		// If it's an update, we only validate email, password, and image URL
+		if data.Email == "" && data.Password == "" && data.ImageURL == "" {
+			return errors.New("at least one of email, password, or image URL must be provided for update")
+		}
+		var existingUser models.User
+		if err := initializers.DB.Where("email = ?", data.Email).First(&existingUser).Error; err == nil && existingUser.ID != data.ID {
+			return errors.New("email is already taken")
+		}
+		return nil // No additional validation needed for updates
+	}
+
+	// If it's a new user registration, validate all required fields
+	if data.BatchID == nil || data.ProgramID == nil || data.Symbol == "" || data.Registration == "" || data.Email == "" || data.Password == "" {
+		return errors.New("batch ID, program ID, symbol, registration, email, and password are required for regular users")
+	}
+
+	// Check if symbol and registration exist in the students table for the given batch and program
+	var student models.Student
+	if err := initializers.DB.Where("symbol_number = ? AND registration = ? AND batch_id = ? AND program_id = ?", data.Symbol, data.Registration, *data.BatchID, *data.ProgramID).First(&student).Error; err != nil {
+		return errors.New("invalid symbol or registration for the specified batch and program")
+	}
+
+	// Check for unique email if not updating or email has changed
+	var existingUser models.User
+	if err := initializers.DB.Where("email = ?", data.Email).First(&existingUser).Error; err == nil && existingUser.ID != data.ID {
+		return errors.New("email is already taken")
+	}
+
+	// Check if symbol number is unique for the given batch and program
+	if err := initializers.DB.Where("symbol = ? AND batch_id = ? AND program_id = ?", data.Symbol, data.BatchID, data.ProgramID).First(&existingUser).Error; err == nil && existingUser.ID != data.ID {
+		return errors.New("symbol number is already taken for the specified batch and program")
+	}
+
+	// Check if registration number is unique for the given batch and program
+	if err := initializers.DB.Where("registration = ? AND batch_id = ? AND program_id = ?", data.Registration, data.BatchID, data.ProgramID).First(&existingUser).Error; err == nil && existingUser.ID != data.ID {
+		return errors.New("registration number is already taken for the specified batch and program")
 	}
 
 	return nil

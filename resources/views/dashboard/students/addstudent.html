@@ -1,0 +1,176 @@
+{{template "dashboard/layouts/top" .}}
+
+<main class="bg-white dark:bg-gray-900 py-8 px-4 mx-auto max-w-2xl lg:py-16">
+    <!-- Screen 1: Batch and Program Selection -->
+    <div id="screen1" class="block">
+        <h2 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Select Batch and Program</h2>
+        <form id="formScreen1" class="space-y-4">
+            <div>
+                <label for="batch_id" class="block text-sm font-medium text-gray-900 dark:text-white">Batch</label>
+                <select id="batch_id" name="batch_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 dark:text-white">
+                    <option value="">Select Programs</option>
+                    {{range .Batches}}
+                    <option value="{{.ID}}">{{.Year}}</option>
+                    {{end}}
+                </select>
+            </div>
+            <div>
+                <label for="program_id" class="block text-sm font-medium text-gray-900 dark:text-white">Program</label>
+                <select id="program" name="program_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 dark:text-white">
+                    <option value="">Select Programs</option>
+                    {{range .Programs}}
+                    <option value="{{.ID}}">{{.Name}}</option>
+                    {{end}}
+                </select>
+            </div>
+            <button type="button" onclick="nextScreen()" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Next</button>
+        </form>
+    </div>
+
+    <!-- Screen 2: Student Data Table Form -->
+    <div id="screen2" class="hidden w-full">
+        <h2 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Add Student Data</h2>
+        <form id="formScreen2">
+            <input type="hidden" id="batch_id_hidden" name="batch_id" value="">
+            <input type="hidden" id="program_hidden" name="program_id" value="">
+            <div class="overflow-x-auto mb-4">
+                <table class="w-full border-collapse border border-gray-300 dark:border-gray-600">
+                    <thead>
+                        <tr class="bg-gray-100 dark:bg-gray-800">
+                            <th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-900 dark:text-white">Symbol Number</th>
+                            <th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-900 dark:text-white">Registration</th>
+                            <th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-900 dark:text-white">Fullname</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentTableBody">
+                        <!-- Table rows will be added dynamically -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex space-x-4">
+                <div class="flex-1">
+                    <input type="text" id="symbol_number" name="symbol_number" placeholder="Symbol Number" class="w-full border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md px-4 py-2 bg-gray-50 dark:bg-gray-700 dark:text-white">
+                </div>
+                <div class="flex-1">
+                    <input type="text" id="registration" name="registration" placeholder="Registration" class="w-full border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md px-4 py-2 bg-gray-50 dark:bg-gray-700 dark:text-white">
+                </div>
+                <div class="flex-1">
+                    <input type="text" id="fullname" name="fullname" placeholder="Fullname" class="w-full border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md px-4 py-2 bg-gray-50 dark:bg-gray-700 dark:text-white">
+                </div>
+            </div>
+            <div class="mt-4">
+                <button type="button" onclick="addStudent()" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Add Student</button>
+            </div>
+            <div class="mt-4">
+                <button type="button" onclick="prevScreen()" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Previous</button>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Submit</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        let students = [];
+
+        function nextScreen() {
+            const batchId = document.getElementById('batch_id').value;
+            const programId = document.getElementById('program').value;
+
+            document.getElementById('batch_id_hidden').value = batchId;
+            document.getElementById('program_hidden').value = programId;
+
+            document.getElementById('screen1').classList.add('hidden');
+            document.getElementById('screen2').classList.remove('hidden');
+        }
+
+        function prevScreen() {
+            document.getElementById('screen1').classList.remove('hidden');
+            document.getElementById('screen2').classList.add('hidden');
+        }
+
+        function addStudent() {
+            const symbolNumber = document.getElementById('symbol_number').value;
+            const registration = document.getElementById('registration').value;
+            const fullname = document.getElementById('fullname').value;
+
+            if (!symbolNumber || !registration || !fullname) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            const student = {
+                symbol_number: symbolNumber,
+                registration: registration,
+                fullname: fullname
+            };
+
+            students.push(student);
+
+            renderStudentTable();
+            clearFormFields();
+        }
+
+        function renderStudentTable() {
+            const tbody = document.getElementById('studentTableBody');
+            tbody.innerHTML = '';
+
+            students.forEach((student, index) => {
+                const row = `
+                    <tr>
+                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${student.symbol_number}</td>
+                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${student.registration}</td>
+                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2">${student.fullname}</td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        function clearFormFields() {
+            document.getElementById('symbol_number').value = '';
+            document.getElementById('registration').value = '';
+            document.getElementById('fullname').value = '';
+        }
+
+        document.getElementById('formScreen2').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const batchId = document.getElementById('batch_id_hidden').value;
+            const programId = document.getElementById('program_hidden').value;
+
+            const payload = {
+                batch_id: batchId,
+                program_id: programId,
+                students: students
+            };
+
+            console.log('Payload:', payload); // Debug log
+
+            fetch('/students/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Success:', data);
+                    alert('Students created successfully');
+                    students = []; // Clear students array after successful submission
+                    renderStudentTable(); // Optionally update UI after successful submission
+                    clearFormFields(); // Clear form fields after successful submission
+                    prevScreen(); // Go back to screen 1 after successful submission
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while creating students: ' + error.message);
+                });
+        });
+    </script>
+</main>
+{{template "dashboard/layouts/bottom" .}}

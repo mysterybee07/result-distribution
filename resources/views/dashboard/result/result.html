@@ -1,0 +1,124 @@
+{{template "dashboard/layouts/top" .}}
+<main class="bg-white dark:bg-gray-900">
+    <div class="py-8 px-4 mx-auto max-w-2xl lg:py-16">
+        <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">Publish Results</h2>
+
+        {{if .flash_success}}
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+            <span class="block sm:inline">{{.flash_success}}</span>
+        </div>
+        {{end}}
+
+        <form id="formScreen1" action="/results" method="post">
+            <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
+                <div>
+                    <label for="batch" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Batch</label>
+                    <select id="batch" name="batch_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                        required>
+                        <option value="">Select Batch</option>
+                        {{range .Batches}}
+                        <option value="{{.ID}}">{{.Year}}</option>
+                        {{end}}
+                    </select>
+                    <span class="text-danger">{{if .Errors}}{{index .Errors "batch_id"}}{{end}}</span>
+                </div>
+                <div>
+                    <label for="program" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Program</label>
+                    <select id="program_id" name="program_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                        onclick="fetchSemesters()" required>
+                        <option value="">Select Program</option>
+                        {{range .Programs}}
+                        <option value="{{.ID}}">{{.Name}}</option>
+                        {{end}}
+                    </select>
+                    <span class="text-danger">{{if .Errors}}{{index .Errors "program_id"}}{{end}}</span>
+                </div>
+                <div>
+                    <label for="semester" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Semester</label>
+                    <select id="semester" name="semester_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                        required>
+                        <option value="">Select Semester</option>
+                       
+                    </select>
+                    <!-- <span class="text-danger">{{if .Errors}}{{index .Errors "semester_id"}}{{end}}</span> -->
+                </div>
+            </div>
+            <div class="w-full py-8">
+                <button type="submit" class="flex items-center justify-between px-4 py-2 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-purple-600 border border-transparent rounded-lg active:bg-purple-600 hover:bg-purple-700 focus:outline-none focus:shadow-outline-purple">Publish Result</button>
+            </div>
+        </form>
+        <div class="mt-8">
+            <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-white">Published Results</h3>
+            {{if .Results}}
+            <div class="overflow-x-auto relative shadow-md sm:rounded-lg mb-8">
+                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                        <tr>
+                            <th scope="col" class="py-3 px-6">S.No.</th>
+                            <th scope="col" class="py-3 px-6">Batch</th>
+                            <th scope="col" class="py-3 px-6">Program</th>
+                            <th scope="col" class="py-3 px-6">Semester</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{range $resultIndex, $result := .Results}}
+                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                            <td class="py-4 px-6">{{add $resultIndex 1}}</td>
+                            <td class="py-4 px-6">{{$result.Batch.Year}}</td>
+                            <td class="py-4 px-6">{{$result.Program.Name}}</td>
+                            <td class="py-4 px-6">{{$result.Semester.Name}}</td>
+                        </tr>
+                        {{else}}
+                        <tr>
+                            <td colspan="4" class="py-4 px-6 text-center">No results available</td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+            </div>
+            {{else}}
+            <div class="py-4 px-6 text-center">No Results available</div>
+            {{end}}
+        </div>
+    </div>
+</main>
+<script>
+    function fetchSemesters() {
+        const programId = document.getElementById('program_id').value;
+        console.log('Fetching semesters for program ID:', programId);
+
+        fetch(`/getfiltersemesters?program_id=${programId}`)
+            .then(response => {
+                console.log('Semesters response status:', response.status);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const semesterSelect = document.getElementById('semester');
+                semesterSelect.innerHTML = ''; // Clear existing options
+
+                // Add the default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Select Semester';
+                semesterSelect.appendChild(defaultOption);
+
+                // Add new options
+                data.semesters.forEach(semester => {
+                    const option = document.createElement('option');
+                    option.value = semester.ID;
+                    option.textContent = semester.name;
+                    semesterSelect.appendChild(option);
+                });
+
+                // Conditionally fetch courses if needed
+            })
+            .catch(error => {
+                console.error('Error fetching semesters:', error);
+                alert('An error occurred while fetching semesters');
+            });
+    }
+</script>
+{{template "dashboard/layouts/bottom" .}}

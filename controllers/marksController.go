@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"errors"
+
 	"github.com/go-playground/validator"
 	"github.com/gofiber/fiber/v2"
 	"github.com/mysterybee07/result-distribution-system/initializers"
@@ -12,70 +14,162 @@ import (
 // Create a global validator
 var validate = validator.New()
 
+func AddMarks(c *fiber.Ctx) error {
+	var batches []models.Batch
+	if err := initializers.DB.Find(&batches).Error; err != nil {
+		c.Status(fiber.StatusInternalServerError).SendString("Error fetching batches")
+		return err
+	}
+
+	var courses []models.Course
+	if err := initializers.DB.Find(&courses).Error; err != nil {
+		c.Status(fiber.StatusInternalServerError).SendString("Error fetching courses")
+		return err
+	}
+
+	var programs []models.Program
+	if err := initializers.DB.Preload("Semesters").Find(&programs).Error; err != nil {
+		c.Status(fiber.StatusInternalServerError).SendString("Error fetching programs")
+		return err
+	}
+
+	var semesters []models.Semester
+	if err := initializers.DB.Find(&semesters).Error; err != nil {
+		c.Status(fiber.StatusInternalServerError).SendString("Error fetching semesters")
+		return err
+	}
+
+	err := c.Render("dashboard/marks/add", fiber.Map{
+		"Students":  []models.Student{}, // Empty initially
+		"Courses":   courses,
+		"Batches":   batches,
+		"Programs":  programs,
+		"Semesters": semesters,
+	})
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Error rendering page")
+	}
+	return nil
+}
+
+func GetFilteredStudents(c *fiber.Ctx) error {
+	batchID := c.Query("batch_id")
+	programID := c.Query("program_id")
+	semesterID := c.Query("semester_id")
+
+	var students []models.Student
+	if err := initializers.DB.Preload("Batch").Preload("Program").Preload("Semester").
+		Where("batch_id = ? AND program_id = ? AND current_semester = ?", batchID, programID, semesterID).
+		Find(&students).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Error fetching students",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"students": students,
+	})
+}
+
+func GetFilteredSemesters(c *fiber.Ctx) error {
+	programID := c.Query("program_id")
+
+	var semesters []models.Semester
+	if err := initializers.DB.Where("program_id = ?", programID).Find(&semesters).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching semesters"})
+	}
+
+	return c.JSON(fiber.Map{"semesters": semesters})
+}
+
+func GetFilteredCourses(c *fiber.Ctx) error {
+	programID := c.Query("program_id")
+	semesterID := c.Query("semester_id")
+
+	var courses []models.Course
+	if err := initializers.DB.Where("program_id = ? AND semester_id = ?", programID, semesterID).Find(&courses).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching courses"})
+	}
+
+	return c.JSON(fiber.Map{"courses": courses})
+}
+
 func CreateMarks(c *fiber.Ctx) error {
-	var input validation.CreateMarkInput
-	if err := c.BodyParser(&input); err != nil {
+	// Parse incoming JSON request body into payload struct
+	var payload models.MarksPayload
+	if err := c.BodyParser(&payload); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Cannot parse JSON",
+			"error": "Invalid JSON",
 		})
 	}
 
 	// Validate input using validator
-	if err := validate.Struct(input); err != nil {
+	if err := validate.Struct(payload); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
 
 	// Validate marks input
-	if err := validation.ValidateMarksInput(&input, false); err != nil {
+	if err := validation.ValidateMarksInput(&payload, false); err != nil {
 		return c.Status(err.(*fiber.Error).Code).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
-	//fetching the pass marks
+
+	// Fetch course details
 	var course models.Course
-	if err := initializers.DB.First(&course, input.CourseID).Error; err != nil {
+	if err := initializers.DB.First(&course, payload.CourseID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Course not found",
+			})
+		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Could not find the course",
+			"error": "Database error",
 		})
 	}
 
 	// Create marks for each student
 	var marks []models.Mark
-	for _, markEntry := range input.Marks {
-
+	for _, mark := range payload.Marks {
 		// Check that obtained marks do not exceed total marks
-		if markEntry.SemesterMarks > course.SemesterTotalMarks ||
-			(course.PracticalTotalMarks != nil && markEntry.PracticalMarks > *course.PracticalTotalMarks) ||
-			(course.AssistantTotalMarks != nil && markEntry.AssistantMarks > *course.AssistantTotalMarks) {
+		if mark.SemesterMarks > course.SemesterTotalMarks ||
+			(course.PracticalTotalMarks != nil && mark.PracticalMarks > *course.PracticalTotalMarks) ||
+			(course.AssistantTotalMarks != nil && mark.AssistantMarks > *course.AssistantTotalMarks) {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": "Obtained marks cannot exceed total marks",
 			})
 		}
-		mark := models.Mark{
-			BatchID:        input.BatchID,
-			ProgramID:      input.ProgramID,
-			SemesterID:     input.SemesterID,
-			CourseID:       input.CourseID,
-			StudentID:      markEntry.StudentID,
-			SemesterMarks:  markEntry.SemesterMarks,
-			AssistantMarks: markEntry.AssistantMarks,
-			PracticalMarks: markEntry.PracticalMarks,
+
+		newMark := models.Mark{
+			BatchID:        payload.BatchID,
+			ProgramID:      payload.ProgramID,
+			SemesterID:     payload.SemesterID,
+			CourseID:       payload.CourseID,
+			StudentID:      mark.StudentID,
+			SemesterMarks:  mark.SemesterMarks,
+			AssistantMarks: mark.AssistantMarks,
+			PracticalMarks: mark.PracticalMarks,
 		}
-		if mark.SemesterMarks < course.SemesterPassMarks ||
-			(course.PracticalPassMarks != nil && mark.PracticalMarks < *course.PracticalPassMarks) ||
-			(course.AssistantPassMarks != nil && mark.AssistantMarks < *course.AssistantPassMarks) {
-			mark.Status = "failed"
+
+		// Determine pass/fail status
+		if newMark.SemesterMarks < course.SemesterPassMarks ||
+			(course.PracticalPassMarks != nil && newMark.PracticalMarks < *course.PracticalPassMarks) ||
+			(course.AssistantPassMarks != nil && newMark.AssistantMarks < *course.AssistantPassMarks) {
+			newMark.Status = "failed"
 		} else {
-			mark.Status = "pass"
+			newMark.Status = "pass"
 		}
-		marks = append(marks, mark)
+
+		marks = append(marks, newMark)
 	}
 
 	// Bulk insert the marks
 	if err := initializers.DB.Create(&marks).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not create marks"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Could not create marks",
+		})
 	}
 
 	// Preload associations for each mark
@@ -100,7 +194,7 @@ func CreateMarks(c *fiber.Ctx) error {
 }
 
 func UpdateMarks(c *fiber.Ctx) error {
-	var input validation.CreateMarkInput
+	var input models.MarksPayload
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Cannot parse JSON",

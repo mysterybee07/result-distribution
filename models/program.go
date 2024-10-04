@@ -4,5 +4,6 @@ import "gorm.io/gorm"
 
 type Program struct {
 	gorm.Model
-	Name string `gorm:"not null" json:"name"`
+	ProgramName string     `gorm:"not null" json:"program_name"`
+	Semesters   []Semester `gorm:"foreignKey:ProgramID"`
 }

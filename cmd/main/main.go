@@ -27,6 +27,13 @@ func main() {
 
 	// Load templates
 	engine := html.New("./resources/views", ".html")
+	engine.AddFunc("add", func(values ...int) int {
+		sum := 0
+		for _, v := range values {
+			sum += v
+		}
+		return sum
+	})
 
 	app := fiber.New(fiber.Config{
 		Views: engine,
@@ -44,15 +51,18 @@ func main() {
 		c.Locals("session", sess)
 		return c.Next()
 	})
-
+	// Use flash messages middleware
+	app.Use(middleware.FlashMessages)
 	// Loading static files
 	app.Static("/", "./static")
+	// Loading images
+	app.Static("/static", "./static")
 
 	// Authentication routes
 	routes.Home(app)
 
 	// Protected routes
-	app.Use(middleware.AuthRequired)
+	// app.Use(middleware.AuthRequired)
 
 	// Routes
 	routes.Profile(app)
@@ -63,6 +73,8 @@ func main() {
 	routes.Semester(app)
 	routes.Subject(app)
 	routes.Mark(app)
+	routes.Result(app)
+	routes.Error(app)
 
 	err := app.Listen(":" + port)
 	if err != nil {

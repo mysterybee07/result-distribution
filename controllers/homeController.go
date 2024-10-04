@@ -2,18 +2,16 @@ package controllers
 
 import (
 	"log"
-	"regexp"
-	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/mysterybee07/result-distribution-system/initializers"
+	"github.com/mysterybee07/result-distribution-system/middleware/validation"
 	"github.com/mysterybee07/result-distribution-system/models"
 	"github.com/mysterybee07/result-distribution-system/utils"
 )
 
 // var initializers *gorm.DB
-
 func Home(c *fiber.Ctx) error {
 	err := c.Render("index", fiber.Map{})
 	if err != nil {
@@ -24,7 +22,20 @@ func Home(c *fiber.Ctx) error {
 
 }
 func Register(c *fiber.Ctx) error {
-	err := c.Render("users/signup", fiber.Map{})
+	var batches []models.Batch
+	if err := initializers.DB.Find(&batches).Error; err != nil {
+		c.Status(fiber.StatusInternalServerError).SendString("Error fetching batches")
+		return err
+	}
+	var programs []models.Program
+	if err := initializers.DB.Find(&programs).Error; err != nil {
+		c.Status(fiber.StatusInternalServerError).SendString("Error fetching programs")
+		return err
+	}
+	err := c.Render("users/signup", fiber.Map{
+		"Programs": programs,
+		"Batches":  batches,
+	})
 	if err != nil {
 		c.Status(fiber.StatusInternalServerError).SendString("Error rendering page")
 		return err
@@ -32,110 +43,45 @@ func Register(c *fiber.Ctx) error {
 	return nil
 }
 
-func validateEmail(email string) bool {
-	pattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
-	regex := regexp.MustCompile(pattern)
-	return regex.MatchString(email)
-}
-
-// StoreRegister handles the registration of a new userpackage controllers
-
 // StoreRegister handles the registration of a new user
+
 func StoreRegister(c *fiber.Ctx) error {
-	var data models.User
-
-	// Parse the form data into the User struct
-	if err := c.BodyParser(&data); err != nil {
-		log.Println("Unable to parse form data:", err)
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid form data",
+	var user models.User
+	if err := c.BodyParser(&user); err != nil {
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
+			"message": "unable to parse json data",
 		})
 	}
 
-	// Validate fields
-	if data.BatchID == 0 ||
-		data.ProgramID == 0 ||
-		data.Symbol == "" ||
-		data.Registration == "" ||
-		data.Email == "" ||
-		data.Password == "" {
-		log.Println("Missing required fields")
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "All fields are required",
-		})
-	}
-
-	// Check if the user password is less than 8 characters
-	if len(data.Password) < 8 {
-		log.Println("Password too short")
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Password must be at least 8 characters long",
-		})
-	}
-
-	// Validate email
-	if !validateEmail(data.Email) {
-		log.Println("Invalid email format")
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid email",
-		})
-	}
-
-	// Check if email already exists
-	var existingUser models.User
-	if err := initializers.DB.Where("email = ?", data.Email).First(&existingUser).Error; err == nil {
-		log.Println("Email already taken:", data.Email)
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Email is already taken",
-		})
-	}
-
-	// Check if symbol and registration exist in the students table for the given batch and program
-	var student models.Student
-	if err := initializers.DB.Where("symbol_number = ? AND registration = ? AND batch_id = ? AND program_id = ?",
-		data.Symbol, data.Registration, data.BatchID, data.ProgramID).First(&student).Error; err != nil {
-		log.Println("Student record not found:", err)
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid symbol or registration for the specified batch and program",
-		})
-	}
-
-	// Check if symbol number and registration number are unique in users table
-	if err := initializers.DB.Where("symbol = ? AND batch_id = ? AND program_id = ?", data.Symbol, data.BatchID, data.ProgramID).First(&existingUser).Error; err == nil {
-		log.Println("Symbol Number already taken in users for the specified batch and program:", data.Symbol)
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Symbol Number is already taken for the specified batch and program",
-		})
-	}
-	if err := initializers.DB.Where("registration = ? AND batch_id = ? AND program_id = ?", data.Registration, data.BatchID, data.ProgramID).First(&existingUser).Error; err == nil {
-		log.Println("Registration Number already taken in users for the specified batch and program:", data.Registration)
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Registration Number is already taken for the specified batch and program",
-		})
-	}
-
-	// Hash password
-	hashedPassword, err := models.HashPassword(data.Password)
+	hashedPassword, err := models.HashPassword(user.Password)
 	if err != nil {
-		log.Println("Failed to hash password:", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to hash password",
+		log.Println("Failed to hash password")
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
+			"message": "Failed to process password",
 		})
 	}
-	data.Password = hashedPassword
+	user.Password = hashedPassword
 
-	// Create user in database
-	if err := initializers.DB.Create(&data).Error; err != nil {
-		log.Println("Failed to create user:", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to create user",
+	if err := validation.ValidateUser(&user, false); err != nil {
+		log.Println("Validation Failed")
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
+			"message": err.Error(),
 		})
 	}
 
-	// Return success message as JSON
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"user":    data,
-		"message": "Account created successfully",
+	if err := initializers.DB.Create(&user).Error; err != nil {
+		log.Println("Failed to create users")
+		c.Status(fiber.StatusInternalServerError)
+		return c.JSON(fiber.Map{
+			"message": "User creation Failed",
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "User created successfully",
+		"data":    user,
 	})
 }
 
@@ -151,58 +97,158 @@ func Login(c *fiber.Ctx) error {
 // LoginUser handles user login
 
 func LoginUser(c *fiber.Ctx) error {
-	// Define a struct to parse the login form data
 	type LoginData struct {
-		Identifier string `json:"identifier" form:"identifier"`
-		Password   string `json:"password" form:"password"`
+		Identifier string `json:"identifier"`
+		Password   string `json:"password"`
 	}
 
-	// Parse the login form data
 	var loginData LoginData
+
+	// Parse the login data
 	if err := c.BodyParser(&loginData); err != nil {
-		log.Println("Unable to parse form data:", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid form data",
+			"message": "Unable to parse login data",
 		})
 	}
 
-	// Find the user by email or symbol number
+	// Find user by email or symbol
 	var user models.User
 	if err := initializers.DB.Where("email = ? OR symbol = ?", loginData.Identifier, loginData.Identifier).First(&user).Error; err != nil {
-		log.Printf("User not found with identifier: %s\n", loginData.Identifier)
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"message": "Invalid identifier or password",
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"message": "No user found for the email or symbol",
 		})
 	}
 
-	// Verify the provided password against the stored hashed password
+	// Check if the password is correct
 	if !models.CheckPasswordHash(loginData.Password, user.Password) {
-		log.Println("Invalid password")
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"message": "Invalid identifier or password",
+			"message": "Incorrect password or identifier",
 		})
 	}
 
-	// Generate JWT token
-	token, err := utils.GenerateJwt(strconv.Itoa(int(user.ID)))
+	// Create JWT token
+	_, err := utils.GenerateJwt(user.ID, user.Role, c)
 	if err != nil {
-		log.Println("Failed to generate token:", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Failed to generate token",
+			"message": "Failed to Generate JWT tokens",
 		})
 	}
 
-	// Set the token as a cookie
-	cookie := fiber.Cookie{
+	// Return success response
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "User login successful",
+		"user":    user,
+		// "token":   token, // Optional: you can return the token in the response as well
+	})
+}
+
+func UpdateUser(c *fiber.Ctx) error {
+	// Take id
+	id := c.Params("id")
+	var user models.User
+
+	// Find user
+	if err := initializers.DB.First(&user, id).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"message": "User with the UserID not found",
+		})
+	}
+
+	var updateData models.User
+	if err := c.BodyParser(&updateData); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Failed to parse request body",
+		})
+	}
+
+	if err := validation.ValidateUser(&updateData, true); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+	// Update the user fields only if they are provided
+	if updateData.Email != "" && updateData.Email != user.Email {
+		user.Email = updateData.Email
+	}
+
+	if updateData.Password != "" {
+		hashpassword, err := models.HashPassword(updateData.Password)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "Failed to hash password",
+			})
+		}
+		user.Password = hashpassword
+	}
+	// Update ImageURL if provided
+	if updateData.ImageURL != "" {
+		user.ImageURL = updateData.ImageURL
+	}
+
+	if err := initializers.DB.Save(&user).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to update user in the database",
+		})
+	}
+
+	// Return success message as JSON
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		// "user":    existingUser,
+		"message": "Account updated successfully",
+	})
+}
+
+// LogoutUser logs out the user by clearing the JWT cookie
+func LogoutUser(c *fiber.Ctx) error {
+	// Clear the cookie
+	cookies := fiber.Cookie{
 		Name:     "jwt",
-		Value:    token,
-		Expires:  time.Now().Add(time.Minute * 15),
+		Value:    "",
+		Expires:  time.Now().Add(-1 * time.Second), // Set the cookie to expire immediately
 		HTTPOnly: true,
 	}
-	c.Cookie(&cookie)
+	c.Cookie(&cookies)
 
-	// Redirect or respond with success
-	return c.Redirect("/profile", fiber.StatusFound)
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "logout successfully",
+	})
+}
+
+func GetLoginUser(c *fiber.Ctx) error {
+	// Retrieve the JWT from the cookie
+	cookie := c.Cookies("jwt")
+	if cookie == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Missing or invalid JWT cookie",
+		})
+	}
+
+	// Parse the JWT and extract the userID and role
+	userID, role, err := utils.ParseJwt(cookie)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	// Retrieve user information from the database based on userID
+	var user models.User
+	if err := initializers.DB.First(&user, userID).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"message": "User not found",
+		})
+	}
+
+	// Return the logged-in user's details
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"user": fiber.Map{
+			"ID":    user.ID,
+			"email": user.Email,
+			"role":  role,
+			// "name":  user.Name,
+		},
+		"message": "User data retrieved successfully",
+	})
 }
 
 func ForgotPassword(c *fiber.Ctx) error {
