@@ -41,13 +41,13 @@ func Student(app *fiber.App) {
 func Batch(app *fiber.App) {
 	app.Get("/batches", middleware.AuthRequired, middleware.SuperadminRequired, controllers.Batch)
 	// app.Post("/batches", middleware.AuthRequired, middleware.SuperadminRequired, controllers.CreateBatch)
-	app.Post("/batches/add", controllers.CreateBatch)
+	app.Post("/batches/create", controllers.CreateBatch)
 }
 
 func Program(app *fiber.App) {
 	app.Get("/programs", middleware.AuthRequired, middleware.SuperadminRequired, controllers.Program)
 	// app.Post("/programs/add", middleware.AuthRequired, middleware.SuperadminRequired, controllers.CreateProgram)
-	app.Post("/programs/add", controllers.CreateProgram)
+	app.Post("/programs/create", controllers.CreateProgram)
 	app.Put("/programs/update/:id", controllers.UpdateProgram)
 }
 
@@ -72,8 +72,8 @@ func Mark(app *fiber.App) {
 }
 
 func Result(app *fiber.App) {
-	app.Get("/results", middleware.AuthRequired, middleware.SuperadminRequired, controllers.AddResult)
-	app.Post("/results", middleware.AuthRequired, middleware.SuperadminRequired, controllers.PublishResults)
+	app.Get("/result", middleware.AuthRequired, middleware.SuperadminRequired, controllers.Result)
+	app.Post("/result/publish", middleware.AuthRequired, middleware.SuperadminRequired, controllers.PublishResults)
 }
 
 func Error(app *fiber.App) {

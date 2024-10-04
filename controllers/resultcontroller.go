@@ -5,19 +5,12 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/mysterybee07/result-distribution-system/initializers"
 	"github.com/mysterybee07/result-distribution-system/models"
 	"gorm.io/gorm"
 )
 
-var store = session.New()
-
-func AddResult(c *fiber.Ctx) error {
-	sess, err := store.Get(c)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString("Failed to get session")
-	}
+func Result(c *fiber.Ctx) error {
 
 	var batches []models.Batch
 	if err := initializers.DB.Find(&batches).Error; err != nil {
@@ -43,32 +36,15 @@ func AddResult(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).SendString("Failed to fetch results")
 	}
 
-	err = c.Render("dashboard/result/result", fiber.Map{
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"Batches":   batches,
 		"Programs":  programs,
 		"Semesters": semesters,
 		"Results":   results,
 	})
-	if err != nil {
-		log.Printf("Error rendering page: %v\n", err)
-		return c.Status(fiber.StatusInternalServerError).SendString("Error rendering page")
-	}
-
-	// Set the success message in the session
-	sess.Set("success", "Result published successfully!")
-	if err := sess.Save(); err != nil {
-		log.Printf("Failed to save session: %v\n", err)
-		return c.Status(fiber.StatusInternalServerError).SendString("Failed to save session")
-	}
-
-	return nil
 }
 
 func PublishResults(c *fiber.Ctx) error {
-	sess, err := store.Get(c)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString("Failed to get session")
-	}
 	// Get batch and semester from request body or query params
 	type PublishRequest struct {
 		BatchID    uint `json:"batch_id" form:"batch_id"`
@@ -163,14 +139,8 @@ func PublishResults(c *fiber.Ctx) error {
 		log.Printf("Failed to save result: %v\n", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to save result"})
 	}
-	sess.Set("success", "Result published successfully!")
-	if err := sess.Save(); err != nil {
-		log.Printf("Failed to save session: %v\n", err)
-		return c.Status(fiber.StatusInternalServerError).SendString("Failed to save session")
-	}
 
-	return c.Redirect("/results")
-
-	// return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Results published and semesters updated"})
-	// return c.Redirect("/results")
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Results published and semesters updated",
+	})
 }
