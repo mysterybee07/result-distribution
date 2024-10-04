@@ -8,7 +8,7 @@ import (
 	"github.com/mysterybee07/result-distribution-system/models"
 )
 
-func AddProgram(c *fiber.Ctx) error {
+func Program(c *fiber.Ctx) error {
 	// Fetch all programs from the database
 	var programs []models.Program
 	if err := initializers.DB.Find(&programs).Error; err != nil {
@@ -28,11 +28,11 @@ func AddProgram(c *fiber.Ctx) error {
 	return nil
 }
 
-func StoreProgram(c *fiber.Ctx) error {
-	program := new(models.Program)
+func CreateProgram(c *fiber.Ctx) error {
+	var program models.Program
 
 	// Parse the form data
-	if err := c.BodyParser(program); err != nil {
+	if err := c.BodyParser(&program); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Cannot parse form data",
 		})
@@ -43,7 +43,7 @@ func StoreProgram(c *fiber.Ctx) error {
 
 	var existingProgram models.Program
 	// Check if the program already exists
-	if err := initializers.DB.Where("name = ?", program.Name).First(&existingProgram).Error; err == nil {
+	if err := initializers.DB.Where("program_name = ?", program.ProgramName).First(&existingProgram).Error; err == nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Program already exists",
 		})
@@ -56,7 +56,10 @@ func StoreProgram(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.Redirect("/programs")
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Programs created successfully",
+		"program": program,
+	})
 }
 
 func EditProgram(c *fiber.Ctx) error {
@@ -86,7 +89,7 @@ func UpdateProgram(c *fiber.Ctx) error {
 
 	var existingProgram models.Program
 	// Check if the program already exists
-	if err := initializers.DB.Where("name = ?", program.Name).First(&existingProgram).Error; err == nil {
+	if err := initializers.DB.Where("program_name = ?", program.ProgramName).First(&existingProgram).Error; err == nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Program already exists",
 		})

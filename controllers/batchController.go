@@ -23,7 +23,7 @@ func Batch(c *fiber.Ctx) error {
 	return nil
 }
 
-func AddBatch(c *fiber.Ctx) error {
+func CreateBatch(c *fiber.Ctx) error {
 	// Initialize a new Batch instance
 	var batch models.Batch
 

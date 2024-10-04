@@ -31,8 +31,8 @@ func SeedProgramsAndSemesters() {
 	if count == 0 {
 		// Define programs
 		programs := []models.Program{
-			{Name: "Computer Science"},
-			{Name: "Information Technology"},
+			{ProgramName: "Computer Science"},
+			{ProgramName: "Information Technology"},
 		}
 
 		// Insert programs
@@ -51,9 +51,9 @@ func SeedProgramsAndSemesters() {
 			}
 
 			if err := DB.Create(&semesters).Error; err != nil {
-				log.Println("Failed to seed semesters for program:", program.Name, err)
+				log.Println("Failed to seed semesters for program:", program.ProgramName, err)
 			} else {
-				log.Println("Semesters seeded successfully for program:", program.Name)
+				log.Println("Semesters seeded successfully for program:", program.ProgramName)
 			}
 		}
 	}
