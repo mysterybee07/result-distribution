@@ -1,10 +1,15 @@
 import React from 'react'
+import Navigation from '../components/Navigation'
+import Footer from '../components/Footer'
+import Layout from '../layout/Layout'
 
 const Homepage = () => {
     return (
-        <h1 className="text-3xl font-bold underline">
-            Hello world!
-        </h1>
+        <>
+            <Layout>
+                <h1>homepage</h1>
+            </Layout>
+        </>
     )
 }
 

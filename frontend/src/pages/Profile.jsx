@@ -7,7 +7,6 @@ const Profile = () => {
         <Layout>
             <div className='p-4 bg-blue-500 text-white'>Profile</div>
             <Button variant="secondary">Click me</Button>
-
         </Layout>
     )
 }
