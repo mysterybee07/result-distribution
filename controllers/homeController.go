@@ -113,7 +113,7 @@ func LoginUser(c *fiber.Ctx) error {
 
 	// Find user by email or symbol
 	var user models.User
-	if err := initializers.DB.Where("email = ? OR symbol = ?", loginData.Identifier, loginData.Identifier).First(&user).Error; err != nil {
+	if err := initializers.DB.Where("email = ? OR symbol_number = ?", loginData.Identifier, loginData.Identifier).First(&user).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"message": "No user found for the email or symbol",
 		})
