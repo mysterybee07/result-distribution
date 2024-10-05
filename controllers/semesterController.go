@@ -117,13 +117,19 @@ func UpdateSemester(c *fiber.Ctx) error {
 	})
 }
 
-func GetFilteredSemesters(c *fiber.Ctx) error {
-	programID := c.Query("program_id")
+func GetSemestersByProgramID(c *fiber.Ctx) error {
+	programID := c.Params("programID")
 
+	// Fetch semesters for the given programID
 	var semesters []models.Semester
 	if err := initializers.DB.Where("program_id = ?", programID).Find(&semesters).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching semesters"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to fetch semesters",
+		})
 	}
 
-	return c.JSON(fiber.Map{"semesters": semesters})
+	// Return semesters as JSON response
+	return c.JSON(fiber.Map{
+		"semesters": semesters,
+	})
 }

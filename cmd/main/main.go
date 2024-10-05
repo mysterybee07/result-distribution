@@ -71,7 +71,7 @@ func main() {
 	routes.Batch(app)
 	routes.Program(app)
 	routes.Semester(app)
-	routes.Subject(app)
+	routes.Course(app)
 	routes.Mark(app)
 	routes.Result(app)
 	routes.Error(app)

@@ -60,11 +60,15 @@ func Semester(app *fiber.App) {
 	// app.Post("/semesters", middleware.AuthRequired, middleware.SuperadminRequired, controllers.CreateSemester)
 	app.Post("/semester/create", controllers.CreateSemester)
 	app.Put("/semester/update/:id", controllers.UpdateSemester)
+	app.Get("/semester/sem-by-program", controllers.GetSemestersByProgramID)
 }
 
-func Subject(app *fiber.App) {
-	app.Get("/courses", middleware.AuthRequired, middleware.SuperadminRequired, controllers.AddCourse)
-	app.Post("/courses", middleware.AuthRequired, middleware.SuperadminRequired, controllers.StoreCourse)
+func Course(app *fiber.App) {
+	app.Get("/courses", middleware.AuthRequired, middleware.SuperadminRequired, controllers.Course)
+	// app.Post("/courses/create", middleware.AuthRequired, middleware.SuperadminRequired, controllers.CreateCourse)
+	app.Post("/courses/create", controllers.CreateCourses)
+	app.Put("/course/update/:id", controllers.UpdateCourse)
+
 }
 
 func Mark(app *fiber.App) {
@@ -74,7 +78,6 @@ func Mark(app *fiber.App) {
 	// app.Post("/publish-results", middleware.AuthRequired, middleware.AdminRequired, controllers.PublishResults)
 	app.Get("/getstudents", controllers.GetFilteredStudents)
 	app.Get("/getfiltercourses", controllers.GetFilteredCourses)
-	app.Get("/getfiltersemesters", controllers.GetFilteredSemesters)
 }
 
 func Result(app *fiber.App) {

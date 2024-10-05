@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func AddCourse(c *fiber.Ctx) error {
+func Course(c *fiber.Ctx) error {
 	// Fetch programs with their associated semesters
 	var programs []models.Program
 	if err := initializers.DB.Preload("Semesters").Find(&programs).Error; err != nil {
@@ -31,30 +31,13 @@ func AddCourse(c *fiber.Ctx) error {
 	return nil
 }
 
-func GetSemestersByProgramID(c *fiber.Ctx) error {
-	programID := c.Params("programID")
-
-	// Fetch semesters for the given programID
-	var semesters []models.Semester
-	if err := initializers.DB.Where("program_id = ?", programID).Find(&semesters).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to fetch semesters",
-		})
-	}
-
-	// Return semesters as JSON response
-	return c.JSON(fiber.Map{
-		"semesters": semesters,
-	})
-}
-
 // StoreCourse handles storing multiple courses in a single request
-func StoreCourse(c *fiber.Ctx) error {
-	// Parse incoming JSON request body into payload struct
+func CreateCourses(c *fiber.Ctx) error {
+
 	var payload models.CoursesPayload
 	if err := c.BodyParser(&payload); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid JSON",
+			"error": "Failed to parse request body",
 		})
 	}
 
@@ -84,6 +67,7 @@ func StoreCourse(c *fiber.Ctx) error {
 		})
 	}
 
+	var courses []models.Course
 	// Validate and create courses
 	for _, course := range payload.Courses {
 		course.ProgramID = payload.ProgramID
@@ -103,10 +87,51 @@ func StoreCourse(c *fiber.Ctx) error {
 				"error": "Could not create course",
 			})
 		}
+		courses = append(courses, course)
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"message": "Courses created successfully",
+		"courses": courses,
+	})
+}
+
+func UpdateCourse(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	var course models.Course
+
+	if err := initializers.DB.First(&course, id).Error; err != nil {
+		c.Status(fiber.StatusNotFound)
+		return c.JSON(fiber.Map{
+			"error": fmt.Sprintf("Course with id:%s is not found", id),
+		})
+	}
+
+	if err := c.BodyParser(&course); err != nil {
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
+			"error": "Failed to parse request body",
+		})
+	}
+
+	var existingCourse models.Course
+	if err := initializers.DB.Where("course_code = ? AND program_id = ?", course.CourseCode, course.ProgramID).First(&existingCourse).Error; err == nil {
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+			"error": fmt.Sprintf("Course '%s' already exists for the given program", course.Name),
+		})
+	}
+
+	if err := initializers.DB.Save(&course).Error; err != nil {
+		c.Status(fiber.StatusInternalServerError)
+		return c.JSON(fiber.Map{
+			"error": "Failed to update course",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Courses updated successfully",
+		"course":  course,
 	})
 }
 
@@ -119,5 +144,7 @@ func GetFilteredCourses(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching courses"})
 	}
 
-	return c.JSON(fiber.Map{"courses": courses})
+	return c.JSON(fiber.Map{
+		"courses": courses,
+	})
 }
