@@ -2,28 +2,31 @@ package routes
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/mysterybee07/result-distribution-system/controllers"
+	controllers "github.com/mysterybee07/result-distribution-system/controllers/admin"
+	errorController "github.com/mysterybee07/result-distribution-system/controllers/error"
+	homeController "github.com/mysterybee07/result-distribution-system/controllers/home"
+	userController "github.com/mysterybee07/result-distribution-system/controllers/user"
 	"github.com/mysterybee07/result-distribution-system/middleware"
 )
 
 func Home(app *fiber.App) {
-	app.Get("", controllers.Home)
-	app.Get("/user/register", controllers.Register)
+	app.Get("", homeController.Home)
+	app.Get("/user/register", homeController.Register)
 	// app.Get("/register-admin", middleware.AuthRequired, middleware.AdminRequired, controllers.RegisterAdmin)
-	app.Post("/user/register", controllers.StoreRegister)
-	app.Get("/login", controllers.Login)
-	app.Post("/user/login", controllers.LoginUser)
-	app.Post("/user/logout", controllers.LogoutUser)
-	app.Get("/user/forgot-password", controllers.ForgotPassword)
-	app.Put("/user/update/:id", controllers.UpdateUser)
-	app.Get("/users", controllers.GetLoginUser)
-	app.Get("/all-users", controllers.GetAllUsers)
-	app.Get("/user/:id", controllers.GetUserById)
+	app.Post("/user/register", homeController.StoreRegister)
+	app.Get("/login", homeController.Login)
+	app.Post("/user/login", homeController.LoginUser)
+	app.Post("/user/logout", homeController.LogoutUser)
+	app.Get("/user/forgot-password", homeController.ForgotPassword)
+	app.Put("/user/update/:id", homeController.UpdateUser)
+	app.Get("/users", homeController.GetLoginUser)
+	app.Get("/all-users", homeController.GetAllUsers)
+	app.Get("/user/:id", homeController.GetUserById)
 	// app.Get("/logout", controllers.LogoutUser)
 }
 
 func Profile(app *fiber.App) {
-	app.Get("/profile", middleware.AuthRequired, controllers.GetUserProfile)
+	app.Get("/profile", middleware.AuthRequired, userController.GetUserProfile)
 }
 
 // func Dashboard(app *fiber.App) {
@@ -91,8 +94,8 @@ func Result(app *fiber.App) {
 }
 
 func Error(app *fiber.App) {
-	app.Get("/404", controllers.NotFound)
-	app.Get("/500", controllers.ServerError)
+	app.Get("/404", errorController.NotFound)
+	app.Get("/500", errorController.ServerError)
 }
 
 // func Subject(app *fiber.App) {
