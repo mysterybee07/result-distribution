@@ -31,13 +31,15 @@ func Profile(app *fiber.App) {
 // }
 
 func Student(app *fiber.App) {
-	app.Get("/students/add", middleware.AuthRequired, middleware.AdminRequired, controllers.AddStudent)
-	app.Post("/students/add", middleware.AuthRequired, middleware.AdminRequired, controllers.StoreStudents)
+	app.Get("/students/add", middleware.AuthRequired, middleware.AdminRequired, controllers.Student)
+	// app.Post("/students/add", middleware.AuthRequired, middleware.AdminRequired, controllers.StoreStudents)
 	app.Get("/students", middleware.AuthRequired, middleware.AdminRequired, controllers.GetStudents)
 	// app.Get("/students/edit/:id", middleware.AuthRequired, middleware.AdminRequired, controllers.EditStudentForm)
-	app.Put("/students/edit/:id", middleware.AuthRequired, middleware.AdminRequired, controllers.UpdateStudent)
+	// app.Put("/students/update/:id", middleware.AuthRequired, middleware.AdminRequired, controllers.UpdateStudent)
+	app.Get("/student/update/:id", controllers.UpdateStudent)
 	app.Get("/students/:id", controllers.GetStudentById)
 	app.Get("/students/edit/:id", middleware.AuthRequired, middleware.AdminRequired, controllers.EditStudent)
+	app.Post("/students/create", controllers.CreateStudents)
 }
 
 func Batch(app *fiber.App) {

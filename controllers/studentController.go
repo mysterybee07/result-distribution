@@ -1,15 +1,13 @@
 package controllers
 
 import (
-	"strconv"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/mysterybee07/result-distribution-system/initializers"
 	"github.com/mysterybee07/result-distribution-system/middleware/validation"
 	"github.com/mysterybee07/result-distribution-system/models"
 )
 
-func AddStudent(c *fiber.Ctx) error {
+func Student(c *fiber.Ctx) error {
 	var programs []models.Program
 	if err := initializers.DB.Find(&programs).Error; err != nil {
 		c.Status(fiber.StatusInternalServerError).SendString("Error fetching programs")
@@ -31,61 +29,51 @@ func AddStudent(c *fiber.Ctx) error {
 	return nil
 }
 
-func StoreStudents(c *fiber.Ctx) error {
-	// Parse JSON data
-	var requestData struct {
-		BatchID   string           `json:"batch_id"`
-		ProgramID string           `json:"program_id"`
-		Students  []models.Student `json:"students"`
+func CreateStudents(c *fiber.Ctx) error {
+	var input struct {
+		BatchID   uint `json:"batch_id"`
+		ProgramID uint `json:"program_id"`
+		Students  []struct {
+			Fullname           string `json:"fullname"`
+			SymbolNumber       string `json:"symbol_number"`
+			RegistrationNumber string `json:"registration_number"`
+		} `json:"students"`
 	}
 
-	if err := c.BodyParser(&requestData); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Cannot parse JSON",
+	if err := c.BodyParser(&input); err != nil {
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
+			"message": "unable to parse request body",
 		})
 	}
 
-	// Convert batchID and ProgramID to uint
-	batchID, err := strconv.ParseUint(requestData.BatchID, 10, 64)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid batch_id",
-		})
-	}
-	programID, err := strconv.ParseUint(requestData.ProgramID, 10, 64)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid program_id",
-		})
-	}
+	var students []models.Student
+	for _, s := range input.Students {
+		student := models.Student{
+			SymbolNumber:       s.SymbolNumber,
+			RegistrationNumber: s.RegistrationNumber,
+			Fullname:           s.Fullname,
+			BatchID:            input.BatchID,
+			ProgramID:          input.ProgramID,
+		}
 
-	// Create students
-	for _, student := range requestData.Students {
-		student.BatchID = uint(batchID)
-		student.ProgramID = uint(programID)
 		if err := validation.ValidateStudent(&student, false); err != nil {
 			return c.Status(err.(*fiber.Error).Code).JSON(fiber.Map{
-				"message": err.Error(),
+				"error": err.Error(),
 			})
 		}
-		if err := initializers.DB.Create(&student).Error; err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"message": "Could not create student",
-			})
-		}
-	}
+		students = append(students, student)
 
-	// Begin a transaction
-	tx := initializers.DB.Begin()
-	if tx.Error != nil {
+	}
+	if err := initializers.DB.Create(&students).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Could not begin transaction",
+			"error": "Could not add students",
 		})
 	}
 
-	// Iterate over the students and validate/save each one
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"message": "Students created successfully",
+	return c.JSON(fiber.Map{
+		"message":  "Students added successfully",
+		"students": students,
 	})
 }
 
@@ -126,11 +114,11 @@ func UpdateStudent(c *fiber.Ctx) error {
 			"error": "Could not update student",
 		})
 	}
-	if err := initializers.DB.Preload("Batch").Preload("Program").First(&student, student.ID).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Could not retrieve student with associations",
-		})
-	}
+	// if err := initializers.DB.Preload("Batch").Preload("Program").First(&student, student.ID).Error; err != nil {
+	// 	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+	// 		"error": "Could not retrieve student with associations",
+	// 	})
+	// }
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Student updated successfully",
