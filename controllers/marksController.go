@@ -14,7 +14,7 @@ import (
 // Create a global validator
 var validate = validator.New()
 
-func AddMarks(c *fiber.Ctx) error {
+func Marks(c *fiber.Ctx) error {
 	var batches []models.Batch
 	if err := initializers.DB.Find(&batches).Error; err != nil {
 		c.Status(fiber.StatusInternalServerError).SendString("Error fetching batches")

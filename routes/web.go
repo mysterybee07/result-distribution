@@ -36,10 +36,11 @@ func Student(app *fiber.App) {
 	app.Get("/students", middleware.AuthRequired, middleware.AdminRequired, controllers.GetStudents)
 	// app.Get("/students/edit/:id", middleware.AuthRequired, middleware.AdminRequired, controllers.EditStudentForm)
 	// app.Put("/students/update/:id", middleware.AuthRequired, middleware.AdminRequired, controllers.UpdateStudent)
-	app.Get("/student/update/:id", controllers.UpdateStudent)
+	app.Put("/student/update/:id", controllers.UpdateStudent)
 	app.Get("/students/:id", controllers.GetStudentById)
 	app.Get("/students/edit/:id", middleware.AuthRequired, middleware.AdminRequired, controllers.EditStudent)
 	app.Post("/students/create", controllers.CreateStudents)
+	app.Get("/getstudents", controllers.GetFilteredStudents)
 }
 
 func Batch(app *fiber.App) {
@@ -68,16 +69,20 @@ func Course(app *fiber.App) {
 	// app.Post("/courses/create", middleware.AuthRequired, middleware.SuperadminRequired, controllers.CreateCourse)
 	app.Post("/courses/create", controllers.CreateCourses)
 	app.Put("/course/update/:id", controllers.UpdateCourse)
+	app.Get("/getfiltercourses", controllers.GetFilteredCourses)
 
 }
 
 func Mark(app *fiber.App) {
-	app.Post("/marks/add", middleware.AuthRequired, middleware.AdminRequired, controllers.CreateMarks)
-	app.Put("/marks/edit/:id", middleware.AuthRequired, middleware.AdminRequired, controllers.UpdateMarks)
-	app.Get("/marks/:symbolNumber", middleware.AuthRequired, middleware.AdminRequired, controllers.GetMarksBySymbolNumber)
+	app.Get("/marks", controllers.Marks)
+	// app.Post("/marks/create", middleware.AuthRequired, middleware.AdminRequired, controllers.CreateMarks)
+	// app.Put("/marks/update/:id", middleware.AuthRequired, middleware.AdminRequired, controllers.UpdateMarks)
+	app.Post("/marks/create", controllers.CreateMarks)
+	app.Put("/marks/update/:id", controllers.UpdateMarks)
+	// app.Get("/marks/:symbolNumber", middleware.AuthRequired, middleware.AdminRequired, controllers.GetMarksBySymbolNumber)
+	app.Get("/marks/:symbolNumber", controllers.GetMarksBySymbolNumber)
 	// app.Post("/publish-results", middleware.AuthRequired, middleware.AdminRequired, controllers.PublishResults)
-	app.Get("/getstudents", controllers.GetFilteredStudents)
-	app.Get("/getfiltercourses", controllers.GetFilteredCourses)
+
 }
 
 func Result(app *fiber.App) {
