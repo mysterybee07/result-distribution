@@ -145,8 +145,8 @@ func SetupRoutes(app *fiber.App) {
 	user.Post("/logout", authController.LogoutUser)
 	user.Get("/forgot-password", authController.ForgotPassword)
 	user.Put("/update/:id", authController.UpdateUser)
-	user.Get("/users", authController.GetLoginUser)
-	user.Get("/all-users", authController.GetAllUsers)
+	user.Get("/active", authController.GetLoginUser)
+	user.Get("", authController.GetAllUsers)
 	user.Get("/:id", authController.GetUserById)
 	// user.Get("/logout", controllers.LogoutUser)
 
@@ -155,8 +155,9 @@ func SetupRoutes(app *fiber.App) {
 	profile.Get("/", middleware.AuthRequired, userController.GetUserProfile)
 
 	// Student Routes
-	student := app.Group("/students", middleware.AuthRequired, middleware.AdminRequired)
-	student.Get("/add", adminController.Student)
+	// student := app.Group("/students", middleware.AuthRequired, middleware.AdminRequired)
+	student := app.Group("/students")
+	// student.Get("/add", adminController.Student)
 	// student.Post("/add", adminController.StoreStudents)
 	student.Get("/", adminController.GetStudents)
 	student.Put("/update/:id", adminController.UpdateStudent)
@@ -166,20 +167,23 @@ func SetupRoutes(app *fiber.App) {
 	student.Get("/filter", adminController.GetFilteredStudents)
 
 	// Batch Routes
-	batch := app.Group("/batches", middleware.AuthRequired, middleware.SuperadminRequired)
+	// batch := app.Group("/batches", middleware.AuthRequired, middleware.SuperadminRequired)
+	batch := app.Group("/batch")
 	batch.Get("/", adminController.Batch)
-	// batch.Post("/", adminController.CreateBatch)
 	batch.Post("/create", adminController.CreateBatch)
+	batch.Put("/update/:id", adminController.UpdateBatch)
 
 	// Program Routes
-	program := app.Group("/programs", middleware.AuthRequired, middleware.SuperadminRequired)
+	// program := app.Group("/programs", middleware.AuthRequired, middleware.SuperadminRequired)
+	program := app.Group("/program")
 	program.Get("/", adminController.Program)
 	// program.Post("/add", adminController.CreateProgram)
 	program.Post("/create", adminController.CreateProgram)
 	program.Put("/update/:id", adminController.UpdateProgram)
 
 	// Semester Routes
-	semester := app.Group("/semesters", middleware.AuthRequired, middleware.SuperadminRequired)
+	// semester := app.Group("/semesters", middleware.AuthRequired, middleware.SuperadminRequired)
+	semester := app.Group("/semester")
 	semester.Get("/", adminController.Semester)
 	// semester.Post("/", adminController.CreateSemester)
 	semester.Post("/create", adminController.CreateSemester)
@@ -187,7 +191,8 @@ func SetupRoutes(app *fiber.App) {
 	semester.Get("/by-program", adminController.GetSemestersByProgramID)
 
 	// Course Routes
-	course := app.Group("/courses", middleware.AuthRequired, middleware.SuperadminRequired)
+	// course := app.Group("/courses", middleware.AuthRequired, middleware.SuperadminRequired)
+	course := app.Group("/courses")
 	course.Get("/", adminController.Course)
 	// course.Post("/create", adminController.CreateCourses)
 	course.Post("/create", adminController.CreateCourses)
@@ -206,7 +211,8 @@ func SetupRoutes(app *fiber.App) {
 	// app.Post("/publish-results", middleware.AuthRequired, middleware.AdminRequired, adminController.PublishResults)
 
 	// Result Routes
-	result := app.Group("/result", middleware.AuthRequired, middleware.SuperadminRequired)
+	// result := app.Group("/result", middleware.AuthRequired, middleware.SuperadminRequired)
+	result := app.Group("/result")
 	result.Get("/", adminController.Result)
 	result.Post("/publish", adminController.PublishResults)
 
