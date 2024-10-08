@@ -11,6 +11,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
@@ -89,4 +90,40 @@ func SanitizeFileName(fileName string) string {
 	// Remove any characters that are not alphanumeric, dot, or underscore
 	re := regexp.MustCompile(`[^a-zA-Z0-9._-]`)
 	return strings.ToLower(re.ReplaceAllString(fileName, "_"))
+}
+
+// HashPassword hashes a plain text password
+func HashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	return string(bytes), err
+}
+
+// CheckPasswordHash compares a plain text password with a hashed password
+func CheckPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
+}
+
+// ConvertIDs converts batch ID and program ID from string to pointers of uint.
+// Returns an error if any conversion fails.
+func ConvertIDs(batchIDStr, programIDStr string) (batchID, programID *uint, err error) {
+	if batchIDStr != "" {
+		batchUint, err := strconv.ParseUint(batchIDStr, 10, 32)
+		if err != nil {
+			return nil, nil, err // Return the error if conversion fails
+		}
+		batchIDVal := uint(batchUint)
+		batchID = &batchIDVal // Return a pointer to the converted uint
+	}
+
+	if programIDStr != "" {
+		programUint, err := strconv.ParseUint(programIDStr, 10, 32)
+		if err != nil {
+			return nil, nil, err // Return the error if conversion fails
+		}
+		programIDVal := uint(programUint)
+		programID = &programIDVal // Return a pointer to the converted uint
+	}
+
+	return batchID, programID, nil // Return both pointers and nil error
 }

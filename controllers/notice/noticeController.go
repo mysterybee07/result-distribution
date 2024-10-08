@@ -2,14 +2,14 @@ package controllers
 
 import (
 	"github.com/gofiber/fiber/v2"
-	fileController "github.com/mysterybee07/result-distribution-system/controllers/file"
 	"github.com/mysterybee07/result-distribution-system/initializers"
 	"github.com/mysterybee07/result-distribution-system/models"
+	"github.com/mysterybee07/result-distribution-system/utils"
 )
 
 func CreateNotice(c *fiber.Ctx) error {
 	// Upload the file and get the file path
-	filePath, err := fileController.UploadFile(c)
+	filePath, err := utils.UploadFile(c)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Error uploading file: " + err.Error(),
