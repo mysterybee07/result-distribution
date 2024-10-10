@@ -8,7 +8,6 @@ import {
   CardTitle,
 } from "../components/ui/card"
 import { Button } from '../components/ui/button'
-import Layout from '../layout/Layout'
 import { useNavigate } from 'react-router-dom'
 import { RegisterForm } from '../forms/RegisterForm'
 

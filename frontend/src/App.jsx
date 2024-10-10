@@ -6,16 +6,18 @@ import Register from './pages/Register'
 import Exam from './pages/Exam'
 import Profile from './pages/Profile'
 import Result from './pages/Result'
-import Navigation from './components/Navigation'
 import Footer from './components/Footer'
+import Navbar from './components/Navbar'
 
-const Layout = () => (
-  <>
-    <Navigation />
-    <Outlet /> {/* This renders the matched child route */}
-    <Footer />
-  </>
-);
+const Layout = () => {
+  return (
+    <>
+      <Navbar />
+      <Outlet />
+      <Footer />
+    </>
+  )
+};
 
 function App() {
 

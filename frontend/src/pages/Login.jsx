@@ -10,7 +10,6 @@ import {
 import { LoginForm } from '../forms/LoginForm'
 import { Button } from '../components/ui/button'
 import { useNavigate } from 'react-router-dom'
-import Layout from '../layout/Layout'
 
 const Login = () => {
   const navigate = useNavigate();
