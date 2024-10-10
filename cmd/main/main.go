@@ -53,9 +53,11 @@ func main() {
 		return c.Next()
 	})
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "https://gofiber.io, https://gofiber.net",
+		AllowOrigins: "http://localhost:3000, http://localhost:5173/",
+		AllowMethods: "GET, POST, PUT, DELETE, PATCH, OPTIONS",
 		AllowHeaders: "Origin, Content-Type, Accept",
 	}))
+
 	// Use flash messages middleware
 	app.Use(middleware.FlashMessages)
 	// Loading static files
