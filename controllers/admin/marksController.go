@@ -14,7 +14,7 @@ import (
 // Create a global validator
 var validate = validator.New()
 
-func AddMarks(c *fiber.Ctx) error {
+func Marks(c *fiber.Ctx) error {
 	var batches []models.Batch
 	if err := initializers.DB.Find(&batches).Error; err != nil {
 		c.Status(fiber.StatusInternalServerError).SendString("Error fetching batches")
@@ -50,48 +50,6 @@ func AddMarks(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).SendString("Error rendering page")
 	}
 	return nil
-}
-
-func GetFilteredStudents(c *fiber.Ctx) error {
-	batchID := c.Query("batch_id")
-	programID := c.Query("program_id")
-	semesterID := c.Query("semester_id")
-
-	var students []models.Student
-	if err := initializers.DB.Preload("Batch").Preload("Program").Preload("Semester").
-		Where("batch_id = ? AND program_id = ? AND current_semester = ?", batchID, programID, semesterID).
-		Find(&students).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Error fetching students",
-		})
-	}
-
-	return c.JSON(fiber.Map{
-		"students": students,
-	})
-}
-
-func GetFilteredSemesters(c *fiber.Ctx) error {
-	programID := c.Query("program_id")
-
-	var semesters []models.Semester
-	if err := initializers.DB.Where("program_id = ?", programID).Find(&semesters).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching semesters"})
-	}
-
-	return c.JSON(fiber.Map{"semesters": semesters})
-}
-
-func GetFilteredCourses(c *fiber.Ctx) error {
-	programID := c.Query("program_id")
-	semesterID := c.Query("semester_id")
-
-	var courses []models.Course
-	if err := initializers.DB.Where("program_id = ? AND semester_id = ?", programID, semesterID).Find(&courses).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching courses"})
-	}
-
-	return c.JSON(fiber.Map{"courses": courses})
 }
 
 func CreateMarks(c *fiber.Ctx) error {

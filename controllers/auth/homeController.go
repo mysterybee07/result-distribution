@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"log"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -21,6 +20,7 @@ func Home(c *fiber.Ctx) error {
 	return nil
 
 }
+
 func Register(c *fiber.Ctx) error {
 	var batches []models.Batch
 	if err := initializers.DB.Find(&batches).Error; err != nil {
@@ -46,42 +46,78 @@ func Register(c *fiber.Ctx) error {
 // StoreRegister handles the registration of a new user
 
 func StoreRegister(c *fiber.Ctx) error {
-	var user models.User
-	if err := c.BodyParser(&user); err != nil {
-		c.Status(fiber.StatusBadRequest)
-		return c.JSON(fiber.Map{
-			"message": "unable to parse json data",
+	// Handle image upload and get the file path
+	imageURL, err := utils.UploadImage(c)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Error uploading image: " + err.Error(),
 		})
 	}
 
-	hashedPassword, err := models.HashPassword(user.Password)
+	// Create a new user instance
+	var user models.User
+	if err := c.BodyParser(&user); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid request payload",
+		})
+	}
+
+	// Set the image URL in the user instance
+	user.ImageURL = imageURL
+
+	// Convert BatchID and ProgramID from string to uint
+	batchIDStr := c.FormValue("batch_id")
+	programIDStr := c.FormValue("program_id")
+
+	batchID, programID, err := utils.ConvertIDs(batchIDStr, programIDStr)
 	if err != nil {
-		log.Println("Failed to hash password")
-		c.Status(fiber.StatusBadRequest)
-		return c.JSON(fiber.Map{
+		if batchID == nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "Invalid batch ID",
+			})
+		}
+		if programID == nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "Invalid program ID",
+			})
+		}
+	}
+
+	user.BatchID = batchID
+	user.ProgramID = programID
+
+	// Set the remaining fields
+	user.SymbolNumber = c.FormValue("symbol_number")
+	user.RegistrationNumber = c.FormValue("registration_number")
+
+	// Hash the password
+	hashedPassword, err := utils.HashPassword(user.Password)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Failed to process password",
 		})
 	}
 	user.Password = hashedPassword
 
+	// Validate user data
 	if err := validation.ValidateUser(&user, false); err != nil {
-		log.Println("Validation Failed")
-		c.Status(fiber.StatusBadRequest)
-		return c.JSON(fiber.Map{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": err.Error(),
 		})
 	}
 
+	// Save the user to the database
 	if err := initializers.DB.Create(&user).Error; err != nil {
-		log.Println("Failed to create users")
-		c.Status(fiber.StatusInternalServerError)
-		return c.JSON(fiber.Map{
-			"message": "User creation Failed",
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "User creation failed",
+			"error":   err.Error(),
 		})
 	}
+
+	// Return a success message
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "User created successfully",
-		"data":    user,
+		"user":    user,
 	})
 }
 
@@ -113,14 +149,14 @@ func LoginUser(c *fiber.Ctx) error {
 
 	// Find user by email or symbol
 	var user models.User
-	if err := initializers.DB.Where("email = ? OR symbol = ?", loginData.Identifier, loginData.Identifier).First(&user).Error; err != nil {
+	if err := initializers.DB.Where("email = ? OR symbol_number = ?", loginData.Identifier, loginData.Identifier).First(&user).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"message": "No user found for the email or symbol",
 		})
 	}
 
 	// Check if the password is correct
-	if !models.CheckPasswordHash(loginData.Password, user.Password) {
+	if !utils.CheckPasswordHash(loginData.Password, user.Password) {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Incorrect password or identifier",
 		})
@@ -172,7 +208,7 @@ func UpdateUser(c *fiber.Ctx) error {
 	}
 
 	if updateData.Password != "" {
-		hashpassword, err := models.HashPassword(updateData.Password)
+		hashpassword, err := utils.HashPassword(updateData.Password)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"message": "Failed to hash password",
@@ -248,6 +284,39 @@ func GetLoginUser(c *fiber.Ctx) error {
 			// "name":  user.Name,
 		},
 		"message": "User data retrieved successfully",
+	})
+}
+
+func GetAllUsers(c *fiber.Ctx) error {
+	var users []models.User
+
+	if err := initializers.DB.Find(&users).Error; err != nil {
+		c.Status(fiber.StatusInternalServerError)
+		return c.JSON(fiber.Map{
+			"message": "Unable to retrive users",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "user retrieved successfully",
+		"users":   users,
+	})
+}
+
+func GetUserById(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	var user models.User
+
+	if err := initializers.DB.First(&user, id).Error; err != nil {
+		c.Status(fiber.StatusInternalServerError)
+		return c.JSON(fiber.Map{
+			"message": "User with id not found",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"user": user,
 	})
 }
 

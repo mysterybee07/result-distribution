@@ -41,7 +41,7 @@ func GetUserProfile(c *fiber.Ctx) error {
 
 	// Fetch student information
 	var student models.Student
-	if err := initializers.DB.Where("symbol_number = ?", user.Symbol).Preload("Batch").Preload("Program").First(&student).Error; err != nil {
+	if err := initializers.DB.Where("symbol_number = ?", user.SymbolNumber).Preload("Batch").Preload("Program").First(&student).Error; err != nil {
 		log.Printf("Student not found for user with email %s: %v\n", user.Email, err)
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Student not found"})
 	}

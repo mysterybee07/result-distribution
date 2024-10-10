@@ -65,16 +65,17 @@ func main() {
 	// app.Use(middleware.AuthRequired)
 
 	// Routes
-	routes.Profile(app)
-	routes.Dashboard(app)
-	routes.Student(app)
-	routes.Batch(app)
-	routes.Program(app)
-	routes.Semester(app)
-	routes.Subject(app)
-	routes.Mark(app)
-	routes.Result(app)
-	routes.Error(app)
+	// routes.Profile(app)
+	// routes.Dashboard(app)
+	// routes.Student(app)
+	// routes.Batch(app)
+	// routes.Program(app)
+	// routes.Semester(app)
+	// routes.Course(app)
+	// routes.Mark(app)
+	// routes.Result(app)
+	// routes.Error(app)
+	routes.SetupRoutes(app)
 
 	err := app.Listen(":" + port)
 	if err != nil {
