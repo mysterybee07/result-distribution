@@ -6,9 +6,7 @@ import Layout from '../layout/Layout'
 const Homepage = () => {
     return (
         <>
-            <Layout>
-                <h1>homepage</h1>
-            </Layout>
+            <h1>homepage</h1>
         </>
     )
 }
