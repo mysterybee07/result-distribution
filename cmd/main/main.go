@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/gofiber/template/html/v2"
 	"github.com/mysterybee07/result-distribution-system/initializers"
@@ -51,6 +52,10 @@ func main() {
 		c.Locals("session", sess)
 		return c.Next()
 	})
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "https://gofiber.io, https://gofiber.net",
+		AllowHeaders: "Origin, Content-Type, Accept",
+	}))
 	// Use flash messages middleware
 	app.Use(middleware.FlashMessages)
 	// Loading static files
