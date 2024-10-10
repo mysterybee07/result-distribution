@@ -18,3 +18,13 @@ type User struct {
 	Batch              *Batch   `gorm:"foreignkey:BatchID;constraint:OnDelete:SET NULL;"`   // Nullable foreign key
 	Program            *Program `gorm:"foreignkey:ProgramID;constraint:OnDelete:SET NULL;"` // Nullable foreign key
 }
+
+type UserInput struct {
+	ProgramID          uint   `form:"program_id" json:"program_id"`
+	BatchID            uint   `form:"batch_id" json:"batch_id"`
+	SymbolNumber       string `form:"symbol_number" json:"symbol_number"`
+	RegistrationNumber string `form:"registration_number" json:"registration_number"`
+	Email              string `form:"email" json:"email"`
+	Password           string `form:"password" json:"password"`
+	Role               string `form:"role" json:"role"`
+}
