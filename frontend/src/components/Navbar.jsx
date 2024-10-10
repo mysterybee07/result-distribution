@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Button } from '../components/ui/button'
 import { NavLink, Link, useNavigate } from 'react-router-dom'
 import { CgProfile } from "react-icons/cg";
-import { IoIosLogOut } from "react-icons/io";
+import { IoIosLogOut, IoIosNotifications } from "react-icons/io";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -74,22 +74,40 @@ const Navbar = () => {
                     <div className="flex items-center gap-4">
                         {isAuthenticated ?
                             (
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger>
-                                        <img src='../../public/neko.jpg' alt='profile' className='w-8 h-8 cursor-pointer rounded-full' />
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent>
-                                        <DropdownMenuLabel>Kiran Shrestha</DropdownMenuLabel>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuItem>
-                                            <CgProfile className='cursor-pointer mr-1' />Profile
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem>
-                                            <IoIosLogOut className='cursor-pointer mr-1' />
-                                            Logout
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
+                                <>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger>
+                                            <IoIosNotifications className='cursor-pointer w-6 h-6' />
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent>
+                                            <DropdownMenuLabel className="text-orange-600">2 new notification</DropdownMenuLabel>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem>
+                                                Study for exam..
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem>
+                                                Final term exam in 7 days
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger>
+                                            <img src='../../public/neko.jpg' alt='profile' className='w-8 h-8 cursor-pointer rounded-full' />
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent>
+                                            <DropdownMenuLabel>Kiran Shrestha</DropdownMenuLabel>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem>
+                                                <CgProfile className='cursor-pointer mr-1' />Profile
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem>
+                                                <IoIosLogOut className='cursor-pointer mr-1' />
+                                                Logout
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </>
                             ) :
                             (
                                 <>
