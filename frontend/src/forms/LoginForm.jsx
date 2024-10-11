@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/tooltip"
 import { Input } from "../components/ui/input"
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
+import { useNavigate } from "react-router-dom"
 
 const formSchema = z.object({
     identifier: z.string()
@@ -32,6 +33,7 @@ const formSchema = z.object({
 })
 
 export function LoginForm() {
+    const navigate = useNavigate();
     // 1. Define your form.
     const form = useForm({
         resolver: zodResolver(formSchema),
@@ -46,15 +48,20 @@ export function LoginForm() {
         // Do something with the form values.
         // ✅ This will be type-safe and validated.
         const { identifier, password } = values;
-        const response = await fetch('http://127.0.0.1:3000/login', {
+        const response = await fetch('http://127.0.0.1:3000/user/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ identifier, password }),
         });
+        if(!response.ok) {
+            console.log('Error');
+            return;
+        };
 
         const data = await response.json();
+        navigate('/');
         console.log(data);
         console.log(values)
     }

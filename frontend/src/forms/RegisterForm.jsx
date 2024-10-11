@@ -37,16 +37,20 @@ const formSchema = z
     .object({
         symbol_number: z.string().min(5, { message: "Symbol number must be at least 5 characters." }),
         registration_number: z.string().min(5, { message: "Registration number must be at least 5 characters." }),
-        batchIDStr: z.string(),
+        batch_id: z.string(),
         programIDStr: z.string(),
-        identifier: z
+        email: z
             .string()
             .email({ message: "Please enter a valid email address." })
             .min(5, { message: "Email must be at least 5 characters." }),
         password: z
             .string()
-            .min(6, { message: "Password must be at least 6 characters." }),
+            .min(8, { message: "Password must be at least 6 characters." }),
         confirm_password: z.string(),
+        // image: z.string(),
+        image: z
+        .instanceof(File) // Check that the input is an instance of File
+        .refine(file => file.size > 0, { message: "Image file is required." })
     })
     .refine((data) => data.password === data.confirm_password, {
         path: ["confirm_password"],
@@ -61,10 +65,12 @@ export function RegisterForm() {
         defaultValues: {
             symbol_number: "",
             registration_number: "",
-            batchIDStr: "",
+            batch_id: "",
             programIDStr: "",
-            identifier: "",
+            email: "",
             password: "",
+            confirm_password: "",
+            image: ""
         },
     })
     const { setValue } = form;
@@ -72,19 +78,36 @@ export function RegisterForm() {
     // 2. Define a submit handler.
     const onSubmit = async (values) => {
         // Do something with the form values.
-        // ✅ This will be type-safe and validated.
-        const { identifier, password, symbol_number, registration_number, batchIDStr, programIDStr } = values;
-        // const response = await fetch('http://127.0.0.1:3000/login', {
-        //     method: 'POST',
-        //     headers: {
-        //         'Content-Type': 'application/json',
-        //     },
-        //     body: JSON.stringify({ identifier, password }),
-        // });
+        const { email, password, symbol_number, registration_number, batch_id, programIDStr, image } = values;
 
-        // const data = await response.json();
-        // console.log(data);
-        console.log(values)
+        const formData = new FormData();
+        formData.append('symbol_number', symbol_number);
+        formData.append('registration_number', registration_number);
+        formData.append('batch_id', batch_id);
+        formData.append('program_id', programIDStr);
+        formData.append('email', email);
+        formData.append('password', password);
+        const fileInput = document.querySelector('input[type="file"]');
+        if (fileInput && fileInput.files.length > 0) {
+            formData.append('image_url', fileInput.files[0]); // use 'image' as the key
+        } else {
+            console.error('No image file selected.');
+        }
+
+        console.log("🚀 ~ onSubmit ~ formData:", formData)
+
+        // ✅ This will be type-safe and validated.
+        const response = await fetch('http://127.0.0.1:3000/user/register', {
+            method: 'POST',
+            // headers: {
+            //     'Content-Type': 'application/json',
+            // },
+            body: formData,
+        });
+
+        const data = await response.json();
+        console.log("response data", data);
+        console.log("submitted values",values)
     }
 
     // 3. password visibility
@@ -100,13 +123,35 @@ export function RegisterForm() {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8" encType="multipart/form-data">
+                {/* <input type="file" name="image" accept="images/*" /> */}
                 <FormField
                     control={form.control}
-                    name="identifier"
+                    name="image"
                     render={({ field }) => (
                         <FormItem className="text-start">
-                            <FormLabel className="text-start">Identifier</FormLabel>
+                            <FormLabel className="text-start">Image</FormLabel>
+                            <FormControl>
+                                <Input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        // Capture the file and set it in the form
+                                        field.onChange(e.target.files[0]);
+                                    }}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                        <FormItem className="text-start">
+                            <FormLabel className="text-start">email</FormLabel>
                             <FormControl>
                                 <Input placeholder="Email or Symbol number" {...field} />
                             </FormControl>
@@ -202,7 +247,7 @@ export function RegisterForm() {
                 </div>
                 <div className="flex flex-row items-center gap-4">
                     <Select
-                        onValueChange={(value) => setValue('batchIDStr', value)} // Update form value when batch changes
+                        onValueChange={(value) => setValue('batch_id', value)} // Update form value when batch changes
                     >
                         <FormLabel className="text-start">Select your batch: </FormLabel>
                         <SelectTrigger className="w-[180px]">
@@ -211,11 +256,11 @@ export function RegisterForm() {
                         <SelectContent>
                             <SelectGroup>
                                 <SelectLabel>Batch</SelectLabel>
-                                <SelectItem value="2024">2024</SelectItem>
-                                <SelectItem value="2023">2023</SelectItem>
-                                <SelectItem value="2022">2022</SelectItem>
-                                <SelectItem value="2021">2021</SelectItem>
-                                <SelectItem value="2020">2020</SelectItem>
+                                <SelectItem value="1">2024</SelectItem>
+                                <SelectItem value="2">2023</SelectItem>
+                                <SelectItem value="3">2022</SelectItem>
+                                <SelectItem value="4">2021</SelectItem>
+                                <SelectItem value="5">2020</SelectItem>
                             </SelectGroup>
                         </SelectContent>
                     </Select>
@@ -232,10 +277,10 @@ export function RegisterForm() {
                         <SelectContent>
                             <SelectGroup>
                                 <SelectLabel>Program</SelectLabel>
-                                <SelectItem value="CSIT">CSIT</SelectItem>
-                                <SelectItem value="BBA">BBA</SelectItem>
-                                <SelectItem value="BIM">BIM</SelectItem>
-                                <SelectItem value="BBS">BBS</SelectItem>
+                                <SelectItem value="1">CSIT</SelectItem>
+                                <SelectItem value="2">BBA</SelectItem>
+                                <SelectItem value="3">BIM</SelectItem>
+                                <SelectItem value="4">BBS</SelectItem>
                             </SelectGroup>
                         </SelectContent>
                     </Select>
