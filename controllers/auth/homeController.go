@@ -163,7 +163,7 @@ func LoginUser(c *fiber.Ctx) error {
 	}
 
 	// Create JWT token
-	_, err := utils.GenerateJwt(user.ID, user.Role, c)
+	token, err := utils.GenerateJwt(user.ID, user.Role, c)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to Generate JWT tokens",
@@ -174,7 +174,7 @@ func LoginUser(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "User login successful",
 		"user":    user,
-		// "token":   token, // Optional: you can return the token in the response as well
+		"token":   token, // Optional: you can return the token in the response as well
 	})
 }
 
