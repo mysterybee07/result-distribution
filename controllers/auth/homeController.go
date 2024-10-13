@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -46,52 +47,27 @@ func Register(c *fiber.Ctx) error {
 // StoreRegister handles the registration of a new user
 
 func StoreRegister(c *fiber.Ctx) error {
-	// Handle image upload and get the file path
-	imageURL, err := utils.UploadImage(c)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Error uploading image: " + err.Error(),
-		})
-	}
-
-	// Create a new user instance
-	var user models.User
-	if err := c.BodyParser(&user); err != nil {
+	// Create a new user input instance
+	var userInput models.UserInput
+	if err := c.BodyParser(&userInput); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid request payload",
 		})
 	}
 
-	// Set the image URL in the user instance
-	user.ImageURL = imageURL
-
-	// Convert BatchID and ProgramID from string to uint
-	batchIDStr := c.FormValue("batch_id")
-	programIDStr := c.FormValue("program_id")
-
-	batchID, programID, err := utils.ConvertIDs(batchIDStr, programIDStr)
-	if err != nil {
-		if batchID == nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"message": "Invalid batch ID",
-			})
-		}
-		if programID == nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"message": "Invalid program ID",
-			})
-		}
+	// Create a new user instance
+	user := models.User{
+		BatchID:            &userInput.BatchID,
+		ProgramID:          &userInput.ProgramID,
+		SymbolNumber:       userInput.SymbolNumber,
+		RegistrationNumber: userInput.RegistrationNumber,
+		Email:              userInput.Email,
+		Password:           userInput.Password,
+		Role:               userInput.Role,
 	}
 
-	user.BatchID = batchID
-	user.ProgramID = programID
-
-	// Set the remaining fields
-	user.SymbolNumber = c.FormValue("symbol_number")
-	user.RegistrationNumber = c.FormValue("registration_number")
-
 	// Hash the password
-	hashedPassword, err := utils.HashPassword(user.Password)
+	hashedPassword, err := utils.HashPassword(userInput.Password)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Failed to process password",
@@ -106,10 +82,31 @@ func StoreRegister(c *fiber.Ctx) error {
 		})
 	}
 
-	// Save the user to the database
+	// Save the user to the database first (before saving the image to the file system)
 	if err := initializers.DB.Create(&user).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "User creation failed",
+			"error":   err.Error(),
+		})
+	}
+
+	// Handle image upload and get the file path
+	imageURL, err := utils.UploadImage(c)
+	if err != nil {
+		// If image upload fails, rollback the user creation and delete the user record from DB
+		initializers.DB.Delete(&user)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Error uploading image: " + err.Error(),
+		})
+	}
+
+	// Now that both the user is created and image is uploaded, update the user with the image URL
+	user.ImageURL = imageURL
+	if err := initializers.DB.Save(&user).Error; err != nil {
+		// In case of error while updating user with image, delete the image file and rollback the user creation
+		os.Remove(imageURL) // Delete the uploaded image from the folder
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to update user with image",
 			"error":   err.Error(),
 		})
 	}
