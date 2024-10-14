@@ -10,14 +10,33 @@ import Footer from './components/Footer'
 import Navbar from './components/Navbar'
 import { AuthProvider } from './context/AuthContext'
 import { Query, QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import Dashboard from './pages/admin/Dashboard'
+import AdminNavbar from './components/AdminNavbar'
+import { Toaster } from '@/components/ui/toaster'
 
 const Layout = () => {
   return (
-    <>
+    <div className="flex flex-col min-h-screen">
       <Navbar />
-      <Outlet />
+      <div className="flex-grow">
+        <Toaster />
+        <Outlet />
+      </div>
       <Footer />
-    </>
+    </div>
+  );
+};
+
+const AdminLayout = () => {
+  return (
+    <div className="m-0 p-0 w-full flex flex-col min-h-screen">
+      <AdminNavbar />
+      <div className="flex-grow">
+        <Toaster />
+        <Outlet />
+      </div>
+      <Footer />
+    </div>
   )
 };
 
@@ -47,6 +66,14 @@ function App() {
               <Route path="/exam" element={<Exam />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/result" element={<Result />} />
+            </Route>
+
+            {/* admin route */}
+            <Route element={<AdminLayout />}>
+              <Route path="/admin" element={<Dashboard />} />
+              <Route path="/admin/exam" element={<Dashboard />} />
+              <Route path="/admin/result" element={<Dashboard />} />
+
             </Route>
           </Routes>
         </Router>

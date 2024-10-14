@@ -59,7 +59,7 @@ export function LoginForm() {
             console.log("🚀 ~ Login Successful ~ data:", data);
 
             if (user && user.role === "admin") {
-                navigate("/exam");
+                navigate("/admin");
             } else {
                 navigate("/");
             }
