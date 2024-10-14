@@ -11,24 +11,13 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-
-const useAuth = () => {
-    // You could use context, a global state, or an auth service here
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-    // Simulating authentication status (You would replace this with real auth logic)
-    useEffect(() => {
-        const authStatus = localStorage.getItem('isAuthenticated'); // Example auth check
-        setIsAuthenticated(authStatus === 'true');
-    }, []);
-
-    return isAuthenticated;
-};
+import { useAuth } from "../context/AuthContext"
 
 const Navbar = () => {
     const navigate = useNavigate()
-    // const isAuthenticated = useAuth();
-    const isAuthenticated = false;
+    const { isAuthenticated, logout } = useAuth();
+    console.log("🚀 ~ Navbar ~ isAuthenticated:", isAuthenticated)
+    // const isAuthenticated = false;
     return (
         <nav className="fixed inset-x-0 top-0 z-50 bg-white shadow-sm dark:bg-gray-950/90">
             <div className="w-full max-w-7xl mx-auto px-4">
@@ -101,7 +90,7 @@ const Navbar = () => {
                                             <DropdownMenuItem>
                                                 <CgProfile className='cursor-pointer mr-1' />Profile
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem>
+                                            <DropdownMenuItem onClick={logout}>
                                                 <IoIosLogOut className='cursor-pointer mr-1' />
                                                 Logout
                                             </DropdownMenuItem>
