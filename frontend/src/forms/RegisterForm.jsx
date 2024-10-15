@@ -49,8 +49,8 @@ const formSchema = z
         confirm_password: z.string(),
         // image: z.string(),
         image: z
-        .instanceof(File) // Check that the input is an instance of File
-        .refine(file => file.size > 0, { message: "Image file is required." })
+            .instanceof(File) // Check that the input is an instance of File
+            .refine(file => file.size > 0, { message: "Image file is required." })
     })
     .refine((data) => data.password === data.confirm_password, {
         path: ["confirm_password"],
@@ -73,7 +73,7 @@ export function RegisterForm() {
             image: ""
         },
     })
-    const { setValue } = form;
+    const { control, setValue, setError, formState: { errors }, register } = form;
 
     // 2. Define a submit handler.
     const onSubmit = async (values) => {
@@ -97,17 +97,30 @@ export function RegisterForm() {
         console.log("🚀 ~ onSubmit ~ formData:", formData)
 
         // ✅ This will be type-safe and validated.
-        const response = await fetch('http://127.0.0.1:3000/user/register', {
-            method: 'POST',
-            // headers: {
-            //     'Content-Type': 'application/json',
-            // },
-            body: formData,
-        });
+        try {
+            const response = await fetch('http://127.0.0.1:3000/user/register', {
+                method: 'POST',
+                // headers: {
+                //     'Content-Type': 'application/json',
+                // },
+                body: formData,
+            });
 
-        const data = await response.json();
-        console.log("response data", data);
-        console.log("submitted values",values)
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.log("🚀 ~ onSubmit ~ errorData:", errorData.message)
+                if (errorData.message.includes("Symbol Number")) {
+                    setError("symbol_number", { message: errorData.message });
+                } else if (errorData.message.includes("Registration Number")) {
+                    setError("registration_number", { message: errorData.message });
+                } // Set error from backend
+            } else {
+                alert("Student registered successfully!");
+            }
+        } catch (error) {
+            console.error("Error registering student:", err);
+        }
+
     }
 
     // 3. password visibility
@@ -125,8 +138,10 @@ export function RegisterForm() {
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8" encType="multipart/form-data">
                 {/* <input type="file" name="image" accept="images/*" /> */}
+                {errors.symbol_number && <p role="alert" className="text-red-500">{errors.symbol_number.message}</p>}
+                {errors.registration_number && <p role="alert" className="text-red-500">{errors.registration_number.message}</p>}
                 <FormField
-                    control={form.control}
+                    control={control}
                     name="image"
                     render={({ field }) => (
                         <FormItem className="text-start">
@@ -147,7 +162,7 @@ export function RegisterForm() {
                 />
 
                 <FormField
-                    control={form.control}
+                    control={control}
                     name="email"
                     render={({ field }) => (
                         <FormItem className="text-start">
@@ -160,7 +175,7 @@ export function RegisterForm() {
                     )}
                 />
                 <FormField
-                    control={form.control}
+                    control={control}
                     name="password"
                     render={({ field }) => (
                         <FormItem className="text-start">
@@ -187,7 +202,7 @@ export function RegisterForm() {
                     )}
                 />
                 <FormField
-                    control={form.control}
+                    control={control}
                     name="confirm_password"
                     rules={{
                         required: 'Please confirm your password',
@@ -219,20 +234,21 @@ export function RegisterForm() {
                 />
                 <div className="flex justify-between gap-4">
                     <FormField
-                        control={form.control}
+                        control={control}
                         name="symbol_number"
                         render={({ field }) => (
                             <FormItem className="text-start">
                                 <FormLabel className="text-start">Symbol number</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Enter your symbol number" {...field} />
+                                    <Input placeholder="Enter your symbol number" {...field} {...register('symbol_number')} />
                                 </FormControl>
+                                {errors.symbol_number && <p role="alert" className="text-red-500">{errors.symbol_number.message}</p>}
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
                     <FormField
-                        control={form.control}
+                        control={control}
                         name="registration_number"
                         render={({ field }) => (
                             <FormItem className="text-start">
@@ -240,7 +256,7 @@ export function RegisterForm() {
                                 <FormControl>
                                     <Input placeholder="Enter your registration number" {...field} />
                                 </FormControl>
-                                <FormMessage />
+                                {errors.symbol_number && <p role="alert" className="text-red-500">{errors.symbol_number.message}</p>}                                <FormMessage />
                             </FormItem>
                         )}
                     />

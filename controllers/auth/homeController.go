@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"os"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/mysterybee07/result-distribution-system/middleware/validation"
 	"github.com/mysterybee07/result-distribution-system/models"
 	"github.com/mysterybee07/result-distribution-system/utils"
+	"gorm.io/gorm"
 )
 
 // var initializers *gorm.DB
@@ -129,6 +131,78 @@ func Login(c *fiber.Ctx) error {
 
 // LoginUser handles user login
 
+// func LoginUser(c *fiber.Ctx) error {
+// 	type LoginData struct {
+// 		Identifier string `json:"identifier"`
+// 		Password   string `json:"password"`
+// 	}
+
+// 	var loginData LoginData
+
+// 	// Parse the login data
+// 	if err := c.BodyParser(&loginData); err != nil {
+// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+// 			"message": "Unable to parse login data",
+// 		})
+// 	}
+
+// 	// Find user by email or symbol
+// 	var user models.User
+// 	// if err := initializers.DB.Where("email = ? OR symbol_number = ?", loginData.Identifier, loginData.Identifier).First(&user).Error; err != nil {
+// 	// 	return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+// 	// 		"message": "No user found for the email or symbol",
+// 	// 	})
+// 	// }
+
+// 	// // Check if the password is correct
+// 	// if !utils.CheckPasswordHash(loginData.Password, user.Password) {
+// 	// 	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+// 	// 		"message": "Incorrect password or identifier",
+// 	// 	})
+// 	// }
+
+// 	if err := initializers.DB.Where("email = ? OR symbol_number = ?", loginData.Identifier, loginData.Identifier).First(&user).Error; err != nil {
+// 		// Check if the error is a "not found" error
+// 		if errors.Is(err, gorm.ErrRecordNotFound) {
+// 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+// 				"message": "No user found for the email or symbol",
+// 			})
+// 		}
+// 		// Handle other possible database errors here if necessary
+// 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+// 			"message": "Database error occurred",
+// 		})
+// 	}
+
+// 	// Check if the password is correct
+// 	if !utils.CheckPasswordHash(loginData.Password, user.Password) {
+// 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+// 			"message": "Incorrect password or identifier",
+// 		})
+// 	}
+
+// 	// Successful login
+// 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+// 		"message": "Login successful",
+// 		// Include any other relevant information here
+// 	})
+
+// 	// Create JWT token
+// 	token, err := utils.GenerateJwt(user.ID, user.Role, c)
+// 	if err != nil {
+// 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+// 			"message": "Failed to Generate JWT tokens",
+// 		})
+// 	}
+
+// 	// Return success response
+// 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+// 		"message": "User login successful",
+// 		"user":    user,
+// 		"token":   token, // Optional: you can return the token in the response as well
+// 	})
+// }
+
 func LoginUser(c *fiber.Ctx) error {
 	type LoginData struct {
 		Identifier string `json:"identifier"`
@@ -140,38 +214,56 @@ func LoginUser(c *fiber.Ctx) error {
 	// Parse the login data
 	if err := c.BodyParser(&loginData); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Unable to parse login data",
+			"errors": fiber.Map{
+				"message": "Unable to parse login data",
+			},
 		})
 	}
 
-	// Find user by email or symbol
 	var user models.User
+	errorsMap := fiber.Map{} // To collect specific error messages
+
+	// Find user by email or symbol
 	if err := initializers.DB.Where("email = ? OR symbol_number = ?", loginData.Identifier, loginData.Identifier).First(&user).Error; err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"message": "No user found for the email or symbol",
+		// Check if the error is a "not found" error
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			errorsMap["identifier"] = "User not found for the provided email or symbol"
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"errors": errorsMap,
+			})
+		}
+		// Handle other possible database errors
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"errors": fiber.Map{
+				"message": "Database error occurred",
+			},
 		})
 	}
 
 	// Check if the password is correct
 	if !utils.CheckPasswordHash(loginData.Password, user.Password) {
+		errorsMap["password"] = "Incorrect password or identifier"
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"message": "Incorrect password or identifier",
+			"errors": errorsMap,
 		})
 	}
 
-	// Create JWT token
+	// Generate JWT token after successful login
 	token, err := utils.GenerateJwt(user.ID, user.Role, c)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Failed to Generate JWT tokens",
+			"errors": fiber.Map{
+				"message": "Failed to generate JWT token",
+			},
 		})
 	}
 
-	// Return success response
+	// Return success response with user details and token
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"code":    fiber.StatusOK,
 		"message": "User login successful",
-		"user":    user,
-		"token":   token, // Optional: you can return the token in the response as well
+		"user":    user,  // Return user information
+		"token":   token, // Return JWT token
 	})
 }
 

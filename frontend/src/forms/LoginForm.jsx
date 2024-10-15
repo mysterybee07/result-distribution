@@ -1,3 +1,5 @@
+import { useMutation } from '@tanstack/react-query';
+import api from '../api';
 import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -22,6 +24,7 @@ import {
 import { Input } from "../components/ui/input"
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom"
+import { useAuth } from "../context/AuthContext"
 
 const formSchema = z.object({
     identifier: z.string()
@@ -33,6 +36,7 @@ const formSchema = z.object({
 })
 
 export function LoginForm() {
+    const { login } = useAuth();
     const navigate = useNavigate();
     // 1. Define your form.
     const form = useForm({
@@ -43,27 +47,45 @@ export function LoginForm() {
         },
     })
 
-    // 2. Define a submit handler.
-    const onSubmit = async (values) => {
-        // Do something with the form values.
-        // ✅ This will be type-safe and validated.
-        const { identifier, password } = values;
-        const response = await fetch('http://127.0.0.1:3000/user/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ identifier, password }),
-        });
-        if(!response.ok) {
-            console.log('Error');
-            return;
-        };
+    // 2. Define the mutation to handle login
+    const { mutate: loginMutation } = useMutation({
+        mutationFn: async (values) => {
+            const { identifier, password } = values;
+            const { data } = await api.post("/user/login", { identifier, password });
+            return data; // The result of the login request
+        },
+        onSuccess: (data) => {
+            const { user } = data;
+            console.log("🚀 ~ Login Successful ~ data:", data);
 
-        const data = await response.json();
-        navigate('/');
-        console.log(data);
-        console.log(values)
+            if (user && user.role === "admin") {
+                navigate("/admin");
+            } else {
+                navigate("/");
+            }
+
+            login();
+        },
+        onError: (error) => {
+            const errorData = error.response?.data;
+
+            if (errorData?.errors) {
+                // Set field errors in the form
+                for (const [key, message] of Object.entries(errorData.errors)) {
+                    form.setError(key, {
+                        type: "manual",
+                        message,
+                    });
+                }
+            } else {
+                console.error("Login failed:", error.message);
+            }
+        },
+    });
+
+    // 3. Define a submit handler.
+    const onSubmit = async (values) => {
+        loginMutation(values);
     }
     const [showPassword, setShowPassword] = useState(false);
 
@@ -83,7 +105,8 @@ export function LoginForm() {
                             <FormControl>
                                 <Input placeholder="Email or Symbol number" {...field} />
                             </FormControl>
-                            <FormMessage />
+                            {/* <FormMessage /> */}
+                            <FormMessage error={form.formState.errors.identifier} /> {/* Display error */}
                         </FormItem>
                     )}
                 />
