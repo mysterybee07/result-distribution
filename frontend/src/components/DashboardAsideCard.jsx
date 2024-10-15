@@ -28,57 +28,6 @@ import BatchForm from "../forms/BatchForm"
 import { useQuery } from "@tanstack/react-query"
 import api from "../api"
 
-// const programs = [
-//     {
-//         sn: "1",
-//         program: "CSIT",
-//         student: "100+"
-//     },
-//     {
-//         sn: "2",
-//         program: "BBA",
-//         student: "100+"
-//     },
-//     {
-//         sn: "3",
-//         program: "BIM",
-//         student: "100+"
-//     },
-//     {
-//         sn: "4",
-//         program: "BBS",
-//         student: "100+"
-//     },
-// ]
-
-// const batches = [
-//     {
-//         sn: "1",
-//         batch: "2024",
-//         student: "100+"
-//     },
-//     {
-//         sn: "2",
-//         batch: "2023",
-//         student: "100+"
-//     },
-//     {
-//         sn: "3",
-//         batch: "2022",
-//         student: "100+"
-//     },
-//     {
-//         sn: "4",
-//         batch: "2021",
-//         student: "100+"
-//     },
-//     {
-//         sn: "5",
-//         batch: "2020",
-//         student: "100+"
-//     },
-// ]
-
 export default function DashboardAsideCard() {
     const { data: programs, isLoading, error } = useQuery({
         queryKey: ['programs'],
