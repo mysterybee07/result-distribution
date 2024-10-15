@@ -28,66 +28,78 @@ import BatchForm from "../forms/BatchForm"
 import { useQuery } from "@tanstack/react-query"
 import api from "../api"
 
-const programs = [
-    {
-        sn: "1",
-        program: "CSIT",
-        student: "100+"
-    },
-    {
-        sn: "2",
-        program: "BBA",
-        student: "100+"
-    },
-    {
-        sn: "3",
-        program: "BIM",
-        student: "100+"
-    },
-    {
-        sn: "4",
-        program: "BBS",
-        student: "100+"
-    },
-]
+// const programs = [
+//     {
+//         sn: "1",
+//         program: "CSIT",
+//         student: "100+"
+//     },
+//     {
+//         sn: "2",
+//         program: "BBA",
+//         student: "100+"
+//     },
+//     {
+//         sn: "3",
+//         program: "BIM",
+//         student: "100+"
+//     },
+//     {
+//         sn: "4",
+//         program: "BBS",
+//         student: "100+"
+//     },
+// ]
 
-const batches = [
-    {
-        sn: "1",
-        batch: "2024",
-        student: "100+"
-    },
-    {
-        sn: "2",
-        batch: "2023",
-        student: "100+"
-    },
-    {
-        sn: "3",
-        batch: "2022",
-        student: "100+"
-    },
-    {
-        sn: "4",
-        batch: "2021",
-        student: "100+"
-    },
-    {
-        sn: "5",
-        batch: "2020",
-        student: "100+"
-    },
-]
+// const batches = [
+//     {
+//         sn: "1",
+//         batch: "2024",
+//         student: "100+"
+//     },
+//     {
+//         sn: "2",
+//         batch: "2023",
+//         student: "100+"
+//     },
+//     {
+//         sn: "3",
+//         batch: "2022",
+//         student: "100+"
+//     },
+//     {
+//         sn: "4",
+//         batch: "2021",
+//         student: "100+"
+//     },
+//     {
+//         sn: "5",
+//         batch: "2020",
+//         student: "100+"
+//     },
+// ]
 
 export default function DashboardAsideCard() {
-    const { data} = useQuery({
-        queryKey: "programs",
+    const { data: programs, isLoading, error } = useQuery({
+        queryKey: ['programs'],
         queryFn: async () => {
             const response = await api.get("/program");
-            return response.data;
+            return response.data.programs;
         },
     });
-    console.log("data:",data);
+
+    const { data: batches } = useQuery({
+        queryKey: ['batches'],
+        queryFn: async () => {
+            const response = await api.get("/batch");
+            return response.data.batches;
+        },
+    });
+    console.log(programs);
+
+    if (isLoading) return <div>Loading...</div>;
+
+    if(error) return <div>Error: {error.message}</div>;
 
     return (
         <Tabs defaultValue="program" className="w-[400px]">
@@ -109,15 +121,15 @@ export default function DashboardAsideCard() {
                                 <TableRow>
                                     <TableHead className="w-[50px] text-center">S.N</TableHead>
                                     <TableHead className="w-[150px] text-center">Programs</TableHead>
-                                    <TableHead className="w-[150px] text-center">Students</TableHead>
+                                    {/* <TableHead className="w-[150px] text-center">Students</TableHead> */}
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {programs.map((program) => (
-                                    <TableRow key={program.program}>
-                                        <TableCell className="font-medium text-center">{program.sn}</TableCell>
-                                        <TableCell className="font-medium text-center">{program.program}</TableCell>
-                                        <TableCell className="font-medium text-center">{program.student}</TableCell>
+                                {Array.isArray(programs) && programs.map((program, index) => (
+                                    <TableRow key={program.ID}>
+                                        <TableCell className="font-medium text-center">{index + 1 }</TableCell>
+                                        <TableCell className="font-medium text-center">{program.program_name}</TableCell>
+                                        {/* <TableCell className="font-medium text-center">{program.student}</TableCell> */}
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -142,16 +154,16 @@ export default function DashboardAsideCard() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead className="w-[50px] text-center">S.N</TableHead>
-                                    <TableHead className="w-[150px] text-center">Programs</TableHead>
-                                    <TableHead className="w-[150px] text-center">Students</TableHead>
+                                    <TableHead className="w-[150px] text-center">Batches</TableHead>
+                                    {/* <TableHead className="w-[150px] text-center">Students</TableHead> */}
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {batches.map((batch) => (
+                                {Array.isArray(batches) && batches.map((batch, index) => (
                                     <TableRow key={batch.batch}>
-                                        <TableCell className="font-medium text-center">{batch.sn}</TableCell>
+                                        <TableCell className="font-medium text-center">{ index + 1}</TableCell>
                                         <TableCell className="font-medium text-center">{batch.batch}</TableCell>
-                                        <TableCell className="font-medium text-center">{batch.student}</TableCell>
+                                        {/* <TableCell className="font-medium text-center">{batch.student}</TableCell> */}
                                     </TableRow>
                                 ))}
                             </TableBody>
