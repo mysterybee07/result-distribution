@@ -160,7 +160,7 @@ func SetupRoutes(app *fiber.App) {
 	// student := app.Group("/students", middleware.AuthRequired, middleware.AdminRequired)
 	// student.Get("/add", adminController.Student)
 	// student.Post("/add", adminController.StoreStudents)
-	student.Get("/", adminController.GetStudents)
+	student.Get("", adminController.GetStudents)
 	student.Put("/update/:id", adminController.UpdateStudent)
 	student.Get("/:id", adminController.GetStudentById)
 	student.Get("/edit/:id", adminController.EditStudent)
@@ -215,7 +215,7 @@ func SetupRoutes(app *fiber.App) {
 	// Result Routes
 	// result := app.Group("/result", middleware.AuthRequired, middleware.SuperadminRequired)
 	result := app.Group("/result")
-	result.Get("/", adminController.Result)
+	result.Get("", adminController.Result)
 	result.Post("/publish", adminController.PublishResults)
 
 	// Error Routes
