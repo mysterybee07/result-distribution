@@ -80,7 +80,7 @@ func UpdateBatch(c *fiber.Ctx) error {
 	}
 	// Check if a batch with the same year already exists
 	var existingBatch models.Batch
-	if err := initializers.DB.Where("year = ?", batch.Batch).First(&existingBatch).Error; err == nil {
+	if err := initializers.DB.Where("batch = ?", batch.Batch).First(&existingBatch).Error; err == nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Batch already exists",
 		})

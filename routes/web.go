@@ -230,6 +230,9 @@ func SetupRoutes(app *fiber.App) {
 
 	//notice routes
 	notice := app.Group("/notice")
+	notice.Get("", noticeController.GetAllNotices)
 	notice.Post("/create", noticeController.CreateNotice)
-
+	notice.Put("/update/:id", noticeController.UpdateNotice)
+	notice.Get("/by-program", noticeController.GetNoticesByProgram)
+	notice.Get("/by-program-and-batch", noticeController.GetNoticesByProgramAndBatch)
 }
