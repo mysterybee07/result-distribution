@@ -106,3 +106,16 @@ func UpdateProgram(c *fiber.Ctx) error {
 	})
 
 }
+
+func GetPrograms(c *fiber.Ctx) error {
+	var programs []models.Program
+
+	if err := initializers.DB.Find(&programs).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "No batches found",
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"programs": programs,
+	})
+}

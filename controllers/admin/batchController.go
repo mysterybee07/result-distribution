@@ -95,3 +95,16 @@ func UpdateBatch(c *fiber.Ctx) error {
 		"batch":   batch,
 	})
 }
+
+func GetBatches(c *fiber.Ctx) error {
+	var batches []models.Batch
+
+	if err := initializers.DB.Find(&batches).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "No batches found",
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"batches": batches,
+	})
+}

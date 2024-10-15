@@ -92,12 +92,6 @@ func ValidateMarksInput(input *models.MarksPayload, isUpdate bool) error {
 }
 
 func ValidateUser(data *models.User, isUpdate bool) error {
-	// Validate email format
-	if !utils.ValidateEmail(data.Email) {
-		log.Println("Invalid email format:", data.Email)
-		return fiber.NewError(fiber.StatusBadRequest, "Invalid email format")
-	}
-
 	// Validate password length
 	if !isUpdate || (isUpdate && len(data.Password) > 0) {
 		if len(data.Password) < 8 {
@@ -150,6 +144,9 @@ func ValidateUser(data *models.User, isUpdate bool) error {
 	if data.Email == "" {
 		log.Println("Missing Email")
 		return fiber.NewError(fiber.StatusBadRequest, "Email is required")
+	} else if !utils.ValidateEmail(data.Email) {
+		log.Println("Invalid email format:", data.Email)
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid email format")
 	}
 
 	// Check if Password is provided

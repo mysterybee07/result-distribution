@@ -170,14 +170,15 @@ func SetupRoutes(app *fiber.App) {
 	// Batch Routes
 	batch := app.Group("/batch")
 	// batch := app.Group("/batches", middleware.AuthRequired, middleware.SuperadminRequired)
-	batch.Get("/", adminController.Batch)
+	batch.Get("/", adminController.GetBatches)
 	batch.Post("/create", adminController.CreateBatch)
 	batch.Put("/update/:id", adminController.UpdateBatch)
+	// batch.Get("/")
 
 	// Program Routes
 	program := app.Group("/program")
 	// program := app.Group("/programs", middleware.AuthRequired, middleware.SuperadminRequired)
-	program.Get("/", adminController.Program)
+	program.Get("", adminController.GetPrograms)
 	// program.Post("/add", adminController.CreateProgram)
 	program.Post("/create", adminController.CreateProgram)
 	program.Put("/update/:id", adminController.UpdateProgram)
