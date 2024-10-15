@@ -9,9 +9,12 @@ import {
 } from "@/components/ui/card"
 import StudentTable from '../../components/StudentTable'
 import DashboardAsideCard from '../../components/DashboardAsideCard'
+import { useAuth } from '../../context/AuthContext'
+import { Navigate } from 'react-router-dom'
 
 const Dashboard = () => {
-    return (
+    const {  isAuthenticated } = useAuth();
+    return isAuthenticated ? (   
         <div className='w-full flex flex-col gap-16'>
             <div className='h-32 bg-blue-700 mt-8 relative overflow-visible m-0 p-0'>
                 <p className='text-white text-start p-8 text-xl'>Admin Dashboard</p>
@@ -51,7 +54,7 @@ const Dashboard = () => {
                 </div>
             </div>
         </div>
-    )
+    ) : <Navigate to='/login' />
 }
 
 export default Dashboard

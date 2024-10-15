@@ -16,7 +16,6 @@ import { useAuth } from "../context/AuthContext"
 const AdminNavbar = () => {
     const navigate = useNavigate()
     const { isAuthenticated, logout } = useAuth();
-    console.log("🚀 ~ Navbar ~ isAuthenticated:", isAuthenticated)
     return (
         <nav className="fixed inset-x-0 top-0 z-50 bg-white shadow-sm dark:bg-gray-950/90">
             <div className="w-full max-w-7xl mx-auto px-4">

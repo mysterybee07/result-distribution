@@ -36,7 +36,7 @@ const formSchema = z.object({
 })
 
 export function LoginForm() {
-    const { login } = useAuth();
+    const { login, userRole } = useAuth();
     const navigate = useNavigate();
     // 1. Define your form.
     const form = useForm({
@@ -65,6 +65,7 @@ export function LoginForm() {
             }
 
             login();
+            userRole(user.role);
         },
         onError: (error) => {
             const errorData = error.response?.data;
