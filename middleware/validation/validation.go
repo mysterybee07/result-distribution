@@ -111,7 +111,7 @@ func ValidateUser(data *models.User, isUpdate bool) error {
 		log.Println("Update detected. Skipping batch, program, symbol checks.")
 		if data.Email == "" && data.Password == "" && data.ImageURL == "" {
 			log.Println("No update fields provided")
-			return fiber.NewError(fiber.StatusBadRequest, "At least one of email, password, or image URL must be provided for update")
+			return fiber.NewError(fiber.StatusBadRequest, "At least one of email, password, or image must be provided for update")
 		}
 		var existingUser models.User
 		if err := initializers.DB.Where("email = ?", data.Email).First(&existingUser).Error; err == nil && existingUser.ID != data.ID {
@@ -122,9 +122,40 @@ func ValidateUser(data *models.User, isUpdate bool) error {
 	}
 
 	// New user validation
-	if data.BatchID == nil || data.ProgramID == nil || data.SymbolNumber == "" || data.RegistrationNumber == "" || data.Email == "" || data.Password == "" {
-		log.Println("Missing fields - BatchID:", data.BatchID, "ProgramID:", data.ProgramID, "SymbolNumber:", data.SymbolNumber, "RegistrationNumber:", data.RegistrationNumber)
-		return fiber.NewError(fiber.StatusBadRequest, "Batch ID, Program ID, Symbol, Registration, Email, and Password are required")
+	// Check if BatchID is provided
+	if data.BatchID == nil {
+		log.Println("Missing BatchID")
+		return fiber.NewError(fiber.StatusBadRequest, "Batch ID is required")
+	}
+
+	// Check if ProgramID is provided
+	if data.ProgramID == nil {
+		log.Println("Missing ProgramID")
+		return fiber.NewError(fiber.StatusBadRequest, "Program ID is required")
+	}
+
+	// Check if SymbolNumber is provided
+	if data.SymbolNumber == "" {
+		log.Println("Missing SymbolNumber")
+		return fiber.NewError(fiber.StatusBadRequest, "Symbol Number is required")
+	}
+
+	// Check if RegistrationNumber is provided
+	if data.RegistrationNumber == "" {
+		log.Println("Missing RegistrationNumber")
+		return fiber.NewError(fiber.StatusBadRequest, "Registration Number is required")
+	}
+
+	// Check if Email is provided
+	if data.Email == "" {
+		log.Println("Missing Email")
+		return fiber.NewError(fiber.StatusBadRequest, "Email is required")
+	}
+
+	// Check if Password is provided
+	if data.Password == "" {
+		log.Println("Missing Password")
+		return fiber.NewError(fiber.StatusBadRequest, "Password is required")
 	}
 
 	// Check if symbol and registration exist in the students table for the given batch and program
