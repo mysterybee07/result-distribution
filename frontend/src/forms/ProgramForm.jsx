@@ -13,6 +13,8 @@ import { useState } from "react";
 import api from "../api";
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { FaEdit } from "react-icons/fa";
+
 
 export default function ProgramForm({ program }) {
     const { toast } = useToast();
@@ -20,9 +22,9 @@ export default function ProgramForm({ program }) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const editbutton = () => {
         return (
-            <Button variant="outline" size="sm" onClick={() => setIsDialogOpen(true)}>
-                Edit
-            </Button>
+            <span onClick={() => setIsDialogOpen(true)} className="cursor-pointer flex justify-center items-center">
+                <FaEdit /> Edit
+            </span>
         )
     }
     const addbutton = () => {
@@ -57,7 +59,7 @@ export default function ProgramForm({ program }) {
         },
     });
 
-    const { mutate: updateProgram } = useMutation({
+    const { mutate: updateProgram, isError: updateIsError, error: updateError } = useMutation({
         mutationFn: async (updatedProgram) => {
             // Replace with your API endpoint
             const response = await api.put(`/program/update/${program.ID}`, updatedProgram);
@@ -73,15 +75,32 @@ export default function ProgramForm({ program }) {
             })
             setProgram_name("");
         },
-        onError: (error) => {
-            console.error("Error updating program:", error);
+        onError: (updateError) => {
+            // Check if error response exists and display the message from the server
+            if (updateError.response && updateError.response.data && updateError.response.data.error) {
+                // Display the specific error message from the server
+                const serverErrorMessage = updateError.response.data.error;
+                toast({
+                    title: "Error",
+                    description: serverErrorMessage,
+                    variant: "destructive",
+                });
+            } else {
+                // Fallback for a generic error message
+                console.error("Error updating program:", updateError);
+                toast({
+                    title: "Error",
+                    description: "An unexpected error occurred.",
+                    variant: "destructive",
+                });
+            }
         },
     });
-     
+
 
     const handleSubmit = (e) => {
         e.preventDefault(); // Prevent default form submission behavior
-    
+
         if (program) { // Check if a program is selected (or available)
             // If a program is available, run updateProgram
             updateProgram({ program_name });
@@ -90,7 +109,7 @@ export default function ProgramForm({ program }) {
             mutate({ program_name });
         }
     };
-    
+
 
 
     return (

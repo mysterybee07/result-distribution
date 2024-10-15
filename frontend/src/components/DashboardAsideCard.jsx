@@ -50,7 +50,7 @@ export default function DashboardAsideCard() {
 
     if (isLoading) return <div>Loading...</div>;
 
-    if(error) return <div>Error: {error.message}</div>;
+    if (error) return <div>Error: {error.message}</div>;
 
     return (
         <Tabs defaultValue="program" className="w-[400px]">
@@ -79,13 +79,13 @@ export default function DashboardAsideCard() {
                             <TableBody>
                                 {Array.isArray(programs) && programs.map((program, index) => (
                                     <TableRow key={program.ID}>
-                                        <TableCell className="font-medium text-center">{index + 1 }</TableCell>
+                                        <TableCell className="font-medium text-center">{index + 1}</TableCell>
                                         <TableCell className="font-medium text-center">{program.program_name}</TableCell>
                                         <TableCell className="font-medium text-center">
                                             {/* <Button size="sm" variant="outline" onClick={<ProgramForm />} >
                                                 Edit
                                             </Button> */}
-                                            <ProgramForm program={program}/>
+                                            <ProgramForm program={program} />
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -112,15 +112,18 @@ export default function DashboardAsideCard() {
                                 <TableRow>
                                     <TableHead className="w-[50px] text-center">S.N</TableHead>
                                     <TableHead className="w-[150px] text-center">Batches</TableHead>
-                                    {/* <TableHead className="w-[150px] text-center">Students</TableHead> */}
+                                    <TableHead className="w-[50px] text-center">Action</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {Array.isArray(batches) && batches.map((batch, index) => (
                                     <TableRow key={batch.batch}>
-                                        <TableCell className="font-medium text-center">{ index + 1}</TableCell>
+                                        <TableCell className="font-medium text-center">{index + 1}</TableCell>
                                         <TableCell className="font-medium text-center">{batch.batch}</TableCell>
-                                        {/* <TableCell className="font-medium text-center">{batch.student}</TableCell> */}
+                                        <TableCell className="font-medium text-center">
+                                            <BatchForm batch={batch} />
+                                        </TableCell>
+
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -152,7 +155,7 @@ export default function DashboardAsideCard() {
                             <TableBody>
                                 {Array.isArray(batches) && batches.map((batch, index) => (
                                     <TableRow key={batch.batch}>
-                                        <TableCell className="font-medium text-center">{ index + 1}</TableCell>
+                                        <TableCell className="font-medium text-center">{index + 1}</TableCell>
                                         <TableCell className="font-medium text-center">{batch.batch}</TableCell>
                                         {/* <TableCell className="font-medium text-center">{batch.student}</TableCell> */}
                                     </TableRow>
