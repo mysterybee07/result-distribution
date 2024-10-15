@@ -14,10 +14,26 @@ import api from "../api";
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
-export default function ProgramForm() {
+export default function ProgramForm({ program }) {
     const { toast } = useToast();
-    const [program_name, setProgram_name] = useState("");
-    const [isDialogOpen, setIsDialogOpen] = useState(false); 
+    const [program_name, setProgram_name] = useState(program?.program_name || "");
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const editbutton = () => {
+        return (
+            <Button variant="outline" size="sm" onClick={() => setIsDialogOpen(true)}>
+                Edit
+            </Button>
+        )
+    }
+    const addbutton = () => {
+        return (
+            <Button size="lg" className="w-full" onClick={() => setIsDialogOpen(true)}>
+                Add new program
+            </Button>
+        )
+    }
+    const button = program ? editbutton : addbutton;
+
 
     // Mutation to handle form submission
     const { mutate, isLoading, isError, isSuccess, error } = useMutation({
@@ -28,31 +44,62 @@ export default function ProgramForm() {
         },
         onSuccess: (data) => {
             console.log("Program added successfully:", data);
-            setIsDialogOpen(false); 
+            setIsDialogOpen(false);
             toast({
                 title: "Program Added",
                 description: JSON.stringify(data.message),
                 variant: "success",
-              })
-              setProgram_name("");
+            })
+            setProgram_name("");
         },
         onError: (error) => {
             console.error("Error adding program:", error);
         },
     });
 
+    const { mutate: updateProgram } = useMutation({
+        mutationFn: async (updatedProgram) => {
+            // Replace with your API endpoint
+            const response = await api.put(`/program/update/${program.ID}`, updatedProgram);
+            return response.data;
+        },
+        onSuccess: (data) => {
+            console.log("Program updated successfully:", data);
+            setIsDialogOpen(false);
+            toast({
+                title: "Program Updated",
+                description: JSON.stringify(data.message),
+                variant: "success",
+            })
+            setProgram_name("");
+        },
+        onError: (error) => {
+            console.error("Error updating program:", error);
+        },
+    });
+     
+
     const handleSubmit = (e) => {
-        e.preventDefault();
-        // Call the mutation function with the form data
-        mutate({ program_name });
+        e.preventDefault(); // Prevent default form submission behavior
+    
+        if (program) { // Check if a program is selected (or available)
+            // If a program is available, run updateProgram
+            updateProgram({ program_name });
+        } else {
+            // If no program is selected, run mutate
+            mutate({ program_name });
+        }
     };
+    
+
 
     return (
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-                <Button variant="" size="lg" className="w-full" onClick={() => setIsDialogOpen(true)}>
-                    Add New
-                </Button>
+                {/* <Button variant="" size="sm" className="w-full" onClick={() => setIsDialogOpen(true)}>
+                    {buttonName}
+                </Button> */}
+                {button()}
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>

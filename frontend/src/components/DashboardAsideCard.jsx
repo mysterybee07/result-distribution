@@ -27,6 +27,8 @@ import ProgramForm from "../forms/ProgramForm"
 import BatchForm from "../forms/BatchForm"
 import { useQuery } from "@tanstack/react-query"
 import api from "../api"
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
 
 export default function DashboardAsideCard() {
     const { data: programs, isLoading, error } = useQuery({
@@ -52,9 +54,10 @@ export default function DashboardAsideCard() {
 
     return (
         <Tabs defaultValue="program" className="w-[400px]">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="program">Programs</TabsTrigger>
                 <TabsTrigger value="batches">Batches</TabsTrigger>
+                <TabsTrigger value="semester">Semester</TabsTrigger>
             </TabsList>
             <TabsContent value="program">
                 <Card>
@@ -70,7 +73,7 @@ export default function DashboardAsideCard() {
                                 <TableRow>
                                     <TableHead className="w-[50px] text-center">S.N</TableHead>
                                     <TableHead className="w-[150px] text-center">Programs</TableHead>
-                                    {/* <TableHead className="w-[150px] text-center">Students</TableHead> */}
+                                    <TableHead className="w-[50px] text-center">Action</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -78,7 +81,12 @@ export default function DashboardAsideCard() {
                                     <TableRow key={program.ID}>
                                         <TableCell className="font-medium text-center">{index + 1 }</TableCell>
                                         <TableCell className="font-medium text-center">{program.program_name}</TableCell>
-                                        {/* <TableCell className="font-medium text-center">{program.student}</TableCell> */}
+                                        <TableCell className="font-medium text-center">
+                                            {/* <Button size="sm" variant="outline" onClick={<ProgramForm />} >
+                                                Edit
+                                            </Button> */}
+                                            <ProgramForm program={program}/>
+                                        </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -104,6 +112,40 @@ export default function DashboardAsideCard() {
                                 <TableRow>
                                     <TableHead className="w-[50px] text-center">S.N</TableHead>
                                     <TableHead className="w-[150px] text-center">Batches</TableHead>
+                                    {/* <TableHead className="w-[150px] text-center">Students</TableHead> */}
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {Array.isArray(batches) && batches.map((batch, index) => (
+                                    <TableRow key={batch.batch}>
+                                        <TableCell className="font-medium text-center">{ index + 1}</TableCell>
+                                        <TableCell className="font-medium text-center">{batch.batch}</TableCell>
+                                        {/* <TableCell className="font-medium text-center">{batch.student}</TableCell> */}
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                    <CardFooter>
+                        <BatchForm />
+                    </CardFooter>
+                </Card>
+            </TabsContent>
+
+            <TabsContent value="semester">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Semesters</CardTitle>
+                        <CardDescription>
+                            These are the listed semesters in the server.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-[50px] text-center">S.N</TableHead>
+                                    <TableHead className="w-[150px] text-center">Semesters</TableHead>
                                     {/* <TableHead className="w-[150px] text-center">Students</TableHead> */}
                                 </TableRow>
                             </TableHeader>

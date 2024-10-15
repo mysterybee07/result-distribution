@@ -71,7 +71,7 @@ export default function StudentTable() {
     return (
         <>
             <Table>
-            <TableCaption className="font-bold text-xl">Student Table</TableCaption>
+                <TableCaption className="font-bold text-xl">Student Table</TableCaption>
                 <TableHeader>
                     <TableRow>
                         <TableHead>Name</TableHead>
