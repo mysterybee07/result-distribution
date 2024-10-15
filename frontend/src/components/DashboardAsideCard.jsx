@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button"
 import {
     Card,
     CardContent,
@@ -7,8 +6,6 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import {
     Tabs,
     TabsContent,
@@ -28,6 +25,8 @@ import {
 } from "@/components/ui/table"
 import ProgramForm from "../forms/ProgramForm"
 import BatchForm from "../forms/BatchForm"
+import { useQuery } from "@tanstack/react-query"
+import api from "../api"
 
 const programs = [
     {
@@ -81,6 +80,15 @@ const batches = [
 ]
 
 export default function DashboardAsideCard() {
+    const { data} = useQuery({
+        queryKey: "programs",
+        queryFn: async () => {
+            const response = await api.get("/program");
+            return response.data;
+        },
+    });
+    console.log("data:",data);
+
     return (
         <Tabs defaultValue="program" className="w-[400px]">
             <TabsList className="grid w-full grid-cols-2">
