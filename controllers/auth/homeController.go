@@ -305,9 +305,19 @@ func UpdateUser(c *fiber.Ctx) error {
 		}
 		user.Password = hashpassword
 	}
-	// Update ImageURL if provided
-	if updateData.ImageURL != "" {
-		user.ImageURL = updateData.ImageURL
+
+	// Handle image upload using the UpdateImage function
+	newImagePath, err := utils.UpdateImage(c, user.ImageURL)
+	if err != nil && err.Error() != "no image file found in the form data" {
+		// If there was an error other than no image being uploaded, return the error
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to update image: " + err.Error(),
+		})
+	}
+
+	// If a new image was uploaded, update the ImageURL field
+	if newImagePath != "" {
+		user.ImageURL = newImagePath
 	}
 
 	if err := initializers.DB.Save(&user).Error; err != nil {
