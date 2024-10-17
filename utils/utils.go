@@ -19,7 +19,7 @@ var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 var JwtSecret = []byte("Ajfdslfjlsdfjldslfj")
 
 func GenerateJwt(userID uint, role string, c *fiber.Ctx) (string, error) {
-	expirationTime := time.Now().Add(5 * time.Minute) // Set token expiration time
+	expirationTime := time.Now().Add(48 * time.Hour) // Set token expiration time
 	claims := jwt.MapClaims{
 		"userID": strconv.Itoa(int(userID)),
 		"role":   role,

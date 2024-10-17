@@ -69,7 +69,7 @@ func main() {
 	routes.Home(app)
 
 	// Protected routes
-	// app.Use(middleware.AuthRequired)
+	app.Use(middleware.AuthRequired)
 
 	// Routes
 	// routes.Profile(app)
