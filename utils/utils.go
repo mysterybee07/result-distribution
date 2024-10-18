@@ -34,10 +34,10 @@ func GenerateJwt(userID uint, role string, c *fiber.Ctx) (string, error) {
 
 	// Set JWT token as a cookie
 	cookie := fiber.Cookie{
-		Name:     "jwt",
-		Value:    tokenString,
-		Expires:  expirationTime,
-		HTTPOnly: true, // Prevent JavaScript from accessing the cookie
+		Name:    "jwt",
+		Value:   tokenString,
+		Expires: expirationTime,
+		// HTTPOnly: true, // Prevent JavaScript from accessing the cookie
 	}
 
 	c.Cookie(&cookie)

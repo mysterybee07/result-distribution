@@ -258,12 +258,23 @@ func LoginUser(c *fiber.Ctx) error {
 		})
 	}
 
+	// Create a response DTO
+	userResponse := struct {
+		ID    uint   `json:"id"`
+		Email string `json:"email"`
+		Role  string `json:"role"`
+	}{
+		ID:    user.ID,
+		Email: user.Email,
+		Role:  user.Role,
+	}
+
 	// Return success response with user details and token
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"code":    fiber.StatusOK,
 		"message": "User login successful",
-		"user":    user,  // Return user information
-		"token":   token, // Return JWT token
+		"user":    userResponse,
+		"token":   token,
 	})
 }
 
