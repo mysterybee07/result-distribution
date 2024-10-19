@@ -250,7 +250,7 @@ func LoginUser(c *fiber.Ctx) error {
 	}
 
 	// Generate JWT token after successful login
-	token, err := utils.GenerateJwt(user.ID, user.Role, c)
+	_, err := utils.GenerateJwt(user.ID, user.Role, c)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"errors": fiber.Map{
@@ -275,7 +275,7 @@ func LoginUser(c *fiber.Ctx) error {
 		"code":    fiber.StatusOK,
 		"message": "User login successful",
 		"user":    userResponse,
-		"token":   token,
+		// "token":   token,
 	})
 }
 

@@ -56,11 +56,10 @@ func main() {
 	})
 
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://localhost:3000, http://localhost:5173",
-		// AllowOrigins:     "",
+		AllowOrigins:     "http://localhost:3000, http://localhost:5173/",
 		AllowMethods:     "GET, POST, PUT, DELETE, PATCH, OPTIONS",
 		AllowHeaders:     "Origin, Content-Type, Accept",
-		AllowCredentials: true,
+		AllowCredentials: true, // Enable cookies for cross-origin requests
 	}))
 
 	// // Use flash messages middleware

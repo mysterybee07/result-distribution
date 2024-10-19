@@ -36,8 +36,10 @@ func GenerateJwt(userID uint, role string, c *fiber.Ctx) (string, error) {
 	cookie := fiber.Cookie{
 		Name:     "jwt",
 		Value:    tokenString,
-		Expires:  expirationTime,
-		HTTPOnly: true, // Prevent JavaScript from accessing the cookie
+		HTTPOnly: true,
+		Secure:   false,                        // Set to true in production (if you're using HTTPS)
+		SameSite: fiber.CookieSameSiteNoneMode, // Use None if it's a cross-origin request
+		Expires:  expirationTime,               // Set expiration time
 	}
 
 	c.Cookie(&cookie)
