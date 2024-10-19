@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"log"
 	"os"
 	"time"
 
@@ -359,39 +360,43 @@ func LogoutUser(c *fiber.Ctx) error {
 		"message": "logout successfully",
 	})
 }
-
-func GetLoginUser(c *fiber.Ctx) error {
+func User(c *fiber.Ctx) error {
 	// Retrieve the JWT from the cookie
 	cookie := c.Cookies("jwt")
 	if cookie == "" {
+		log.Println("JWT cookie is missing")
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Missing or invalid JWT cookie",
 		})
 	}
 
-	// Parse the JWT and extract the userID and role
+	// Parse the JWT and extract userID and role
 	userID, role, err := utils.ParseJwt(cookie)
 	if err != nil {
+		log.Printf("Error parsing JWT: %v", err)
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": err.Error(),
 		})
 	}
 
-	// Retrieve user information from the database based on userID
+	// Log userID and role for debugging
+	log.Printf("Parsed UserID: %s, Role: %s", userID, role)
+
+	// Retrieve user information from database
 	var user models.User
 	if err := initializers.DB.First(&user, userID).Error; err != nil {
+		log.Println("User not found in database")
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"message": "User not found",
 		})
 	}
 
-	// Return the logged-in user's details
+	// Return logged-in user's details
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"user": fiber.Map{
 			"ID":    user.ID,
 			"email": user.Email,
 			"role":  role,
-			// "name":  user.Name,
 		},
 		"message": "User data retrieved successfully",
 	})
