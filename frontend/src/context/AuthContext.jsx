@@ -1,70 +1,67 @@
-// AuthContext.js
-import { useQuery } from '@tanstack/react-query';
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import api from '../api';
-import { redirect } from 'react-router-dom';
+import api from '../api'; // Adjust your API import as necessary
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [role, setRole] = useState('');
+    const [isAuthenticated, setIsAuthenticated] = useState(() => {
+        const savedUser = localStorage.getItem('user');
+        return savedUser !== null; // true if user data exists
+    });
+    const [role, setRole] = useState(() => {
+        const savedUser = localStorage.getItem('user');
+        return savedUser ? JSON.parse(savedUser).role : ''; // Set role from saved user
+    });
+    const [userData, setUserData] = useState(() => {
+        const savedUser = localStorage.getItem('user');
+        return savedUser ? JSON.parse(savedUser) : null; // Parse user data from localStorage
+    });
 
-    // const { data, isLoading, error } = useQuery({
-    //     queryKey: ['user'],
-    //     queryFn: async () => {
-    //         const token = localStorage.getItem('jwt_token');
-    //         const response = await api.get('/user/active', {
-    //             headers: {
-    //                 Authorization: `Bearer ${token}`, // Include token in the request
-    //             },
-    //         });
-    //         return response.data;
-    //     },
-    // });
-
-    // console.log("active user:", data);
     const getUserData = async () => {
         try {
             const response = await fetch('http://127.0.0.1:3000/user/active', {
                 method: 'GET',
-                credentials: 'include', // Ensure cookies are included in the request
+                credentials: 'include', // Include cookies in the request
             });
-    
-            if (!response.ok) {
-                throw new Error('Failed to fetch user data');
+
+            if (response.ok) {
+                const data = await response.json();
+                setUserData(data);
+                setIsAuthenticated(true);
+                setRole(data.role);
+            } else {
+                throw new Error('Unauthorized');
             }
-    
-            const data = await response.json();
-            console.log('User data retrieved:', data);
         } catch (error) {
             console.error('Error fetching user data:', error);
+            setIsAuthenticated(true);
         }
     };
-    
-    // Call the function to get user data
-    getUserData();
-    
     useEffect(() => {
-        const savedToken = localStorage.getItem('jwt_token');
-
-        if (savedToken) {
-            // Validate token, fetch user data, and update user state
-
-            setIsAuthenticated(true);
-        } else {
-            // Redirect to login if no valid token
-            redirect('/login');
-        }
+        // Fetch user data on mount
+        getUserData();
     }, []);
 
+    const login = (user) => {
+        setIsAuthenticated(true);
+        setRole(user.role); // Store role on login
+        setUserData(user); // Store user data on login
 
-    const login = () => setIsAuthenticated(true);
-    const logout = () => setIsAuthenticated(false);
-    const userRole = (value) => setRole(value);
+        // Persist user data to localStorage
+        localStorage.setItem('user', JSON.stringify(user));
+    };
+
+    const logout = () => {
+        setIsAuthenticated(false);
+        setRole('');
+        setUserData(null); // Clear user data on logout
+
+        // Clear user data from localStorage
+        localStorage.removeItem('user');
+    };
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, login, logout, userRole, role }}>
+        <AuthContext.Provider value={{ isAuthenticated, login, logout, role, userData }}>
             {children}
         </AuthContext.Provider>
     );

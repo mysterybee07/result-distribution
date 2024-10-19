@@ -1,75 +1,68 @@
 import { useMutation } from '@tanstack/react-query';
 import api from '../api';
-import { useState } from "react"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
+import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
     Form,
     FormControl,
-    FormDescription,
     FormField,
     FormItem,
     FormLabel,
     FormMessage,
-} from "@/components/ui/form"
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/components/ui/tooltip"
-import { Input } from "../components/ui/input"
+} from "@/components/ui/form";
+import { Input } from "../components/ui/input";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
-import { useNavigate } from "react-router-dom"
-import { useAuth } from "../context/AuthContext"
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
+// Define your form schema
 const formSchema = z.object({
     identifier: z.string()
-        .email({ message: "Please enter a valid email address." })
         .min(5, { message: "Email must be at least 5 characters." }),
     password: z.string().min(6, {
-        message: "Password must be at least 8 characters.",
+        message: "Password must be at least 6 characters.",
     }),
-})
+});
 
 export function LoginForm() {
     const { login, userRole } = useAuth();
     const navigate = useNavigate();
-    // 1. Define your form.
+
     const form = useForm({
         resolver: zodResolver(formSchema),
         defaultValues: {
             identifier: "",
             password: "",
         },
-    })
+    });
 
-    // 2. Define the mutation to handle login
+    // Mutation for logging in
     const { mutate: loginMutation } = useMutation({
         mutationFn: async (values) => {
+            console.log("Submitting login values:", values); // Debugging
             const { identifier, password } = values;
-            const { data } = await api.post("/user/login", { identifier, password });
-            return data; // The result of the login request
+            const response = await api.post("/user/login", { identifier, password });
+            return response.data; // Ensure this returns the correct data structure
         },
         onSuccess: (data) => {
-            const { user , token } = data;
-            console.log("🚀 ~ Login Successful ~ data:", data);
+            console.log("Login successful:", data); // Debugging
 
-            if (user && user.role === "admin") {
+            const { user, token } = data; // Destructure user and token from response
+            login(user); // Call the login function from context
+
+            // Navigate based on user role
+            if (user.role === "admin") {
                 navigate("/admin");
             } else {
-                navigate("/");
+                navigate("/"); // Navigate to home or another route for non-admins
             }
-            localStorage.setItem('jwt_token', token);
-
-
-            login();
-            userRole(user.role);
         },
         onError: (error) => {
+            console.error("Login failed:", error); // Log error
             const errorData = error.response?.data;
 
             if (errorData?.errors) {
@@ -81,20 +74,18 @@ export function LoginForm() {
                     });
                 }
             } else {
-                console.error("Login failed:", error.message);
+                console.error("Unexpected error:", error.message);
             }
         },
     });
 
-    // 3. Define a submit handler.
-    const onSubmit = async (values) => {
+    const onSubmit = (values) => {
+        console.log("Form submitted:", values); // Debugging
         loginMutation(values);
-    }
-    const [showPassword, setShowPassword] = useState(false);
-
-    const togglePasswordVisibility = () => {
-        setShowPassword(!showPassword);
     };
+
+    const [showPassword, setShowPassword] = useState(false);
+    const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
     return (
         <Form {...form}>
@@ -103,37 +94,30 @@ export function LoginForm() {
                     control={form.control}
                     name="identifier"
                     render={({ field }) => (
-                        <FormItem className="text-start">
-                            <FormLabel className="text-start">Identifier</FormLabel>
+                        <FormItem>
+                            <FormLabel>Identifier</FormLabel>
                             <FormControl>
                                 <Input placeholder="Email or Symbol number" {...field} />
                             </FormControl>
-                            {/* <FormMessage /> */}
-                            <FormMessage error={form.formState.errors.identifier} /> {/* Display error */}
+                            <FormMessage error={form.formState.errors.identifier} />
                         </FormItem>
                     )}
                 />
                 <FormField
                     control={form.control}
                     name="password"
-                    type="password"
                     render={({ field }) => (
-                        <FormItem className="text-start">
+                        <FormItem>
                             <FormLabel>Password</FormLabel>
                             <FormControl>
                                 <Input
-                                    placeholder="Password" {...field}
+                                    placeholder="Password"
+                                    {...field}
                                     type={showPassword ? 'text' : 'password'}
                                     endAdornment={
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    {showPassword ?
-                                                        <FaRegEye className="h-4 w-4 cursor-pointer" onClick={togglePasswordVisibility} /> :
-                                                        <FaRegEyeSlash className="h-4 w-4 cursor-pointer" onClick={togglePasswordVisibility} />}
-                                                </TooltipTrigger>
-                                            </Tooltip>
-                                        </TooltipProvider>
+                                        <span onClick={togglePasswordVisibility} className="cursor-pointer">
+                                            {showPassword ? <FaRegEye /> : <FaRegEyeSlash />}
+                                        </span>
                                     }
                                 />
                             </FormControl>
@@ -142,18 +126,9 @@ export function LoginForm() {
                     )}
                 />
                 <div className="flex justify-between items-center">
-                    {/* <label className="flex items-center">
-                        <input
-                            type="checkbox"
-                            name="remember"
-                            id="remember"
-                            className="form-checkbox"
-                        />
-                        <span className="ml-2 text-sm">Remember me</span>
-                    </label> */}
                     <label
                         htmlFor="remember_me"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        className="text-sm font-medium leading-none"
                     >
                         <Checkbox id="remember_me" className="mr-2" />
                         Remember me
@@ -163,5 +138,5 @@ export function LoginForm() {
                 <Button type="submit" size="lg" className="w-full">Login</Button>
             </form>
         </Form>
-    )
+    );
 }

@@ -221,30 +221,23 @@ func LoginUser(c *fiber.Ctx) error {
 	}
 
 	var user models.User
-	errorsMap := fiber.Map{} // To collect specific error messages
 
 	// Find user by email or symbol
 	if err := initializers.DB.Where("email = ? OR symbol_number = ?", loginData.Identifier, loginData.Identifier).First(&user).Error; err != nil {
-		// Check if the error is a "not found" error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			errorsMap["identifier"] = "User not found for the provided email or symbol"
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"errors": errorsMap,
+				"errors": fiber.Map{"identifier": "User not found for the provided email or symbol"},
 			})
 		}
-		// Handle other possible database errors
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"errors": fiber.Map{
-				"message": "Database error occurred",
-			},
+			"errors": fiber.Map{"message": "Database error occurred"},
 		})
 	}
 
 	// Check if the password is correct
 	if !utils.CheckPasswordHash(loginData.Password, user.Password) {
-		errorsMap["password"] = "Incorrect password or identifier"
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"errors": errorsMap,
+			"errors": fiber.Map{"password": "Incorrect password or identifier"},
 		})
 	}
 
@@ -252,9 +245,7 @@ func LoginUser(c *fiber.Ctx) error {
 	token, err := utils.GenerateJwt(user.ID, user.Role, c)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"errors": fiber.Map{
-				"message": "Failed to generate JWT token",
-			},
+			"errors": fiber.Map{"message": "Failed to generate JWT token"},
 		})
 	}
 
@@ -360,12 +351,12 @@ func LogoutUser(c *fiber.Ctx) error {
 	})
 }
 
-func GetLoginUser(c *fiber.Ctx) error {
+func AuthorizedUser(c *fiber.Ctx) error {
 	// Retrieve the JWT from the cookie
 	cookie := c.Cookies("jwt")
 	if cookie == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"message": "Missing or invalid JWT cookie",
+			"error": "Missing or invalid JWT cookie",
 		})
 	}
 
@@ -373,7 +364,7 @@ func GetLoginUser(c *fiber.Ctx) error {
 	userID, role, err := utils.ParseJwt(cookie)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"message": err.Error(),
+			"error": err.Error(),
 		})
 	}
 
@@ -381,17 +372,17 @@ func GetLoginUser(c *fiber.Ctx) error {
 	var user models.User
 	if err := initializers.DB.First(&user, userID).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"message": "User not found",
+			"error": "User not found",
 		})
 	}
 
 	// Return the logged-in user's details
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"user": fiber.Map{
+		"data": fiber.Map{
 			"ID":    user.ID,
 			"email": user.Email,
 			"role":  role,
-			// "name":  user.Name,
+			// "name":  user.Name, // Uncomment if you want to include name
 		},
 		"message": "User data retrieved successfully",
 	})
