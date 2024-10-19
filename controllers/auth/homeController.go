@@ -351,12 +351,8 @@ func LogoutUser(c *fiber.Ctx) error {
 		"message": "logout successfully",
 	})
 }
-<<<<<<< HEAD
-func User(c *fiber.Ctx) error {
-=======
 
 func AuthorizedUser(c *fiber.Ctx) error {
->>>>>>> backend
 	// Retrieve the JWT from the cookie
 	cookie := c.Cookies("jwt")
 	if cookie == "" {
@@ -393,10 +389,7 @@ func AuthorizedUser(c *fiber.Ctx) error {
 			"ID":    user.ID,
 			"email": user.Email,
 			"role":  role,
-<<<<<<< HEAD
-=======
 			// "name":  user.Name, // Uncomment if you want to include name
->>>>>>> backend
 		},
 		"message": "User data retrieved successfully",
 	})
