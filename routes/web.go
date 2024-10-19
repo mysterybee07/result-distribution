@@ -146,7 +146,7 @@ func SetupRoutes(app *fiber.App) {
 	user.Post("/logout", authController.LogoutUser)
 	user.Get("/forgot-password", authController.ForgotPassword)
 	user.Put("/update/:id", authController.UpdateUser)
-	user.Get("/active", authController.GetLoginUser)
+	user.Get("/active", authController.User)
 	user.Get("", authController.GetAllUsers)
 	user.Get("/:id", authController.GetUserById)
 	// user.Get("/logout", controllers.LogoutUser)
