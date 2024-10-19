@@ -55,7 +55,7 @@ export function LoginForm() {
             return data; // The result of the login request
         },
         onSuccess: (data) => {
-            const { user } = data;
+            const { user , token } = data;
             console.log("🚀 ~ Login Successful ~ data:", data);
 
             if (user && user.role === "admin") {
@@ -63,6 +63,8 @@ export function LoginForm() {
             } else {
                 navigate("/");
             }
+            localStorage.setItem('jwt_token', token);
+
 
             login();
             userRole(user.role);

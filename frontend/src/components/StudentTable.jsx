@@ -8,6 +8,8 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import { useQuery } from "@tanstack/react-query";
+import api from "../api";
 
 const invoices = [
     {
@@ -55,34 +57,51 @@ const invoices = [
 ]
 
 export default function StudentTable() {
+    const { data: students, isLoading, error } = useQuery({
+        queryKey: ['students'],
+        queryFn: async () => {
+            const response = await api.get("/students");
+            return response.data.students;
+        },
+    });
+    console.log(students);
+
+    if (isLoading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error.message}</div>;
     return (
         <>
             <Table>
-            <TableCaption className="font-bold text-xl">Student Table</TableCaption>
+                <TableCaption className="font-bold text-xl">Student Table</TableCaption>
                 <TableHeader>
                     <TableRow>
-                        <TableHead className="w-[100px]">Invoice</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Symbol Number</TableHead>
+                        <TableHead>Reg Number</TableHead>
+                        <TableHead>Batch</TableHead>
+                        <TableHead>Program</TableHead>
+                        <TableHead>Semester</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Method</TableHead>
-                        <TableHead className="text-right">Amount</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {invoices.map((invoice) => (
-                        <TableRow key={invoice.invoice}>
-                            <TableCell className="font-medium">{invoice.invoice}</TableCell>
-                            <TableCell>{invoice.paymentStatus}</TableCell>
-                            <TableCell>{invoice.paymentMethod}</TableCell>
-                            <TableCell className="text-right">{invoice.totalAmount}</TableCell>
+                    {Array.isArray(students) && students.map((student) => (
+                        <TableRow key={student.ID}>
+                            <TableCell>{student.fullname}</TableCell>
+                            <TableCell>{student.symbol_number}</TableCell>
+                            <TableCell>{student.registration_number}</TableCell>
+                            <TableCell>{student.Batch.batch}</TableCell>
+                            <TableCell>{student.Program.program_name}</TableCell>
+                            <TableCell>{student.current_semester}</TableCell>
+                            <TableCell>{student.status}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
-                <TableFooter>
+                {/* <TableFooter>
                     <TableRow>
                         <TableCell colSpan={3} className="text-start">Total</TableCell>
                         <TableCell className="text-right">$2,500.00</TableCell>
                     </TableRow>
-                </TableFooter>
+                </TableFooter> */}
             </Table>
         </>
     )
