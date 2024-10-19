@@ -19,7 +19,7 @@ var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 var JwtSecret = []byte("Ajfdslfjlsdfjldslfj")
 
 func GenerateJwt(userID uint, role string, c *fiber.Ctx) (string, error) {
-	expirationTime := time.Now().Add(48 * time.Hour) // Set token expiration time
+	expirationTime := time.Now().Add(24 * time.Hour) // Set token expiration time
 	claims := jwt.MapClaims{
 		"userID": strconv.Itoa(int(userID)),
 		"role":   role,
@@ -36,8 +36,10 @@ func GenerateJwt(userID uint, role string, c *fiber.Ctx) (string, error) {
 	cookie := fiber.Cookie{
 		Name:     "jwt",
 		Value:    tokenString,
-		Expires:  expirationTime,
-		HTTPOnly: true, // Prevent JavaScript from accessing the cookie
+		HTTPOnly: true,
+		Secure:   false,                        // Set to true in production (if you're using HTTPS)
+		SameSite: fiber.CookieSameSiteNoneMode, // Use None if it's a cross-origin request
+		Expires:  expirationTime,               // Set expiration time
 	}
 
 	c.Cookie(&cookie)

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"log"
 	"os"
 	"time"
 
@@ -249,7 +250,7 @@ func LoginUser(c *fiber.Ctx) error {
 	}
 
 	// Generate JWT token after successful login
-	token, err := utils.GenerateJwt(user.ID, user.Role, c)
+	_, err := utils.GenerateJwt(user.ID, user.Role, c)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"errors": fiber.Map{
@@ -258,12 +259,23 @@ func LoginUser(c *fiber.Ctx) error {
 		})
 	}
 
+	// Create a response DTO
+	userResponse := struct {
+		ID    uint   `json:"id"`
+		Email string `json:"email"`
+		Role  string `json:"role"`
+	}{
+		ID:    user.ID,
+		Email: user.Email,
+		Role:  user.Role,
+	}
+
 	// Return success response with user details and token
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"code":    fiber.StatusOK,
 		"message": "User login successful",
-		"user":    user,  // Return user information
-		"token":   token, // Return JWT token
+		"user":    userResponse,
+		// "token":   token,
 	})
 }
 
@@ -305,9 +317,19 @@ func UpdateUser(c *fiber.Ctx) error {
 		}
 		user.Password = hashpassword
 	}
-	// Update ImageURL if provided
-	if updateData.ImageURL != "" {
-		user.ImageURL = updateData.ImageURL
+
+	// Handle image upload using the UpdateImage function
+	newImagePath, err := utils.UpdateImage(c, user.ImageURL)
+	if err != nil && err.Error() != "no image file found in the form data" {
+		// If there was an error other than no image being uploaded, return the error
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to update image: " + err.Error(),
+		})
+	}
+
+	// If a new image was uploaded, update the ImageURL field
+	if newImagePath != "" {
+		user.ImageURL = newImagePath
 	}
 
 	if err := initializers.DB.Save(&user).Error; err != nil {
@@ -338,39 +360,43 @@ func LogoutUser(c *fiber.Ctx) error {
 		"message": "logout successfully",
 	})
 }
-
-func GetLoginUser(c *fiber.Ctx) error {
+func User(c *fiber.Ctx) error {
 	// Retrieve the JWT from the cookie
 	cookie := c.Cookies("jwt")
 	if cookie == "" {
+		log.Println("JWT cookie is missing")
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Missing or invalid JWT cookie",
 		})
 	}
 
-	// Parse the JWT and extract the userID and role
+	// Parse the JWT and extract userID and role
 	userID, role, err := utils.ParseJwt(cookie)
 	if err != nil {
+		log.Printf("Error parsing JWT: %v", err)
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": err.Error(),
 		})
 	}
 
-	// Retrieve user information from the database based on userID
+	// Log userID and role for debugging
+	log.Printf("Parsed UserID: %s, Role: %s", userID, role)
+
+	// Retrieve user information from database
 	var user models.User
 	if err := initializers.DB.First(&user, userID).Error; err != nil {
+		log.Println("User not found in database")
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"message": "User not found",
 		})
 	}
 
-	// Return the logged-in user's details
+	// Return logged-in user's details
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"user": fiber.Map{
 			"ID":    user.ID,
 			"email": user.Email,
 			"role":  role,
-			// "name":  user.Name,
 		},
 		"message": "User data retrieved successfully",
 	})

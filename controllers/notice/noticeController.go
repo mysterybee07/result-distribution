@@ -75,6 +75,20 @@ func UpdateNotice(c *fiber.Ctx) error {
 	notice.BatchID = noticeInput.BatchID
 	notice.SemesterID = noticeInput.SemesterID
 
+	// Handle image upload using the UpdateImage function
+	newFilePath, err := utils.UpdateFile(c, notice.FilePath)
+	if err != nil && err.Error() != "nofile found in the form data" {
+		// If there was an error other than no image being uploaded, return the error
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to update file: " + err.Error(),
+		})
+	}
+
+	// If a new image was uploaded, update the ImageURL field
+	if newFilePath != "" {
+		notice.FilePath = newFilePath
+	}
+
 	// Save the updated notice
 	if err := initializers.DB.Save(&notice).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
