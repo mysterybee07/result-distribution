@@ -353,23 +353,7 @@ func LogoutUser(c *fiber.Ctx) error {
 }
 
 func AuthorizedUser(c *fiber.Ctx) error {
-	// Retrieve the JWT from the cookie
-	cookie := c.Cookies("jwt")
-	if cookie == "" {
-		log.Println("JWT cookie is missing")
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Missing or invalid JWT cookie",
-		})
-	}
-
-	// Parse the JWT and extract userID and role
-	userID, role, err := utils.ParseJwt(cookie)
-	if err != nil {
-		log.Printf("Error parsing JWT: %v", err)
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": err.Error(),
-		})
-	}
+	userID := c.Locals("userID").(string) // Retrieve user ID from locals
 
 	// Log userID and role for debugging
 	log.Printf("Parsed UserID: %s, Role: %s", userID, role)
@@ -388,8 +372,7 @@ func AuthorizedUser(c *fiber.Ctx) error {
 		"data": fiber.Map{
 			"ID":    user.ID,
 			"email": user.Email,
-			"role":  role,
-			// "name":  user.Name, // Uncomment if you want to include name
+			"role":  user.Role, // Make sure `role` is set correctly
 		},
 		"message": "User data retrieved successfully",
 	})
