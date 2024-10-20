@@ -37,9 +37,9 @@ func GenerateJwt(userID uint, role string, c *fiber.Ctx) (string, error) {
 		Name:     "jwt",
 		Value:    tokenString,
 		Expires:  time.Now().Add(time.Hour * 24),
-		HTTPOnly: true,  // Prevents JavaScript from accessing the cookie
-		Secure:   false, // Set to true for HTTPS in production
-		// SameSite: "None", // Adjust based on your needs (e.g., "Strict" or "None")
+		HTTPOnly: true,   // Prevents JavaScript from accessing the cookie
+		Secure:   false,  // Set to true for HTTPS in production
+		SameSite: "None", // Adjust based on your needs (e.g., "Strict" or "None")
 	})
 
 	return tokenString, nil

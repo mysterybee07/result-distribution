@@ -356,7 +356,7 @@ func AuthorizedUser(c *fiber.Ctx) error {
 	userID := c.Locals("userID").(string) // Retrieve user ID from locals
 
 	// Log userID and role for debugging
-	log.Printf("Parsed UserID: %s, Role: %s", userID, role)
+	// log.Printf("Parsed UserID: %s, Role: %s", userID, role)
 
 	// Retrieve user information from database
 	var user models.User

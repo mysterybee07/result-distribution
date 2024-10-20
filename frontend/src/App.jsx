@@ -23,10 +23,9 @@ const ProtectedRoute = ({ element }) => {
 
 const AdminRoute = ({ element }) => {
   const { isAuthenticated, role } = useAuth();
-  const isAdmin = role === 'admin';
 
   if (!isAuthenticated) return <Navigate to="/login" />;
-  if (!isAdmin) return <Navigate to="/" />;
+  if ( !role === "admin" ) return <Navigate to="/" />;
   
   return element;
 };
