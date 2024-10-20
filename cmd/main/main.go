@@ -12,6 +12,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/mysterybee07/result-distribution-system/initializers"
+	"github.com/mysterybee07/result-distribution-system/middleware"
 	"github.com/mysterybee07/result-distribution-system/routes"
 )
 

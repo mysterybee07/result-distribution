@@ -46,7 +46,7 @@ export default function DashboardAsideCard() {
             return response.data.batches;
         },
     });
-    console.log(programs);
+    // console.log(programs);
 
     if (isLoading) return <div>Loading...</div>;
 

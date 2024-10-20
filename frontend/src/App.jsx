@@ -14,6 +14,7 @@ import Dashboard from './pages/admin/Dashboard';
 import AdminNavbar from './components/AdminNavbar';
 import { Toaster } from '@/components/ui/toaster';
 import { Navigate } from 'react-router-dom';
+import Student from './pages/admin/Student';
 
 const ProtectedRoute = ({ element }) => {
   const { isAuthenticated } = useAuth();
@@ -45,7 +46,7 @@ const Layout = () => {
 
 const AdminLayout = () => {
   return (
-    <div className="m-0 p-0 w-full flex flex-col min-h-screen">
+    <div className="mt-16 p-0 w-full flex flex-col min-h-screen">
       <AdminNavbar />
       <div className="flex-grow">
         <Toaster />
@@ -78,6 +79,8 @@ function App() {
               <Route path="/admin" element={<AdminRoute element={<Dashboard />} />} />
               <Route path="/admin/exam" element={<AdminRoute element={<Dashboard />} />} />
               <Route path="/admin/result" element={<AdminRoute element={<Dashboard />} />} />
+              <Route path="/admin/students" element={<AdminRoute element={<Student />} />} />
+              <Route path="/admin/students/create" element={<AdminRoute element={<Dashboard />} />} />
             </Route>
           </Routes>
         </Router>

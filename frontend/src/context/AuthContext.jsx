@@ -17,30 +17,30 @@ export const AuthProvider = ({ children }) => {
         return savedUser ? JSON.parse(savedUser) : null; // Parse user data from localStorage
     });
 
-    const getUserData = async () => {
-        try {
-            const response = await fetch('http://127.0.0.1:3000/user/active', {
-                method: 'GET',
-                credentials: 'include', // Include cookies in the request
-            });
+    // const getUserData = async () => {
+    //     try {
+    //         const response = await fetch('http://127.0.0.1:3000/user/active', {
+    //             method: 'GET',
+    //             credentials: 'include', // Include cookies in the request
+    //         });
 
-            if (response.ok) {
-                const data = await response.json();
-                setUserData(data);
-                setIsAuthenticated(true);
-                setRole(data.role);
-            } else {
-                throw new Error('Unauthorized');
-            }
-        } catch (error) {
-            console.error('Error fetching user data:', error);
-            setIsAuthenticated(true);
-        }
-    };
-    useEffect(() => {
-        // Fetch user data on mount
-        getUserData();
-    }, []);
+    //         if (response.ok) {
+    //             const data = await response.json();
+    //             setUserData(data);
+    //             setIsAuthenticated(true);
+    //             setRole(data.role);
+    //         } else {
+    //             throw new Error('Unauthorized');
+    //         }
+    //     } catch (error) {
+    //         console.error('Error fetching user data:', error);
+    //         setIsAuthenticated(true);
+    //     }
+    // };
+    // useEffect(() => {
+    //     // Fetch user data on mount
+    //     getUserData();
+    // }, []);
 
     const login = (user) => {
         setIsAuthenticated(true);

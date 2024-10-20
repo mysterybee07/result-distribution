@@ -57,6 +57,16 @@ const AdminNavbar = () => {
                         >
                             Result
                         </NavLink>
+                        <NavLink
+                            to="/admin/students"
+                            className={({ isActive }) =>
+                                isActive
+                                    ? "font-medium flex items-center text-sm transition-colors underline text-blue-600" // Active link styling
+                                    : "font-medium flex items-center text-sm transition-colors hover:underline"
+                            } prefetch={false}
+                        >
+                            Student
+                        </NavLink>
                     </nav>
                     <div className="flex items-center gap-4">
                         {isAuthenticated ?

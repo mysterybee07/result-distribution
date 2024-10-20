@@ -16,7 +16,7 @@ const Dashboard = () => {
     const {  isAuthenticated } = useAuth();
     return isAuthenticated ? (   
         <div className='w-full flex flex-col gap-16'>
-            <div className='h-32 bg-blue-700 mt-8 relative overflow-visible m-0 p-0'>
+            <div className='h-32 bg-blue-700 relative overflow-visible m-0 p-0'>
                 <p className='text-white text-start p-8 text-xl'>Admin Dashboard</p>
                 <div className='p-4 grid grid-cols-1 gap-16 md:grid-cols-4'>
                     <Card className="-mt-8 bg-red-200 border-none"> {/* Keep negative margin for overflow */}
