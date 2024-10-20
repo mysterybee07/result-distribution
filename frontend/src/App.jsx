@@ -15,6 +15,9 @@ import AdminNavbar from './components/AdminNavbar';
 import { Toaster } from '@/components/ui/toaster';
 import { Navigate } from 'react-router-dom';
 import Student from './pages/admin/Student';
+import StudentForm from './forms/StudentForm';
+import { LoginForm } from './forms/LoginForm';
+import { DataProvider } from './context/DataContext';
 
 const ProtectedRoute = ({ element }) => {
   const { isAuthenticated } = useAuth();
@@ -25,8 +28,8 @@ const AdminRoute = ({ element }) => {
   const { isAuthenticated, role } = useAuth();
 
   if (!isAuthenticated) return <Navigate to="/login" />;
-  if ( !role === "admin" ) return <Navigate to="/" />;
-  
+  if (!role === "admin") return <Navigate to="/" />;
+
   return element;
 };
 
@@ -62,27 +65,29 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Router>
-          <Routes>
-            <Route element={<Layout />}>
-              <Route path="/" element={<Homepage />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/exam" element={<ProtectedRoute element={<Exam />} />} />
-              <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
-              <Route path="/result" element={<ProtectedRoute element={<Result />} />} />
-            </Route>
+        <DataProvider>
+          <Router>
+            <Routes>
+              <Route element={<Layout />}>
+                <Route path="/" element={<Homepage />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/exam" element={<ProtectedRoute element={<Exam />} />} />
+                <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
+                <Route path="/result" element={<ProtectedRoute element={<Result />} />} />
+              </Route>
 
-            {/* Admin routes */}
-            <Route element={<AdminLayout />}>
-              <Route path="/admin" element={<AdminRoute element={<Dashboard />} />} />
-              <Route path="/admin/exam" element={<AdminRoute element={<Dashboard />} />} />
-              <Route path="/admin/result" element={<AdminRoute element={<Dashboard />} />} />
-              <Route path="/admin/students" element={<AdminRoute element={<Student />} />} />
-              <Route path="/admin/students/create" element={<AdminRoute element={<Dashboard />} />} />
-            </Route>
-          </Routes>
-        </Router>
+              {/* Admin routes */}
+              <Route element={<AdminLayout />}>
+                <Route path="/admin" element={<AdminRoute element={<Dashboard />} />} />
+                <Route path="/admin/exam" element={<AdminRoute element={<Dashboard />} />} />
+                <Route path="/admin/result" element={<AdminRoute element={<Dashboard />} />} />
+                <Route path="/admin/students" element={<AdminRoute element={<Student />} />} />
+                <Route path="/admin/students/create" element={<AdminRoute element={<StudentForm />} />} />
+              </Route>
+            </Routes>
+          </Router>
+        </DataProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
