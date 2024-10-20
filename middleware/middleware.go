@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
@@ -14,15 +15,21 @@ func AuthRequired(c *fiber.Ctx) error {
 	// Get token from cookies
 	token := c.Cookies("jwt")
 
+	fmt.Println("Token: ", token)
+
 	if token == "" {
-		return c.Redirect("/login", fiber.StatusFound)
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "unauthorized",
+		})
 	}
 
 	// Validate token and get user ID and role
 	userID, role, err := utils.ParseJwt(token)
 	if err != nil {
 		log.Printf("Failed to parse JWT: %v\n", err)
-		return c.Redirect("/login", fiber.StatusFound)
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "unauthorized user",
+		})
 	}
 
 	log.Printf("Authenticated user ID: %s, Role: %s\n", userID, role)

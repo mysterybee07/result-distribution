@@ -10,7 +10,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/mysterybee07/result-distribution-system/initializers"
 	"github.com/mysterybee07/result-distribution-system/routes"
 )
@@ -43,21 +42,20 @@ func main() {
 	})
 
 	// Initialize session store
-	store := session.New()
+	// store := session.New()
 
 	// Use session middleware
-	app.Use(func(c *fiber.Ctx) error {
-		sess, err := store.Get(c)
-		if err != nil {
-			return err
-		}
-		c.Locals("session", sess)
-		return c.Next()
-	})
+	// app.Use(func(c *fiber.Ctx) error {
+	// 	sess, err := store.Get(c)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	c.Locals("session", sess)
+	// 	return c.Next()
+	// })
 
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://localhost:3000, http://localhost:5173/",
-		// AllowOrigins:     "",
+		AllowOrigins:     "http://localhost:5173/",
 		AllowMethods:     "GET, POST, PUT, DELETE, PATCH, OPTIONS",
 		AllowHeaders:     "Origin, Content-Type, Accept",
 		AllowCredentials: true,
