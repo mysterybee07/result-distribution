@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/mysterybee07/result-distribution-system/initializers"
 	"github.com/mysterybee07/result-distribution-system/models"
+	exam "github.com/mysterybee07/result-distribution-system/models/exam"
 	"gorm.io/gorm"
 )
 
@@ -30,7 +31,7 @@ func Result(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).SendString("Failed to fetch semesters")
 	}
 
-	var results []models.Result
+	var results []exam.Result
 	if err := initializers.DB.Preload("Batch").Preload("Program").Preload("Semester").Find(&results).Error; err != nil {
 		log.Printf("Failed to fetch results: %v\n", err)
 		return c.Status(fiber.StatusInternalServerError).SendString("Failed to fetch results")
@@ -59,7 +60,7 @@ func PublishResults(c *fiber.Ctx) error {
 	}
 
 	// Check if results are already published for the given batch, program, and semester
-	var existingResult models.Result
+	var existingResult exam.Result
 	if err := initializers.DB.Where("batch_id = ? AND program_id = ? AND semester_id = ?", req.BatchID, req.ProgramID, req.SemesterID).First(&existingResult).Error; err == nil {
 		// Result already exists, return an error
 		log.Printf("Result already published for batch %d, program %d, and semester %d\n", req.BatchID, req.ProgramID, req.SemesterID)
@@ -129,7 +130,7 @@ func PublishResults(c *fiber.Ctx) error {
 	}
 
 	// Save the result in the database
-	newResult := models.Result{
+	newResult := exam.Result{
 		BatchID:    req.BatchID,
 		ProgramID:  req.ProgramID,
 		SemesterID: req.SemesterID,

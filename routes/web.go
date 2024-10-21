@@ -126,6 +126,7 @@ import (
 	adminController "github.com/mysterybee07/result-distribution-system/controllers/admin"
 	authController "github.com/mysterybee07/result-distribution-system/controllers/auth"
 	errorController "github.com/mysterybee07/result-distribution-system/controllers/error"
+	examController "github.com/mysterybee07/result-distribution-system/controllers/exam"
 	noticeController "github.com/mysterybee07/result-distribution-system/controllers/notice"
 	userController "github.com/mysterybee07/result-distribution-system/controllers/user"
 	"github.com/mysterybee07/result-distribution-system/middleware"
@@ -235,4 +236,7 @@ func SetupRoutes(app *fiber.App) {
 	notice.Put("/update/:id", noticeController.UpdateNotice)
 	notice.Get("/by-program", noticeController.GetNoticesByProgram)
 	notice.Get("/by-program-and-batch", noticeController.GetNoticesByProgramAndBatch)
+
+	exam := app.Group("/exam")
+	exam.Get("/assign-center", examController.CentersAllocation)
 }
