@@ -14,10 +14,11 @@ export const AuthProvider = ({ children }) => {
     // });
     const [role, setRole] = useState('');
     // console.log("🚀 ~ file: AuthContext.jsx ~ line 33 ~ AuthProvider ~ role:", role)
-    const [userData, setUserData] = useState(() => {
-        const savedUser = localStorage.getItem('user');
-        return savedUser ? JSON.parse(savedUser) : null; // Parse user data from localStorage
-    });
+    // const [userData, setUserData] = useState(() => {
+    //     const savedUser = localStorage.getItem('user');
+    //     return savedUser ? JSON.parse(savedUser) : null; // Parse user data from localStorage
+    // });
+    const [userData, setUserData] = useState(null);
 
     const getUserData = async () => {
         try {
@@ -28,7 +29,8 @@ export const AuthProvider = ({ children }) => {
 
             if (response.ok) {
                 const data = await response.json();
-                setUserData(data);
+                console.log("🚀 ~ getUserData ~ data:", data)
+                setUserData(data.data);
                 setIsAuthenticated(true);
                 setRole(data.data.role);
             } else {
