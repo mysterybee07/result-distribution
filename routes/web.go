@@ -238,5 +238,6 @@ func SetupRoutes(app *fiber.App) {
 	notice.Get("/by-program-and-batch", noticeController.GetNoticesByProgramAndBatch)
 
 	exam := app.Group("/exam")
-	exam.Get("/assign-center", examController.CentersAllocation)
+	exam.Post("/upload-college", examController.UploadColleges)
+	exam.Get("/assign-centers", examController.AssignCentersHandler)
 }

@@ -130,9 +130,9 @@ func ConvertIDs(batchIDStr, programIDStr string) (batchID, programID *uint, err 
 }
 
 // min returns the minimum of two integers
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
+// func min(a, b int) int {
+// 	if a < b {
+// 		return a
+// 	}
+// 	return b
+// }

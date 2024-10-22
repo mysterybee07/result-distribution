@@ -38,9 +38,6 @@ func Connect() {
 		&exam.Result{},
 		&models.Notice{},
 		&exam.College{},
-		&exam.Center{},
-		&exam.Preference{},
-		&exam.AllocatedCenter{},
 	); err != nil {
 		log.Fatalf("Error migrating database to database")
 	}
