@@ -16,39 +16,9 @@ type CenterAssignment struct {
 	CollegeName   string
 	CenterName    string
 	AssignedSeat  int
-	RemainingSeat int // Changed to int if it should represent remaining capacity
+	RemainingSeat int
 }
 
-func WriteResultToFile(assignments []CenterAssignment) error {
-	file, err := os.Create("center_assignment_results.csv")
-	if err != nil {
-		return fmt.Errorf("failed to create result file: %w", err)
-	}
-	defer file.Close()
-
-	writer := csv.NewWriter(file)
-	defer writer.Flush()
-
-	// Write the header
-	if err := writer.Write([]string{"College Name", "Assigned Center", "Assigned Students"}); err != nil {
-		return fmt.Errorf("failed to write header to CSV: %w", err)
-	}
-
-	// Write each assignment
-	for _, assignment := range assignments {
-		if err := writer.Write([]string{
-			assignment.CollegeName,
-			assignment.CenterName,
-			strconv.Itoa(assignment.AssignedSeat),
-		}); err != nil {
-			return fmt.Errorf("failed to write assignment to file: %w", err)
-		}
-	}
-
-	return nil
-}
-
-// AssignCenters assigns colleges to centers based on capacity and distance
 // AssignCenters assigns colleges to centers based on capacity and distance
 func AssignCenters() ([]CenterAssignment, error) {
 	var colleges []models.College
@@ -138,10 +108,37 @@ func AssignCenters() ([]CenterAssignment, error) {
 	return assignments, nil
 }
 
-// Helper function to get the minimum of two integers
-func min(a, b int) int {
-	if a < b {
-		return a
+func WriteResultToFile(assignments []CenterAssignment) error {
+	// Ensure the 'data' folder exists, create it if not
+	if err := os.MkdirAll("data", os.ModePerm); err != nil {
+		return fmt.Errorf("failed to create data directory: %w", err)
 	}
-	return b
+
+	// Create the CSV file inside the 'data' folder
+	file, err := os.Create("data/center_assignment_results.csv")
+	if err != nil {
+		return fmt.Errorf("failed to create result file: %w", err)
+	}
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	// Write the header
+	if err := writer.Write([]string{"College Name", "Assigned Center", "Assigned Students"}); err != nil {
+		return fmt.Errorf("failed to write header to CSV: %w", err)
+	}
+
+	// Write each assignment
+	for _, assignment := range assignments {
+		if err := writer.Write([]string{
+			assignment.CollegeName,
+			assignment.CenterName,
+			strconv.Itoa(assignment.AssignedSeat),
+		}); err != nil {
+			return fmt.Errorf("failed to write assignment to file: %w", err)
+		}
+	}
+
+	return nil
 }

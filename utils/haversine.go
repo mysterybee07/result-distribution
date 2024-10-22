@@ -19,9 +19,9 @@ func Haversine(lat1, lon1, lat2, lon2 float64) float64 {
 	return EarthRadiusKm * c
 }
 
-// degreesToRadians converts degrees to radians
-// func degreesToRadians(degrees float64) float64 {
-// 	return degrees * math.Pi / 180
-// }
-
-// Example findNearestCenter function
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
