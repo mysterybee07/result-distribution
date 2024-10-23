@@ -18,6 +18,7 @@ import Student from './pages/admin/Student';
 import StudentForm from './forms/StudentForm';
 import { LoginForm } from './forms/LoginForm';
 import { DataProvider } from './context/DataContext';
+import BulkStudentForm from './forms/BulkStudentForm';
 
 const ProtectedRoute = ({ element }) => {
   const { isAuthenticated } = useAuth();
@@ -84,6 +85,7 @@ function App() {
                 <Route path="/admin/result" element={<AdminRoute element={<Dashboard />} />} />
                 <Route path="/admin/students" element={<AdminRoute element={<Student />} />} />
                 <Route path="/admin/students/create" element={<AdminRoute element={<StudentForm />} />} />
+                <Route path="/admin/students/create/bulk" element={<AdminRoute element={<BulkStudentForm />} />} />
               </Route>
             </Routes>
           </Router>
