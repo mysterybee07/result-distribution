@@ -20,7 +20,8 @@ const Student = () => {
 
     return (
         <div className='flex flex-col gap-8'>
-            <div className='flex justify-end gap-4'>
+            
+            {/* <div className='flex justify-end gap-4'>
                 <Drawer>
                     <DrawerTrigger  >
                         <Button
@@ -53,7 +54,7 @@ const Student = () => {
                 >
                     Add Student
                 </Button>
-            </div>
+            </div> */}
 
             <StudentTable />
         </div>
