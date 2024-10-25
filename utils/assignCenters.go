@@ -19,7 +19,8 @@ type CenterAssignment struct {
 	RemainingSeat int
 }
 
-// AssignCenters assigns colleges to centers based on capacity and distance
+// AssignCenters assigns colleges to centers based on capacity and distance,
+// preventing circular assignment between centers.
 func AssignCenters() ([]CenterAssignment, error) {
 	var colleges []models.College
 	if err := initializers.DB.Find(&colleges).Error; err != nil {
@@ -51,11 +52,15 @@ func AssignCenters() ([]CenterAssignment, error) {
 		totalAssigned := 0 // To track the total number of students assigned for this college
 		var availableCenters []models.College
 
-		// Find available centers within 50km and exclude self-assignment
+		// Find available centers within 50km and exclude self-assignment and circular assignment
 		for _, center := range centers {
 			// Prevent a college that is also a center from assigning students to itself
 			if college.CollegeCode == center.CollegeCode || remainingCapacities[center.CollegeCode] <= 0 {
 				continue // Skip self or centers with no remaining capacity
+			}
+			// Circular assignment prevention: if College A is a center assigned to Center B, Center B cannot assign students to College A
+			if hasAssignment(assignments, center.Name, college.Name) {
+				continue // Skip if the center already has students assigned from the current college
 			}
 			distance := Haversine(college.Latitude, college.Longitude, center.Latitude, center.Longitude)
 			if distance < 50 { // Check distance constraint
@@ -106,6 +111,16 @@ func AssignCenters() ([]CenterAssignment, error) {
 	}
 
 	return assignments, nil
+}
+
+// hasAssignment checks if students from centerName are already assigned to collegeName.
+func hasAssignment(assignments []CenterAssignment, centerName, collegeName string) bool {
+	for _, assignment := range assignments {
+		if assignment.CenterName == centerName && assignment.CollegeName == collegeName {
+			return true
+		}
+	}
+	return false
 }
 
 func WriteResultToFile(assignments []CenterAssignment) error {

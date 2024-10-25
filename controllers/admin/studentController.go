@@ -87,40 +87,53 @@ func EditStudent(c *fiber.Ctx) error {
 }
 
 func UpdateStudent(c *fiber.Ctx) error {
-	id := c.Params("id")
-	var student models.Student
+	id := c.Params("id") // Extract student ID from the URL parameter
 
+	var input struct {
+		Fullname           string `json:"fullname"`
+		SymbolNumber       string `json:"symbol_number"`
+		RegistrationNumber string `json:"registration_number"`
+		BatchID            uint   `json:"batch_id"`
+		ProgramID          uint   `json:"program_id"`
+	}
+
+	// Parse the JSON body
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Unable to parse request body",
+		})
+	}
+
+	// Find the student by ID
+	var student models.Student
 	if err := initializers.DB.First(&student, id).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "Student not found",
+			"message": "Student not found",
 		})
 	}
 
-	if err := c.BodyParser(&student); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Cannot parse JSON",
-		})
-	}
+	// Update the fields
+	student.Fullname = input.Fullname
+	student.SymbolNumber = input.SymbolNumber
+	student.RegistrationNumber = input.RegistrationNumber
+	student.BatchID = input.BatchID
+	student.ProgramID = input.ProgramID
 
+	// Validate updated student data
 	if err := validation.ValidateStudent(&student, true); err != nil {
-		return c.Status(err.(*fiber.Error).Code).JSON(fiber.Map{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
 
-	// Update the student
+	// Save the updated student data
 	if err := initializers.DB.Save(&student).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Could not update student",
 		})
 	}
-	// if err := initializers.DB.Preload("Batch").Preload("Program").First(&student, student.ID).Error; err != nil {
-	// 	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-	// 		"error": "Could not retrieve student with associations",
-	// 	})
-	// }
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+	return c.JSON(fiber.Map{
 		"message": "Student updated successfully",
 		"student": student,
 	})
