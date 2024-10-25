@@ -8,7 +8,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import api from "../api";
 import { FaEdit, FaTrash } from "react-icons/fa";
@@ -30,11 +30,17 @@ export default function StudentTable() {
     const navigate = useNavigate();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     console.log("🚀 ~ Student ~ isDrawerOpen:", isDrawerOpen)
+
+    // for searching and querying
     const [searchQuery, setSearchQuery] = useState('');  // State for search query
     const [selectedBatch, setSelectedBatch] = useState("");  // New state for batch filter
     const [selectedProgram, setSelectedProgram] = useState("");  // New state for program filter
     const [currentPage, setCurrentPage] = useState(1);   // State for pagination
     const [pageSize] = useState(10);  // Number of students per page (you can make this dynamic if needed)
+
+    // for sorting data
+    const [sortOrder, setSortOrder] = useState('asc'); // State for sorting order
+    const [sortField, setSortField] = useState('symbol_number'); // State for selected field to sort
 
     // Fetch students using useQuery
     const { data: students, isLoading, error } = useQuery({
@@ -51,7 +57,7 @@ export default function StudentTable() {
     const uniqueBatches = [...new Set(students.map(student => student.Batch.batch))];  // Get unique batches
     const uniquePrograms = [...new Set(students.map(student => student.Program.program_name))];  // Get unique programs
 
-    // Filter students by search query
+    // Step1: Filter students by search query
     const filteredStudents = students.filter((student) => {
         const matchesSearch =
             student.fullname.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -64,12 +70,29 @@ export default function StudentTable() {
         return matchesSearch && matchesBatch && matchesProgram;
     });
 
+    // Step 2: Sort the filtered students
+    const sortedStudents = useMemo(() => { // Use useMemo to avoid sorting on every render
+        return [...filteredStudents].sort((a, b) => {
+            if (sortOrder === 'asc') {
+                return a[sortField] > b[sortField] ? 1 : -1;
+            } else {
+                return a[sortField] < b[sortField] ? 1 : -1;
+            }
+        });
+    }, [filteredStudents, sortOrder, sortField]);
 
+
+    // Step 3: Paginate the sorted students
     // Calculate total number of pages
-    const totalPages = Math.ceil(filteredStudents.length / pageSize);
-
+    const totalPages = Math.ceil(sortedStudents.length / pageSize);
     // Get students for the current page
-    const currentPageStudents = filteredStudents.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+    const currentPageStudents = sortedStudents.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+    // Toggle the sorting order
+    const toggleSortOrder = (field) => {
+        setSortField(field);
+        setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    };
 
     return (
         <>
@@ -148,13 +171,51 @@ export default function StudentTable() {
                 {/* <TableCaption className="font-bold text-xl">Student Table</TableCaption> */}
                 <TableHeader className="text-left">
                     <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Symbol Number</TableHead>
-                        <TableHead>Reg Number</TableHead>
-                        <TableHead>Batch</TableHead>
-                        <TableHead>Program</TableHead>
-                        <TableHead>Semester</TableHead>
-                        <TableHead>Status</TableHead>
+                        <TableHead>
+                            <button onClick={() => toggleSortOrder('fullname')}>
+                                Name
+                                {sortOrder === 'asc' ? '↑' : '↓'}
+                            </button>
+                        </TableHead>
+                        <TableHead>
+                            <button onClick={() => toggleSortOrder('symbol_number')}>
+                                Symbol Number
+                                {sortOrder === 'asc' ? '↑' : '↓'}
+                            </button>
+                        </TableHead>
+                        <TableHead>
+                            <button onClick={() => toggleSortOrder('registration_number')}>
+                                Reg Number
+                                {sortOrder === 'asc' ? '↑' : '↓'}
+                            </button>
+                        </TableHead>
+                        <TableHead>
+                            <button onClick={() => toggleSortOrder('batch')}>
+                                Batch
+                                {sortOrder === 'asc' ? '↑' : '↓'}
+                            </button>
+
+                        </TableHead>
+                        <TableHead>
+                            <button onClick={() => toggleSortOrder('program')}>
+                                Program
+                                {sortOrder === 'asc' ? '↑' : '↓'}
+                            </button>
+
+                        </TableHead>
+                        <TableHead>
+                            <button onClick={() => toggleSortOrder('semester')}>
+                                Semester
+                                {sortOrder === 'asc' ? '↑' : '↓'}
+                            </button>
+
+                        </TableHead>
+                        <TableHead>
+                            <button onClick={() => toggleSortOrder('status')}>
+                                Status
+                                {sortOrder === 'asc' ? '↑' : '↓'}
+                            </button>
+                        </TableHead>
                         <TableHead>Actions</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -169,8 +230,14 @@ export default function StudentTable() {
                             <TableCell >{student.current_semester}</TableCell>
                             <TableCell >{student.status}</TableCell>
                             <TableCell className="flex items-center gap-4">
-                                <FaEdit />
-                                <FaTrash className="text-red-600" />
+                                <FaEdit
+                                    className="text-blue-600 cursor-pointer"
+                                    onClick={() => navigate(`/admin/students/edit/${student.ID}`)}
+                                />
+                                <FaTrash
+                                    onClick={() => navigate(`/admin/students/${student.ID}`)}
+                                    className="text-red-600"
+                                />
                             </TableCell>
                         </TableRow>
                     ))}
