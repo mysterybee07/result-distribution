@@ -167,6 +167,7 @@ func SetupRoutes(app *fiber.App) {
 	student.Get("/edit/:id", adminController.EditStudent)
 	student.Post("/create", adminController.CreateStudents)
 	student.Get("/filter", adminController.GetFilteredStudents)
+	student.Delete("/delete", adminController.DeleteStudent)
 
 	// Batch Routes
 	batch := app.Group("/batch")

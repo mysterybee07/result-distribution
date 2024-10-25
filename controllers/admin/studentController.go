@@ -170,25 +170,6 @@ func GetStudentById(c *fiber.Ctx) error {
 	})
 }
 
-func DeleteStudent(c *fiber.Ctx) error {
-	id := c.Params("id")
-	var student models.Student
-	if err := initializers.DB.First(&student, id).Error; err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "Student not found",
-		})
-	}
-	if err := initializers.DB.Delete(&student).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Could not delete student",
-		})
-	}
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "Student deleted successfully",
-		"student": student,
-	})
-}
-
 func GetFilteredStudents(c *fiber.Ctx) error {
 	batchID := c.Query("batch_id")
 	programID := c.Query("program_id")
@@ -205,5 +186,24 @@ func GetFilteredStudents(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"students": students,
+	})
+}
+
+func DeleteStudent(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var student models.Student
+	if err := initializers.DB.First(&student, id).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "Student not found",
+		})
+	}
+	if err := initializers.DB.Delete(&student).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Could not delete student",
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Student deleted successfully",
+		"student": student,
 	})
 }
