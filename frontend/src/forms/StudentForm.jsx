@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { z } from 'zod'
 import {
     Form,
@@ -23,9 +23,11 @@ import { Input } from '../components/ui/input';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { useData } from '../context/DataContext';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import api from '../api';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useToast } from "@/hooks/use-toast";
+
 
 const formSchema = z.object({
     symbol_number: z.string().min(5, { message: "Symbol number must be at least 5 characters." }),
@@ -37,6 +39,22 @@ const formSchema = z.object({
 });
 
 const StudentForm = () => {
+    const { toast } = useToast();
+
+    const { id } = useParams();
+    // Fetch student data based on the dynamic ID
+    const { data: singleStudent, isLoading: loadingSingleStudent, error: errorSingleStudent } = useQuery({
+        queryKey: ['singleStudent', id], // Add the ID to the query key for caching
+        queryFn: async () => {
+            const response = await api.get(`/students/${id}`);
+            return response.data;
+        },
+        enabled: Boolean(id), // Only run the query if there's a valid ID (for create mode, it won't fetch)
+    });
+    const { student } = singleStudent || {}; // Destructure the student data
+    const initialData = student; // Set initial data if student data is available
+    console.log("🚀 ~ StudentForm ~ initialData:", initialData)
+    const isEditMode = !!initialData; // Check if the form is in edit mode
     const navigate = useNavigate();
     // fetching batch and program data
     const { programs, loadingPrograms, errorPrograms, batches, loadingBatches, errorBatches } = useData();
@@ -58,20 +76,33 @@ const StudentForm = () => {
             current_semester: '',
         },
     });
-    const { register, handleSubmit, formState: { errors }, setValue, watch } = form;
+    const { register, handleSubmit, formState: { errors }, setValue, watch, reset } = form;
+
+    useEffect(() => {
+        if (initialData) {
+            reset(initialData); // Populate form in edit mode
+        }
+    }, [initialData, reset]);
 
     // mutation for creating student
     const { mutate: createStudent } = useMutation({
         mutationFn: async (student) => {
-            const response = await api.post('/students/create', student);
+            const endpoint = isEditMode ? `/students/update/${initialData.ID}` : '/students/create';
+            const method = isEditMode ? 'put' : 'post';
+            const response = await api[method](endpoint, student);
             return response.data;
         },
         onSuccess: (data) => {
-            console.log("Student added successfully:", data);
+            console.log(`Student ${isEditMode ? 'updated' : 'created'} successfully:`, data);
             navigate('/admin/students');
+            toast({
+                // title: "Student Added",
+                description: JSON.stringify(data.message),
+                variant: "success",
+            })
         },
         onError: (error) => {
-            console.error("Error adding student:", error);
+            console.error(`Error ${isEditMode ? 'updating' : 'creating'} student:`, error);
         },
     });
 
@@ -89,6 +120,7 @@ const StudentForm = () => {
                 }
             ]
         }
+        console.log("🚀 ~ onSubmit ~ student:", student)
         createStudent(student);
     };
 
@@ -96,6 +128,9 @@ const StudentForm = () => {
         <div className='flex items-center justify-center mt-16'>
             <Card className="w-1/2 shadow-lg hover:shadow-2xl py-8 text-start">
                 <CardContent>
+                    <h1 className="text-xl font-bold mb-4">
+                        {isEditMode ? 'Edit Student' : 'Create Student'}
+                    </h1>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)}>
                             <FormField
@@ -201,7 +236,9 @@ const StudentForm = () => {
                                 </SelectContent>
                             </Select>
 
-                            <Button type="submit" className='self-end mt-4'>Submit</Button>
+                            <Button type="submit" className="self-end mt-4">
+                                {isEditMode ? 'Update Student' : 'Create Student'}
+                            </Button>
                         </form>
                     </Form>
                 </CardContent>

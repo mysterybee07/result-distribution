@@ -47,7 +47,7 @@ const Dashboard = () => {
             </div>
             <div className='grid grid-rows-2 grid-flow-col gap-16'>
                 <div className="row-span-2 col-span-5">
-                    <StudentTable />
+                    {/* <StudentTable /> */}
                 </div>
                 <div className='row-span-2 col-span-1'>
                     <DashboardAsideCard />
