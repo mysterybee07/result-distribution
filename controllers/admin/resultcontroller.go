@@ -78,6 +78,7 @@ func PublishResults(c *fiber.Ctx) error {
 	}
 
 	// Check if all students have marks for all courses in the current semester
+	// Check if all students have marks for all compulsory courses and exactly one optional course in the current semester
 	for _, student := range students {
 		var marks []models.Mark
 		if err := initializers.DB.Where("student_id = ? AND semester_id = ?", student.ID, req.SemesterID).Find(&marks).Error; err != nil {
@@ -86,31 +87,53 @@ func PublishResults(c *fiber.Ctx) error {
 		}
 
 		var courses []models.Course
-		if err := initializers.DB.Where("program_id = ?", student.ProgramID).Find(&courses).Error; err != nil {
+		if err := initializers.DB.Where("program_id = ? AND semester_id = ?", student.ProgramID, req.SemesterID).Find(&courses).Error; err != nil {
 			log.Printf("Failed to fetch courses for student %d: %v\n", student.ID, err)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch courses"})
 		}
 
-		courseIDMap := make(map[uint]bool)
+		// Separate compulsory and optional courses
+		compulsoryCourses := make(map[uint]bool)
+		optionalCourses := make(map[uint]bool)
+
 		for _, course := range courses {
-			courseIDMap[course.ID] = false
+			if course.IsCompulsory {
+				compulsoryCourses[course.ID] = false
+			} else {
+				optionalCourses[course.ID] = false
+			}
 		}
 
+		// Mark courses as completed based on the student's marks
 		for _, mark := range marks {
-			courseIDMap[mark.CourseID] = true
+			if _, exists := compulsoryCourses[mark.CourseID]; exists {
+				compulsoryCourses[mark.CourseID] = true
+			} else if _, exists := optionalCourses[mark.CourseID]; exists {
+				optionalCourses[mark.CourseID] = true
+			}
 		}
 
-		allCoursesMarked := true
-		for _, marked := range courseIDMap {
+		// Check if all compulsory courses are marked
+		allCompulsoryMarked := true
+		for _, marked := range compulsoryCourses {
 			if !marked {
-				allCoursesMarked = false
+				allCompulsoryMarked = false
 				break
 			}
 		}
 
-		if !allCoursesMarked {
-			log.Printf("Not all courses are marked for student %d in semester %d\n", student.ID, req.SemesterID)
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Not all courses are marked for all students"})
+		// Count the number of marked optional courses
+		optionalMarkedCount := 0
+		for _, marked := range optionalCourses {
+			if marked {
+				optionalMarkedCount++
+			}
+		}
+
+		// Validate that all compulsory courses are marked and exactly one optional course is marked
+		if !allCompulsoryMarked || optionalMarkedCount != 1 {
+			log.Printf("All compulsory courses or exactly one optional course are not marked for student %d in semester %d\n", student.ID, req.SemesterID)
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "All compulsory courses and exactly one optional course are required to be marked for each student"})
 		}
 	}
 
