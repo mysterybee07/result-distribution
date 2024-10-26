@@ -126,6 +126,7 @@ import (
 	adminController "github.com/mysterybee07/result-distribution-system/controllers/admin"
 	authController "github.com/mysterybee07/result-distribution-system/controllers/auth"
 	errorController "github.com/mysterybee07/result-distribution-system/controllers/error"
+	examController "github.com/mysterybee07/result-distribution-system/controllers/exam"
 	noticeController "github.com/mysterybee07/result-distribution-system/controllers/notice"
 	userController "github.com/mysterybee07/result-distribution-system/controllers/user"
 	"github.com/mysterybee07/result-distribution-system/middleware"
@@ -166,11 +167,14 @@ func SetupRoutes(app *fiber.App) {
 	student.Get("/edit/:id", adminController.EditStudent)
 	student.Post("/create", adminController.CreateStudents)
 	student.Get("/filter", adminController.GetFilteredStudents)
+	student.Delete("/delete", adminController.DeleteStudent)
+	student.Get("/pass-students-by-semester", adminController.PassingStudentsBySemester)
+	student.Get("/fail-students-by-course", adminController.FailedStudentsByCourse)
 
 	// Batch Routes
 	batch := app.Group("/batch")
 	// batch := app.Group("/batches", middleware.AuthRequired, middleware.SuperadminRequired)
-	batch.Get("/", adminController.GetBatches)
+	batch.Get("", adminController.GetBatches)
 	batch.Post("/create", adminController.CreateBatch)
 	batch.Put("/update/:id", adminController.UpdateBatch)
 	// batch.Get("/")
@@ -224,9 +228,9 @@ func SetupRoutes(app *fiber.App) {
 	errorGroup.Get("/500", errorController.ServerError)
 
 	// Dashboard Routes
-	dashboard := app.Group("/dashboard")
-	dashboard.Get("/", adminController.Index)
-	dashboard.Get("/failstudents", adminController.FailStudents)
+	// dashboard := app.Group("/dashboard")
+	// dashboard.Get("/", adminController.Index)
+	// dashboard.Get("/failstudents", adminController.FailStudents)
 
 	//notice routes
 	notice := app.Group("/notice")
@@ -235,4 +239,8 @@ func SetupRoutes(app *fiber.App) {
 	notice.Put("/update/:id", noticeController.UpdateNotice)
 	notice.Get("/by-program", noticeController.GetNoticesByProgram)
 	notice.Get("/by-program-and-batch", noticeController.GetNoticesByProgramAndBatch)
+
+	exam := app.Group("/exam")
+	exam.Post("/upload-college", examController.UploadColleges)
+	exam.Get("/assign-centers", examController.AssignCentersHandler)
 }

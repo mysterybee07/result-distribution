@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
@@ -118,7 +119,8 @@ func UpdateSemester(c *fiber.Ctx) error {
 }
 
 func GetSemestersByProgramID(c *fiber.Ctx) error {
-	programID := c.Params("programID")
+	programID := c.Params("id")
+	fmt.Println(programID)
 
 	// Fetch semesters for the given programID
 	var semesters []models.Semester

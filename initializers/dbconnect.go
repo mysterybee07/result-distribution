@@ -5,6 +5,8 @@ import (
 	"os"
 
 	"github.com/mysterybee07/result-distribution-system/models"
+	exam "github.com/mysterybee07/result-distribution-system/models/exam"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -33,8 +35,9 @@ func Connect() {
 		&models.Course{},
 		&models.Student{},
 		&models.Mark{},
-		models.Result{},
-		models.Notice{},
+		&exam.Result{},
+		&models.Notice{},
+		&exam.College{},
 	); err != nil {
 		log.Fatalf("Error migrating database to database")
 	}
