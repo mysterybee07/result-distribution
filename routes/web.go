@@ -168,6 +168,8 @@ func SetupRoutes(app *fiber.App) {
 	student.Post("/create", adminController.CreateStudents)
 	student.Get("/filter", adminController.GetFilteredStudents)
 	student.Delete("/delete", adminController.DeleteStudent)
+	student.Get("/pass-students-by-semester", adminController.PassingStudentsBySemester)
+	student.Get("/fail-students-by-course", adminController.FailedStudentsByCourse)
 
 	// Batch Routes
 	batch := app.Group("/batch")
@@ -192,7 +194,7 @@ func SetupRoutes(app *fiber.App) {
 	// semester.Post("/", adminController.CreateSemester)
 	semester.Post("/create", adminController.CreateSemester)
 	semester.Put("/update/:id", adminController.UpdateSemester)
-	semester.Get("/by-program", adminController.GetSemestersByProgramID)
+	semester.Get("/by-program/:id", adminController.GetSemestersByProgramID)
 
 	// Course Routes
 	course := app.Group("/courses")
@@ -226,9 +228,9 @@ func SetupRoutes(app *fiber.App) {
 	errorGroup.Get("/500", errorController.ServerError)
 
 	// Dashboard Routes
-	dashboard := app.Group("/dashboard")
-	dashboard.Get("/", adminController.Index)
-	dashboard.Get("/failstudents", adminController.FailStudents)
+	// dashboard := app.Group("/dashboard")
+	// dashboard.Get("/", adminController.Index)
+	// dashboard.Get("/failstudents", adminController.FailStudents)
 
 	//notice routes
 	notice := app.Group("/notice")
