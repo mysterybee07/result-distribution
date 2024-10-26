@@ -190,7 +190,7 @@ func SetupRoutes(app *fiber.App) {
 	// semester.Post("/", adminController.CreateSemester)
 	semester.Post("/create", adminController.CreateSemester)
 	semester.Put("/update/:id", adminController.UpdateSemester)
-	semester.Get("/by-program", adminController.GetSemestersByProgramID)
+	semester.Get("/by-program/:id", adminController.GetSemestersByProgramID)
 
 	// Course Routes
 	course := app.Group("/courses")

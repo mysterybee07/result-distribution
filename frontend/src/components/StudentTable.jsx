@@ -201,7 +201,6 @@ export default function StudentTable() {
                                 Program
                                 {sortOrder === 'asc' ? '↑' : '↓'}
                             </button>
-
                         </TableHead>
                         <TableHead>
                             <button onClick={() => toggleSortOrder('semester')}>

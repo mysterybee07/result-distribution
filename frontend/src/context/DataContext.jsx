@@ -22,6 +22,14 @@ export const DataProvider = ({ children }) => {
         },
     });
 
+    // const { data:semesters, isLoading: loadingSemesters, error: errorSemesters } = useQuery({
+    //     queryKey: ['semesters'],
+    //     queryFn: async () => {
+    //         const response = await api.get('/semester');
+    //         return response.data.semesters;
+    //     },
+    // });
+
     const { data: students, isLoading: loadingStudents, error: errorStudents } = useQuery({
         queryKey: ['students'],
         queryFn: async () => {
@@ -39,6 +47,9 @@ export const DataProvider = ({ children }) => {
                 batches,
                 loadingBatches,
                 errorBatches,
+                // semesters,
+                // loadingSemesters,
+                // errorSemesters,
             }}>
             {children}
         </DataContext.Provider>
