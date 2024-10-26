@@ -27,7 +27,7 @@ const AdminNavbar = () => {
                     </Link>
                     <nav className="hidden md:flex gap-16">
                         <NavLink
-                            to="/admin"
+                            to="/dashboard"
                             className={({ isActive }) =>
                                 isActive
                                     ? "font-medium flex items-center text-sm transition-colors underline text-blue-600" // Active link styling
@@ -66,6 +66,16 @@ const AdminNavbar = () => {
                             } prefetch={false}
                         >
                             Student
+                        </NavLink>
+                        <NavLink
+                            to="admin/courses"
+                            className={({ isActive }) =>
+                                isActive
+                                    ? "font-medium flex items-center text-sm transition-colors underline text-blue-600" // Active link styling
+                                    : "font-medium flex items-center text-sm transition-colors hover:underline"
+                            } prefetch={false}
+                        >
+                            Courses
                         </NavLink>
                     </nav>
                     <div className="flex items-center gap-4">

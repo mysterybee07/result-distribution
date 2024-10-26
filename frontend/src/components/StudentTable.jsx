@@ -42,53 +42,61 @@ export default function StudentTable() {
     const [sortOrder, setSortOrder] = useState('asc'); // State for sorting order
     const [sortField, setSortField] = useState('symbol_number'); // State for selected field to sort
 
+    // Define query function outside to avoid re-creation on each render
+    const fetchStudents = async () => {
+        const response = await api.get("/students");
+        return response.data.students;
+    };
+
     // Fetch students using useQuery
-    const { data: students, isLoading, error } = useQuery({
+    const { data: students = [], isLoading, error } = useQuery({
         queryKey: ['students'],
-        queryFn: async () => {
-            const response = await api.get("/students");
-            return response.data.students;
-        },
+        queryFn: fetchStudents,
     });
 
     if (isLoading) return <div>Loading...</div>;
     if (error) return <div>Error: {error.message}</div>;
 
-    const uniqueBatches = [...new Set(students.map(student => student.Batch.batch))];  // Get unique batches
-    const uniquePrograms = [...new Set(students.map(student => student.Program.program_name))];  // Get unique programs
+    const uniqueBatches = useMemo(
+        () => [...new Set(students.map(student => student.Batch.batch))],
+        [students]
+    );
 
-    // Step1: Filter students by search query
-    const filteredStudents = students.filter((student) => {
-        const matchesSearch =
-            student.fullname.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            student.symbol_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            student.registration_number.toLowerCase().includes(searchQuery.toLowerCase());
+    const uniquePrograms = useMemo(
+        () => [...new Set(students.map(student => student.Program.program_name))],
+        [students]
+    );
 
-        const matchesBatch = selectedBatch ? student.Batch.batch.toString() === selectedBatch : true;
-        const matchesProgram = selectedProgram ? student.Program.program_name === selectedProgram : true;
+    // Step 1: Filter students
+    const filteredStudents = useMemo(() => {
+        return students.filter((student) => {
+            const matchesSearch =
+                student.fullname.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                student.symbol_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                student.registration_number.toLowerCase().includes(searchQuery.toLowerCase());
 
-        return matchesSearch && matchesBatch && matchesProgram;
-    });
+            const matchesBatch = selectedBatch ? student.Batch.batch.toString() === selectedBatch : true;
+            const matchesProgram = selectedProgram ? student.Program.program_name === selectedProgram : true;
 
-    // Step 2: Sort the filtered students
-    const sortedStudents = useMemo(() => { // Use useMemo to avoid sorting on every render
+            return matchesSearch && matchesBatch && matchesProgram;
+        });
+    }, [students, searchQuery, selectedBatch, selectedProgram]);
+
+    // Step 2: Sort students
+    const sortedStudents = useMemo(() => {
         return [...filteredStudents].sort((a, b) => {
-            if (sortOrder === 'asc') {
-                return a[sortField] > b[sortField] ? 1 : -1;
-            } else {
-                return a[sortField] < b[sortField] ? 1 : -1;
-            }
+            if (sortOrder === 'asc') return a[sortField] > b[sortField] ? 1 : -1;
+            return a[sortField] < b[sortField] ? 1 : -1;
         });
     }, [filteredStudents, sortOrder, sortField]);
 
-
-    // Step 3: Paginate the sorted students
-    // Calculate total number of pages
+    // Step 3: Paginate students
     const totalPages = Math.ceil(sortedStudents.length / pageSize);
-    // Get students for the current page
-    const currentPageStudents = sortedStudents.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+    const currentPageStudents = sortedStudents.slice(
+        (currentPage - 1) * pageSize,
+        currentPage * pageSize
+    );
 
-    // Toggle the sorting order
     const toggleSortOrder = (field) => {
         setSortField(field);
         setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
@@ -96,7 +104,6 @@ export default function StudentTable() {
 
     return (
         <>
-
             {/* Search Input */}
             <p className="font-bold text-2xl">Student Table</p>
 

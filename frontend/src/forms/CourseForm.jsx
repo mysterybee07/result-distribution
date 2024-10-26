@@ -25,7 +25,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { useData } from '../context/DataContext';
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import api from '../api';
 
 const formSchema = z.object({
@@ -97,8 +97,26 @@ const CourseForm = () => {
         // reset();
     };
     // handle form submission
+    const { mutate: createCourse } = useMutation({
+        mutationFn: async (course) => {
+            const response = await api.post('/course', course);
+            return response.data;
+        },
+        onSuccess: (data) => {
+            navigate('/admin/students');
+            toast({
+                // title: "Student Added",
+                description: JSON.stringify(data.message),
+                variant: "success",
+            })
+        },
+        onError: (error) => {
+            console.error(`Error ${isEditMode ? 'updating' : 'creating'} student:`, error);
+        },
+    }); 
     const onSubmit = async (data) => {
         console.log(data);
+        createCourse(data);
     }
 
     return (
@@ -151,7 +169,7 @@ const CourseForm = () => {
                                                 <SelectGroup>
                                                     <SelectLabel>Semesters</SelectLabel>
                                                     {Array.isArray(semesters) && semesters.map((semester, index) => (
-                                                        <SelectItem key={index} value={semester.ID}>{semester.SemesterName}</SelectItem>
+                                                        <SelectItem key={index} value={semester.ID}>{semester.semester_name}</SelectItem>
                                                     ))}
                                                 </SelectGroup>
                                             </SelectContent>
