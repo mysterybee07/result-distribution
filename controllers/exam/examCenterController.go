@@ -9,17 +9,6 @@ import (
 )
 
 func UploadColleges(c *fiber.Ctx) error {
-	// Parse batch and program IDs from the form data
-	batchID, err := strconv.ParseUint(c.FormValue("batch_id"), 10, 32)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid batch_id"})
-	}
-
-	programID, err := strconv.ParseUint(c.FormValue("program_id"), 10, 32)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid program_id"})
-	}
-
 	// Get the uploaded file
 	file, err := c.FormFile("file")
 	if err != nil {
@@ -33,8 +22,8 @@ func UploadColleges(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to save file"})
 	}
 
-	// Call the ParseColleges function
-	colleges, err := utils.ParseColleges(filePath, uint(batchID), uint(programID))
+	// Call the ParseColleges function (without batchID and programID)
+	colleges, err := utils.ParseColleges(filePath)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -43,7 +32,23 @@ func UploadColleges(c *fiber.Ctx) error {
 }
 
 func AssignCentersHandler(c *fiber.Ctx) error {
-	assignments, err := utils.AssignCenters()
+	// Parse batch and program IDs from the query parameters
+	batchID, err := strconv.ParseUint(c.Query("batch_id"), 10, 32)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid batch_id",
+		})
+	}
+
+	programID, err := strconv.ParseUint(c.Query("program_id"), 10, 32)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid program_id",
+		})
+	}
+
+	// Call the AssignCenters function with the parsed batchID and programID
+	assignments, err := utils.AssignCenters(uint(batchID), uint(programID))
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": fmt.Sprintf("Failed to assign centers: %s", err.Error()),
@@ -57,5 +62,6 @@ func AssignCentersHandler(c *fiber.Ctx) error {
 		})
 	}
 
+	// Return the assignments in the response
 	return c.Status(fiber.StatusOK).JSON(assignments)
 }

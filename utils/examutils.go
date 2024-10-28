@@ -22,7 +22,7 @@ const (
 
 // ParseColleges reads a TSV file and returns a slice of College structs
 
-func ParseColleges(filePath string, batchID uint, programID uint) ([]models.College, error) {
+func ParseColleges(filePath string) ([]models.College, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file %s: %w", filePath, err)
@@ -38,56 +38,59 @@ func ParseColleges(filePath string, batchID uint, programID uint) ([]models.Coll
 		return nil, fmt.Errorf("failed to read records from file %s: %w", filePath, err)
 	}
 
-	// Log the records for debugging
-	log.Printf("Records: %+v", records)
-
 	// Iterate over records starting from index 1 to skip header row
 	for _, record := range records[1:] {
 		// Check the length of the record to avoid index out of range errors
-		if len(record) < 6 { // Adjust to 6 since there are only 6 fields
+		if len(record) < 6 {
 			log.Printf("Invalid record length: %+v", record)
 			continue
 		}
 
-		latitude, err := strconv.ParseFloat(strings.TrimSpace(record[3]), 64) // Index for latitude
+		// Parse latitude and longitude as floats
+		latitude, err := strconv.ParseFloat(strings.TrimSpace(record[3]), 64)
 		if err != nil {
 			log.Printf("Error parsing latitude for college %s: %v", record[1], err)
 			continue
 		}
 
-		longitude, err := strconv.ParseFloat(strings.TrimSpace(record[4]), 64) // Index for longitude
+		longitude, err := strconv.ParseFloat(strings.TrimSpace(record[4]), 64)
 		if err != nil {
 			log.Printf("Error parsing longitude for college %s: %v", record[1], err)
 			continue
 		}
 
-		isCenter, err := strconv.ParseBool(strings.TrimSpace(record[5])) // Index for is_center
+		// Parse is_center as a boolean
+		isCenter, err := strconv.ParseBool(strings.TrimSpace(record[5]))
 		if err != nil {
 			log.Printf("Error parsing is_center for college %s: %v", record[1], err)
 			continue
 		}
 
-		// Create a new College entry
+		collegeCode := strings.TrimSpace(record[0])
+
+		// Check if college with this CollegeCode already exists in the database
+		var existingCollege models.College
+		if err := initializers.DB.Where("college_code = ?", collegeCode).First(&existingCollege).Error; err == nil {
+			log.Printf("Duplicate college code found, skipping entry: %s", collegeCode)
+			continue
+		}
+
+		// Create a new College entry if it doesn't exist
 		college := models.College{
-			CollegeCode: strings.TrimSpace(record[0]),
+			CollegeCode: collegeCode,
 			CollegeName: strings.TrimSpace(record[1]),
 			Address:     strings.TrimSpace(record[2]),
 			Latitude:    latitude,
 			Longitude:   longitude,
 			IsCenter:    isCenter,
-			BatchID:     batchID,
-			ProgramID:   programID,
 		}
 
 		colleges = append(colleges, college)
 	}
 
-	// Log the parsed colleges for debugging
-	log.Printf("Parsed Colleges: %+v", colleges)
-
-	// Save parsed colleges to the database
+	// Save parsed colleges to the database if any new colleges are found
 	if len(colleges) == 0 {
-		return nil, fmt.Errorf("failed to store colleges in database: empty slice found")
+		return nil, fmt.Errorf("no new colleges to store in the database")
 	}
 
 	if err := initializers.DB.Create(&colleges).Error; err != nil {

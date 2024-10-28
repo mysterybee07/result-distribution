@@ -8,15 +8,13 @@ import (
 type College struct {
 	gorm.Model
 	CollegeCode string  `json:"college_code" gorm:"primaryKey;type:varchar(255);unique;not null"`
-	BatchID     uint    `gorm:"not null" json:"batch_id"`   // Foreign key for Batch
-	ProgramID   uint    `gorm:"not null" json:"program_id"` // Foreign key for Program
 	CollegeName string  `json:"college_name" gorm:"not null"`
 	Address     string  `json:"address" gorm:"not null"`
 	Latitude    float64 `json:"latitude" gorm:"not null"`
 	Longitude   float64 `json:"longitude" gorm:"not null"`
 	IsCenter    bool    `json:"is_center" gorm:"default:false"` // Indicates if the college is registered as a center
-	Program     Program `gorm:"foreignKey:ProgramID"`           // Association with Program
-	Batch       Batch   `gorm:"foreignKey:BatchID"`             // Association with Batch
+	// Program     Program `gorm:"foreignKey:ProgramID"`           // Association with Program
+	// Batch       Batch   `gorm:"foreignKey:BatchID"`             // Association with Batch
 }
 
 type CapacityAndCount struct {
