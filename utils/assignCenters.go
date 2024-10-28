@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/mysterybee07/result-distribution-system/initializers"
-	models "github.com/mysterybee07/result-distribution-system/models/exam"
+	"github.com/mysterybee07/result-distribution-system/models"
 )
 
 type CenterAssignment struct {

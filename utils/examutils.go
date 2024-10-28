@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/mysterybee07/result-distribution-system/initializers"
-	exam "github.com/mysterybee07/result-distribution-system/models/exam"
+	"github.com/mysterybee07/result-distribution-system/models"
 )
 
 const (
@@ -22,7 +22,7 @@ const (
 
 // ParseColleges reads a TSV file and returns a slice of College structs
 
-func ParseColleges(filePath string, batchID uint, programID uint) ([]exam.College, error) {
+func ParseColleges(filePath string, batchID uint, programID uint) ([]models.College, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file %s: %w", filePath, err)
@@ -32,7 +32,7 @@ func ParseColleges(filePath string, batchID uint, programID uint) ([]exam.Colleg
 	reader := csv.NewReader(file)
 	reader.Comma = '\t' // Specify tab delimiter for TSV
 
-	var colleges []exam.College
+	var colleges []models.College
 	records, err := reader.ReadAll()
 	if err != nil {
 		return nil, fmt.Errorf("failed to read records from file %s: %w", filePath, err)
@@ -77,7 +77,7 @@ func ParseColleges(filePath string, batchID uint, programID uint) ([]exam.Colleg
 		}
 
 		// Create a new College entry
-		college := exam.College{
+		college := models.College{
 			CollegeCode:   strings.TrimSpace(record[0]),
 			Name:          strings.TrimSpace(record[1]),
 			Address:       strings.TrimSpace(record[2]),
