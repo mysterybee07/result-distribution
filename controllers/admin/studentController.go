@@ -37,6 +37,7 @@ func CreateStudents(c *fiber.Ctx) error {
 			Fullname           string `json:"fullname"`
 			SymbolNumber       string `json:"symbol_number"`
 			RegistrationNumber string `json:"registration_number"`
+			CollegeID          uint   `json:"college_id"`
 		} `json:"students"`
 	}
 
@@ -55,6 +56,7 @@ func CreateStudents(c *fiber.Ctx) error {
 			Fullname:           s.Fullname,
 			BatchID:            input.BatchID,
 			ProgramID:          input.ProgramID,
+			CollegeID:          s.CollegeID,
 		}
 
 		if err := validation.ValidateStudent(&student, false); err != nil {
@@ -95,6 +97,7 @@ func UpdateStudent(c *fiber.Ctx) error {
 		RegistrationNumber string `json:"registration_number"`
 		BatchID            uint   `json:"batch_id"`
 		ProgramID          uint   `json:"program_id"`
+		CollegeID          uint   `json:"college_id"`
 	}
 
 	// Parse the JSON body
@@ -118,6 +121,7 @@ func UpdateStudent(c *fiber.Ctx) error {
 	student.RegistrationNumber = input.RegistrationNumber
 	student.BatchID = input.BatchID
 	student.ProgramID = input.ProgramID
+	student.CollegeID = input.CollegeID
 
 	// Validate updated student data
 	if err := validation.ValidateStudent(&student, true); err != nil {
