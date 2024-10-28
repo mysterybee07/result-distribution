@@ -1,6 +1,8 @@
 package models
 
 import (
+	"errors"
+
 	"gorm.io/gorm"
 )
 
@@ -20,8 +22,25 @@ type Student struct {
 	Semester           Semester `gorm:"foreignKey:CurrentSemester"`
 }
 
-func (s *Student) AfterCreate(tx *gorm.DB) (err error) {
-	// Increment StudentsCount in the associated College
-	err = tx.Model(&College{}).Where("id = ?", s.CollegeID).Update("students_count", gorm.Expr("students_count + ?", 1)).Error
-	return
+func (s *Student) AfterCreate(tx *gorm.DB) error {
+	// Check if the CapacityAndCount entry exists
+	var capacityAndCount CapacityAndCount
+	err := tx.Where("college_id = ? AND batch_id = ? AND program_id = ?", s.CollegeID, s.BatchID, s.ProgramID).First(&capacityAndCount).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		// If it doesn't exist, create a new CapacityAndCount entry
+		capacityAndCount = CapacityAndCount{
+			CollegeID:     s.CollegeID,
+			BatchID:       s.BatchID,
+			ProgramID:     s.ProgramID,
+			StudentsCount: 1, // Initialize count to 1 for the first student
+			Capacity:      0, // Set capacity as needed
+		}
+		return tx.Create(&capacityAndCount).Error
+	}
+
+	// If it exists, increment the StudentsCount
+	return tx.Model(&capacityAndCount).
+		Update("students_count", gorm.Expr("students_count + ?", 1)).
+		Error
 }

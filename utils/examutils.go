@@ -38,10 +38,13 @@ func ParseColleges(filePath string, batchID uint, programID uint) ([]models.Coll
 		return nil, fmt.Errorf("failed to read records from file %s: %w", filePath, err)
 	}
 
+	// Log the records for debugging
+	log.Printf("Records: %+v", records)
+
 	// Iterate over records starting from index 1 to skip header row
 	for _, record := range records[1:] {
 		// Check the length of the record to avoid index out of range errors
-		if len(record) < 8 {
+		if len(record) < 6 { // Adjust to 6 since there are only 6 fields
 			log.Printf("Invalid record length: %+v", record)
 			continue
 		}
@@ -58,42 +61,35 @@ func ParseColleges(filePath string, batchID uint, programID uint) ([]models.Coll
 			continue
 		}
 
-		students, err := strconv.Atoi(strings.TrimSpace(record[5])) // Index for students_count
-		if err != nil {
-			log.Printf("Error parsing student count for college %s: %v", record[1], err)
-			continue
-		}
-
-		isCenter, err := strconv.ParseBool(strings.TrimSpace(record[6])) // Index for is_center
+		isCenter, err := strconv.ParseBool(strings.TrimSpace(record[5])) // Index for is_center
 		if err != nil {
 			log.Printf("Error parsing is_center for college %s: %v", record[1], err)
 			continue
 		}
 
-		capacity, err := strconv.Atoi(strings.TrimSpace(record[7])) // Index for capacity
-		if err != nil {
-			log.Printf("Error parsing capacity for college %s: %v", record[1], err)
-			continue
-		}
-
 		// Create a new College entry
 		college := models.College{
-			CollegeCode:   strings.TrimSpace(record[0]),
-			CollegeName:   strings.TrimSpace(record[1]),
-			Address:       strings.TrimSpace(record[2]),
-			Latitude:      latitude,
-			Longitude:     longitude,
-			StudentsCount: students,
-			IsCenter:      isCenter,
-			Capacity:      capacity,
-			BatchID:       batchID,
-			ProgramID:     programID,
+			CollegeCode: strings.TrimSpace(record[0]),
+			CollegeName: strings.TrimSpace(record[1]),
+			Address:     strings.TrimSpace(record[2]),
+			Latitude:    latitude,
+			Longitude:   longitude,
+			IsCenter:    isCenter,
+			BatchID:     batchID,
+			ProgramID:   programID,
 		}
 
 		colleges = append(colleges, college)
 	}
 
+	// Log the parsed colleges for debugging
+	log.Printf("Parsed Colleges: %+v", colleges)
+
 	// Save parsed colleges to the database
+	if len(colleges) == 0 {
+		return nil, fmt.Errorf("failed to store colleges in database: empty slice found")
+	}
+
 	if err := initializers.DB.Create(&colleges).Error; err != nil {
 		return nil, fmt.Errorf("failed to store colleges in database: %w", err)
 	}

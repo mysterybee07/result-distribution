@@ -27,86 +27,88 @@ func AssignCenters() ([]CenterAssignment, error) {
 		return nil, fmt.Errorf("failed to fetch colleges: %w", err)
 	}
 
-	// Identify the colleges that are centers
-	var centers []models.College
-	for _, college := range colleges {
-		if college.IsCenter {
-			centers = append(centers, college)
-		}
+	// Identify centers and load their capacity from CapacityAndCount
+	var centers []models.CapacityAndCount
+	if err := initializers.DB.Preload("College").Where("capacity > ?", 0).Find(&centers).Error; err != nil {
+		return nil, fmt.Errorf("failed to fetch centers: %w", err)
 	}
 
 	// Prepare to store assignments and remaining capacities for each center
 	var assignments []CenterAssignment
-	remainingCapacities := make(map[string]int)
+	remainingCapacities := make(map[uint]int) // key is CollegeID, value is remaining capacity
 
 	// Initialize remaining capacities of each center
 	for _, center := range centers {
-		remainingCapacities[center.CollegeCode] = center.Capacity
+		remainingCapacities[center.CollegeID] = center.Capacity
 	}
 
 	rand.Seed(time.Now().UnixNano())
 
 	// Assign students from each college to available centers
 	for _, college := range colleges {
-		remainingStudents := college.StudentsCount
-		totalAssigned := 0 // To track the total number of students assigned for this college
-		var availableCenters []models.College
-
-		// Find available centers within 50km and exclude self-assignment and circular assignment
-		for _, center := range centers {
-			// Prevent a college that is also a center from assigning students to itself
-			if college.CollegeCode == center.CollegeCode || remainingCapacities[center.CollegeCode] <= 0 {
-				continue // Skip self or centers with no remaining capacity
-			}
-			// Circular assignment prevention: if College A is a center assigned to Center B, Center B cannot assign students to College A
-			if hasAssignment(assignments, center.CollegeName, college.CollegeName) {
-				continue // Skip if the center already has students assigned from the current college
-			}
-			distance := Haversine(college.Latitude, college.Longitude, center.Latitude, center.Longitude)
-			if distance < 50 { // Check distance constraint
-				availableCenters = append(availableCenters, center)
-			}
+		// Retrieve student count for this college, batch, and program from CapacityAndCount
+		var capacityAndCounts []models.CapacityAndCount
+		if err := initializers.DB.Where("college_id = ? AND batch_id = ? AND program_id = ?", college.ID, college.BatchID, college.ProgramID).Find(&capacityAndCounts).Error; err != nil {
+			return nil, fmt.Errorf("failed to fetch capacity and count for college %s: %w", college.CollegeName, err)
 		}
 
-		// If no available centers, log a warning
-		if len(availableCenters) == 0 {
-			fmt.Printf("Warning: No available centers found for %s\n", college.CollegeName)
-			continue // No available centers; move to the next college
-		}
+		for _, capCount := range capacityAndCounts {
+			remainingStudents := capCount.StudentsCount
+			totalAssigned := 0
 
-		// Shuffle available centers to randomize assignment order
-		rand.Shuffle(len(availableCenters), func(i, j int) {
-			availableCenters[i], availableCenters[j] = availableCenters[j], availableCenters[i]
-		})
-
-		// Assign students to centers
-		for _, center := range availableCenters {
-			if remainingStudents <= 0 {
-				break // Exit if all students are assigned
+			// Find available centers within 50km and exclude self-assignment and circular assignment
+			var availableCenters []models.CapacityAndCount
+			for _, center := range centers {
+				// Prevent self-assignment and ensure remaining capacity
+				if capCount.CollegeID == center.CollegeID || remainingCapacities[center.CollegeID] <= 0 {
+					continue
+				}
+				// Circular assignment prevention
+				if hasAssignment(assignments, center.College.CollegeName, college.CollegeName) {
+					continue
+				}
+				distance := Haversine(college.Latitude, college.Longitude, center.College.Latitude, center.College.Longitude)
+				if distance < 50 {
+					availableCenters = append(availableCenters, center)
+				}
 			}
 
-			assignCount := min(remainingStudents, remainingCapacities[center.CollegeCode])
-			if assignCount > 0 {
-				assignments = append(assignments, CenterAssignment{
-					CollegeName:   college.CollegeName,
-					CenterName:    center.CollegeName,
-					AssignedSeat:  assignCount,
-					RemainingSeat: remainingCapacities[center.CollegeCode] - assignCount,
-				})
-
-				remainingStudents -= assignCount
-				totalAssigned += assignCount
-				remainingCapacities[center.CollegeCode] -= assignCount // Update capacity of the center
+			// Warning if no available centers found
+			if len(availableCenters) == 0 {
+				fmt.Printf("Warning: No available centers found for %s\n", college.CollegeName)
+				continue
 			}
-		}
 
-		// Log remaining students for this college
-		remainingAfterAssignment := college.StudentsCount - totalAssigned
-		fmt.Printf("Remaining students for %s after assignment: %d\n", college.CollegeName, remainingAfterAssignment)
+			// Shuffle available centers to randomize assignment
+			rand.Shuffle(len(availableCenters), func(i, j int) {
+				availableCenters[i], availableCenters[j] = availableCenters[j], availableCenters[i]
+			})
 
-		// Additional warning if there are unassigned students
-		if remainingStudents > 0 {
-			fmt.Printf("Warning: %s still has unassigned students: %d\n", college.CollegeName, remainingStudents)
+			// Assign students to centers
+			for _, center := range availableCenters {
+				if remainingStudents <= 0 {
+					break
+				}
+
+				assignCount := min(remainingStudents, remainingCapacities[center.CollegeID])
+				if assignCount > 0 {
+					assignments = append(assignments, CenterAssignment{
+						CollegeName:   college.CollegeName,
+						CenterName:    center.College.CollegeName,
+						AssignedSeat:  assignCount,
+						RemainingSeat: remainingCapacities[center.CollegeID] - assignCount,
+					})
+
+					remainingStudents -= assignCount
+					totalAssigned += assignCount
+					remainingCapacities[center.CollegeID] -= assignCount
+				}
+			}
+
+			// Log unassigned students if any remain
+			if remainingStudents > 0 {
+				fmt.Printf("Warning: %s still has unassigned students: %d\n", college.CollegeName, remainingStudents)
+			}
 		}
 	}
 
