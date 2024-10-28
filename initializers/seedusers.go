@@ -125,6 +125,7 @@ func SeedStudents() {
 
 		var batch models.Batch
 		var program models.Program
+		var college models.College
 
 		// Get the first batch
 		if err := DB.First(&batch).Error; err != nil {
@@ -136,11 +137,16 @@ func SeedStudents() {
 			log.Println("Failed to fetch the first program:", err)
 			return
 		}
+		if err := DB.First(&college).Error; err != nil {
+			log.Println("Failed to fetch the first college:", err)
+			return
+		}
 
 		students := []models.Student{
 			{
 				BatchID:            batch.ID,
 				ProgramID:          program.ID,
+				CollegeID:          college.ID,
 				SymbolNumber:       "SYM001",
 				RegistrationNumber: "REG001",
 				Fullname:           "Biraj Pudasaini",
