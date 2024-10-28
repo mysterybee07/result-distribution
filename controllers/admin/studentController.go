@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"fmt"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/mysterybee07/result-distribution-system/initializers"
 	"github.com/mysterybee07/result-distribution-system/middleware/validation"
@@ -34,29 +36,47 @@ func CreateStudents(c *fiber.Ctx) error {
 		BatchID   uint `json:"batch_id"`
 		ProgramID uint `json:"program_id"`
 		Students  []struct {
-			Fullname           string `json:"fullname"`
-			SymbolNumber       string `json:"symbol_number"`
-			RegistrationNumber string `json:"registration_number"`
-			CollegeID          uint   `json:"college_id"`
+			Fullname           string      `json:"fullname"`
+			SymbolNumber       string      `json:"symbol_number"`
+			RegistrationNumber string      `json:"registration_number"`
+			CollegeID          interface{} `json:"college_id"` // Use interface{} to allow for both uint and string
 		} `json:"students"`
 	}
 
 	if err := c.BodyParser(&input); err != nil {
-		c.Status(fiber.StatusBadRequest)
-		return c.JSON(fiber.Map{
-			"message": "unable to parse request body",
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Unable to parse request body",
 		})
 	}
 
 	var students []models.Student
 	for _, s := range input.Students {
+		var collegeID uint
+
+		switch v := s.CollegeID.(type) {
+		case float64: // CollegeID as a number (ID)
+			collegeID = uint(v)
+		case string: // CollegeID as a string (college name)
+			var college models.College
+			if err := initializers.DB.Where("college_name = ?", v).First(&college).Error; err != nil {
+				return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+					"error": fmt.Sprintf("College not found for name: %s", v),
+				})
+			}
+			collegeID = college.ID
+		default:
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Invalid college identifier",
+			})
+		}
+
 		student := models.Student{
 			SymbolNumber:       s.SymbolNumber,
 			RegistrationNumber: s.RegistrationNumber,
 			Fullname:           s.Fullname,
 			BatchID:            input.BatchID,
 			ProgramID:          input.ProgramID,
-			CollegeID:          s.CollegeID,
+			CollegeID:          collegeID,
 		}
 
 		if err := validation.ValidateStudent(&student, false); err != nil {
@@ -64,9 +84,11 @@ func CreateStudents(c *fiber.Ctx) error {
 				"error": err.Error(),
 			})
 		}
-		students = append(students, student)
 
+		students = append(students, student)
 	}
+
+	// Bulk insert students
 	if err := initializers.DB.Create(&students).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Could not add students",

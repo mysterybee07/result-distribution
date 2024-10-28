@@ -59,7 +59,7 @@ func AssignCenters() ([]CenterAssignment, error) {
 				continue // Skip self or centers with no remaining capacity
 			}
 			// Circular assignment prevention: if College A is a center assigned to Center B, Center B cannot assign students to College A
-			if hasAssignment(assignments, center.Name, college.Name) {
+			if hasAssignment(assignments, center.CollegeName, college.CollegeName) {
 				continue // Skip if the center already has students assigned from the current college
 			}
 			distance := Haversine(college.Latitude, college.Longitude, center.Latitude, center.Longitude)
@@ -70,7 +70,7 @@ func AssignCenters() ([]CenterAssignment, error) {
 
 		// If no available centers, log a warning
 		if len(availableCenters) == 0 {
-			fmt.Printf("Warning: No available centers found for %s\n", college.Name)
+			fmt.Printf("Warning: No available centers found for %s\n", college.CollegeName)
 			continue // No available centers; move to the next college
 		}
 
@@ -88,8 +88,8 @@ func AssignCenters() ([]CenterAssignment, error) {
 			assignCount := min(remainingStudents, remainingCapacities[center.CollegeCode])
 			if assignCount > 0 {
 				assignments = append(assignments, CenterAssignment{
-					CollegeName:   college.Name,
-					CenterName:    center.Name,
+					CollegeName:   college.CollegeName,
+					CenterName:    center.CollegeName,
 					AssignedSeat:  assignCount,
 					RemainingSeat: remainingCapacities[center.CollegeCode] - assignCount,
 				})
@@ -102,11 +102,11 @@ func AssignCenters() ([]CenterAssignment, error) {
 
 		// Log remaining students for this college
 		remainingAfterAssignment := college.StudentsCount - totalAssigned
-		fmt.Printf("Remaining students for %s after assignment: %d\n", college.Name, remainingAfterAssignment)
+		fmt.Printf("Remaining students for %s after assignment: %d\n", college.CollegeName, remainingAfterAssignment)
 
 		// Additional warning if there are unassigned students
 		if remainingStudents > 0 {
-			fmt.Printf("Warning: %s still has unassigned students: %d\n", college.Name, remainingStudents)
+			fmt.Printf("Warning: %s still has unassigned students: %d\n", college.CollegeName, remainingStudents)
 		}
 	}
 

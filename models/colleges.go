@@ -10,7 +10,7 @@ type College struct {
 	CollegeCode   string  `json:"college_code" gorm:"primaryKey;type:varchar(255);unique;not null"`
 	BatchID       uint    `gorm:"not null" json:"batch_id"`   // Foreign key for Batch
 	ProgramID     uint    `gorm:"not null" json:"program_id"` // Foreign key for Program
-	Name          string  `json:"name" gorm:"not null"`
+	CollegeName   string  `json:"college_name" gorm:"not null"`
 	Address       string  `json:"address" gorm:"not null"`
 	Latitude      float64 `json:"latitude" gorm:"not null"`
 	Longitude     float64 `json:"longitude" gorm:"not null"`

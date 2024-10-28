@@ -79,7 +79,7 @@ func ParseColleges(filePath string, batchID uint, programID uint) ([]models.Coll
 		// Create a new College entry
 		college := models.College{
 			CollegeCode:   strings.TrimSpace(record[0]),
-			Name:          strings.TrimSpace(record[1]),
+			CollegeName:   strings.TrimSpace(record[1]),
 			Address:       strings.TrimSpace(record[2]),
 			Latitude:      latitude,
 			Longitude:     longitude,

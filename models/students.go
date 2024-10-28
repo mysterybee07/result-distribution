@@ -19,3 +19,9 @@ type Student struct {
 	Program            Program  `gorm:"foreignKey:ProgramID"`
 	Semester           Semester `gorm:"foreignKey:CurrentSemester"`
 }
+
+func (s *Student) AfterCreate(tx *gorm.DB) (err error) {
+	// Increment StudentsCount in the associated College
+	err = tx.Model(&College{}).Where("id = ?", s.CollegeID).Update("students_count", gorm.Expr("students_count + ?", 1)).Error
+	return
+}
