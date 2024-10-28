@@ -4,21 +4,10 @@ import api from '../api'; // Adjust your API import as necessary
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    const [isAuthenticated, setIsAuthenticated] = useState(() => {
-        const savedUser = localStorage.getItem('user');
-        return savedUser !== null; // true if user data exists
-    });
-    // const [role, setRole] = useState(() => {
-    //     const savedUser = localStorage.getItem('user');
-    //     return savedUser ? JSON.parse(savedUser).role : ''; // Set role from saved user
-    // });
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [role, setRole] = useState('');
-    // console.log("🚀 ~ file: AuthContext.jsx ~ line 33 ~ AuthProvider ~ role:", role)
-    // const [userData, setUserData] = useState(() => {
-    //     const savedUser = localStorage.getItem('user');
-    //     return savedUser ? JSON.parse(savedUser) : null; // Parse user data from localStorage
-    // });
     const [userData, setUserData] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     const getUserData = async () => {
         try {
@@ -39,6 +28,8 @@ export const AuthProvider = ({ children }) => {
         } catch (error) {
             console.error('Error fetching user data:', error);
             setIsAuthenticated(false);
+        } finally{
+            setLoading(false);
         }
     };
     useEffect(() => {
@@ -61,11 +52,11 @@ export const AuthProvider = ({ children }) => {
         setUserData(null); // Clear user data on logout
 
         // Clear user data from localStorage
-        localStorage.removeItem('user');
+        // localStorage.removeItem('user');
     };
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, login, logout, role, userData }}>
+        <AuthContext.Provider value={{ isAuthenticated, login, logout, role, userData, loading }}>
             {children}
         </AuthContext.Provider>
     );

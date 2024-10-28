@@ -19,6 +19,8 @@ import StudentForm from './forms/StudentForm';
 import { LoginForm } from './forms/LoginForm';
 import { DataProvider } from './context/DataContext';
 import BulkStudentForm from './forms/BulkStudentForm';
+import CreateCourse from './pages/courses/CreateCourse';
+import ListCourse from './pages/courses/ListCourse';
 
 const ProtectedRoute = ({ element }) => {
   const { isAuthenticated } = useAuth();
@@ -26,10 +28,12 @@ const ProtectedRoute = ({ element }) => {
 };
 
 const AdminRoute = ({ element }) => {
-  const { isAuthenticated, role } = useAuth();
+  const { isAuthenticated, role, loading } = useAuth();
+  if (loading) return <p>Loading...</p>; 
+  console.log("🚀 ~ AdminRoute ~ role:", role)
 
   if (!isAuthenticated) return <Navigate to="/login" />;
-  if (!role === "admin") return <Navigate to="/" />;
+  if (role !== "admin") return <Navigate to="/" />;
 
   return element;
 };
@@ -80,13 +84,17 @@ function App() {
 
               {/* Admin routes */}
               <Route element={<AdminLayout />}>
-                <Route path="/admin" element={<AdminRoute element={<Dashboard />} />} />
+                <Route path="/dashboard" element={<AdminRoute element={<Dashboard />} />} />
                 <Route path="/admin/exam" element={<AdminRoute element={<Dashboard />} />} />
                 <Route path="/admin/result" element={<AdminRoute element={<Dashboard />} />} />
+                {/* student */}
                 <Route path="/admin/students" element={<AdminRoute element={<Student />} />} />
                 <Route path="/admin/students/create" element={<AdminRoute element={<StudentForm />} />} />
                 <Route path="/admin/students/edit/:id" element={<AdminRoute element={<StudentForm />} />} />
                 <Route path="/admin/students/create/bulk" element={<AdminRoute element={<BulkStudentForm />} />} />
+                {/* course */}
+                <Route path="/admin/courses" element={<AdminRoute element={<ListCourse />} />} />
+                <Route path="/admin/courses/create" element={<AdminRoute element={<CreateCourse />} />} />
               </Route>
             </Routes>
           </Router>

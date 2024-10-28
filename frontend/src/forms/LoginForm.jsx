@@ -56,7 +56,7 @@ export function LoginForm() {
 
             // Navigate based on user role
             if (user.role === "admin") {
-                navigate("/admin");
+                navigate("/dashboard"); // Navigate to admin dashboard
             } else {
                 navigate("/"); // Navigate to home or another route for non-admins
             }
