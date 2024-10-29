@@ -27,6 +27,8 @@ import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import api from '../api';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
     course_code: z.string().min(2, { message: 'Course code must be at least 2 characters long' }),
@@ -38,10 +40,12 @@ const formSchema = z.object({
     practical_total_marks: z.string().min(0, { message: 'Practical total marks must be at least 0' }),
     assistant_total_marks: z.string().min(0, { message: 'Assistant total marks must be at least 0' }),
     program_id: z.number(),
-    current_semester: z.number(),
+    semester_id: z.number(),
 })
 
 const CourseForm = () => {
+    const navigate = useNavigate();
+    const { toast } = useToast();
     // fetching data from context
     const { programs, loadingPrograms, errorPrograms,
         // semesters, loadingSemesters, errorSemesters,
@@ -63,7 +67,7 @@ const CourseForm = () => {
             practical_total_marks: '',
             assistant_total_marks: '',
             program_id: '',
-            current_semester: '',
+            semester_id: '',
         }
     });
     const { register, handleSubmit, formState: { errors }, setValue, watch, reset } = form;
@@ -99,11 +103,11 @@ const CourseForm = () => {
     // handle form submission
     const { mutate: createCourse } = useMutation({
         mutationFn: async (course) => {
-            const response = await api.post('/course', course);
+            const response = await api.post('/courses/create', course);
             return response.data;
         },
         onSuccess: (data) => {
-            navigate('/admin/students');
+            navigate('/admin/courses');
             toast({
                 // title: "Student Added",
                 description: JSON.stringify(data.message),
@@ -111,7 +115,7 @@ const CourseForm = () => {
             })
         },
         onError: (error) => {
-            console.error(`Error ${isEditMode ? 'updating' : 'creating'} student:`, error);
+            console.error(`Error: ---creating student error---:`, error);
         },
     }); 
     const onSubmit = async (data) => {
@@ -156,10 +160,10 @@ const CourseForm = () => {
 
                                     <div className='w-full'>
                                         <Select
-                                            value={watch('current_semester')}
+                                            value={watch('semester_id')}
                                             onValueChange={(value) => {
                                                 console.log("Selected batch ID:", Number(value)); // Debugging line
-                                                setValue('current_semester', Number(value));
+                                                setValue('semester_id', Number(value));
                                             }}                            >
                                             <FormLabel>Select Semester: </FormLabel>
                                             <SelectTrigger>
@@ -313,7 +317,7 @@ const CourseForm = () => {
 
 
                                 <div className='flex justify-end gap-4 mt-8'>
-                                    <Button variant="secondary" onClick={addOne}>Next</Button>
+                                    <Button variant="secondary" onClick={addOne} type='button'>Next</Button>
                                     <Button type='submit'>Submit</Button>
                                 </div>
                             </div>
