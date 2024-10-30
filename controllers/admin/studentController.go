@@ -1,7 +1,10 @@
 package controllers
 
 import (
+	"bufio"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/mysterybee07/result-distribution-system/initializers"
@@ -32,6 +35,92 @@ func Student(c *fiber.Ctx) error {
 }
 
 func CreateStudents(c *fiber.Ctx) error {
+	// Check if a file is uploaded
+	file, err := c.FormFile("file")
+	if err == nil {
+		// Parse TSV file
+		tsvFile, err := file.Open()
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Could not open uploaded file",
+			})
+		}
+		defer tsvFile.Close()
+
+		// BatchID and ProgramID might be required as query params or passed another way
+		batchID, _ := strconv.ParseUint(c.FormValue("batch_id"), 10, 32)
+		programID, _ := strconv.ParseUint(c.FormValue("program_id"), 10, 32)
+
+		var students []models.Student
+		scanner := bufio.NewScanner(tsvFile)
+		firstLine := true
+
+		for scanner.Scan() {
+			if firstLine {
+				firstLine = false // Skip the header row
+				continue
+			}
+
+			line := scanner.Text()
+			fields := strings.Split(line, "\t")
+
+			if len(fields) < 4 { // Ensure minimum required columns (fullname, symbol number, registration number, college_id)
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"error": "Invalid TSV format",
+				})
+			}
+
+			symbolNumber := fields[0]
+			registrationNumber := fields[1]
+			fullname := fields[2]
+			collegeIdentifier := fields[3] // Can be either an ID or name
+
+			var collegeID uint
+			if id, err := strconv.ParseUint(collegeIdentifier, 10, 32); err == nil {
+				collegeID = uint(id) // CollegeID as a number
+			} else {
+				// CollegeID as a string (college name)
+				var college models.College
+				if err := initializers.DB.Where("college_name = ?", collegeIdentifier).First(&college).Error; err != nil {
+					return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+						"error": fmt.Sprintf("College not found for name: %s", collegeIdentifier),
+					})
+				}
+				collegeID = college.ID
+			}
+
+			student := models.Student{
+				SymbolNumber:       symbolNumber,
+				RegistrationNumber: registrationNumber,
+				Fullname:           fullname,
+				BatchID:            uint(batchID),
+				ProgramID:          uint(programID),
+				CollegeID:          collegeID,
+			}
+
+			if err := validation.ValidateStudent(&student, false); err != nil {
+				return c.Status(err.(*fiber.Error).Code).JSON(fiber.Map{
+					"error": err.Error(),
+				})
+			}
+
+			students = append(students, student)
+		}
+
+		// Bulk insert students
+		if err := initializers.DB.Create(&students).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Could not add students",
+			})
+		}
+
+		return c.JSON(fiber.Map{
+			"message":  "Students added successfully from TSV file",
+			"students": students,
+		})
+	}
+
+	// JSON input parsing
 	var input struct {
 		BatchID   uint `json:"batch_id"`
 		ProgramID uint `json:"program_id"`
