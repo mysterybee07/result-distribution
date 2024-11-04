@@ -12,7 +12,6 @@ type College struct {
 	Address     string  `json:"address" gorm:"not null"`
 	Latitude    float64 `json:"latitude" gorm:"not null"`
 	Longitude   float64 `json:"longitude" gorm:"not null"`
-	IsCenter    bool    `json:"is_center" gorm:"default:false"` // Indicates if the college is registered as a center
 }
 
 type CapacityAndCount struct {
@@ -21,7 +20,8 @@ type CapacityAndCount struct {
 	BatchID       uint    `gorm:"not null" json:"batch_id"`
 	ProgramID     uint    `gorm:"not null" json:"program_id"`
 	StudentsCount int     `gorm:"not null;default:0" json:"students_count"`
-	Capacity      int     `json:"capacity" gorm:"default:0"` // Capacity if registered as a center
+	Capacity      int     `json:"capacity" gorm:"default:0"`      // Capacity if registered as a center
+	IsCenter      bool    `json:"is_center" gorm:"default:false"` // Indicates if the college is registered as a center
 	College       College `gorm:"foreignKey:CollegeID"`
 	Batch         Batch   `gorm:"foreignKey:BatchID"`
 	Program       Program `gorm:"foreignKey:ProgramID"`

@@ -40,8 +40,8 @@ func ParseColleges(filePath string) ([]models.College, error) {
 
 	// Iterate over records starting from index 1 to skip header row
 	for _, record := range records[1:] {
-		// Check the length of the record to avoid index out of range errors
-		if len(record) < 6 {
+		// Check the length of the record to ensure it has exactly 5 fields
+		if len(record) < 5 {
 			log.Printf("Invalid record length: %+v", record)
 			continue
 		}
@@ -56,13 +56,6 @@ func ParseColleges(filePath string) ([]models.College, error) {
 		longitude, err := strconv.ParseFloat(strings.TrimSpace(record[4]), 64)
 		if err != nil {
 			log.Printf("Error parsing longitude for college %s: %v", record[1], err)
-			continue
-		}
-
-		// Parse is_center as a boolean
-		isCenter, err := strconv.ParseBool(strings.TrimSpace(record[5]))
-		if err != nil {
-			log.Printf("Error parsing is_center for college %s: %v", record[1], err)
 			continue
 		}
 
@@ -82,7 +75,6 @@ func ParseColleges(filePath string) ([]models.College, error) {
 			Address:     strings.TrimSpace(record[2]),
 			Latitude:    latitude,
 			Longitude:   longitude,
-			IsCenter:    isCenter,
 		}
 
 		colleges = append(colleges, college)

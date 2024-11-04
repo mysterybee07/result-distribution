@@ -245,5 +245,6 @@ func SetupRoutes(app *fiber.App) {
 
 	college := app.Group("/college")
 	college.Post("/upload-college", adminController.UploadColleges)
+	college.Get("/centers", adminController.GetCenterColleges)
 
 }
