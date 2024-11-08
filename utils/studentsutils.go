@@ -17,11 +17,11 @@ func ResolveCollegeID(collegeIDInput interface{}) (uint, error) {
 	case string:
 		var college models.College
 		if err := initializers.DB.Where("college_name = ?", v).First(&college).Error; err != nil {
-			return 0, fmt.Errorf("College not found for name: %s", v)
+			return 0, fmt.Errorf("college not found for name: %s", v)
 		}
 		return college.ID, nil
 	default:
-		return 0, fmt.Errorf("Invalid college identifier type")
+		return 0, fmt.Errorf("invalid college identifier type")
 	}
 }
 

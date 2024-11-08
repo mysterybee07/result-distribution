@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/mysterybee07/result-distribution-system/initializers"
 	"github.com/mysterybee07/result-distribution-system/models"
+	"gorm.io/gorm"
 )
 
 const (
@@ -90,4 +92,54 @@ func ParseColleges(filePath string) ([]models.College, error) {
 	}
 
 	return colleges, nil
+}
+
+// Helper function to process each record
+func ProcessRecord(collegeName string, batchID, programID uint, isCenter bool, capacity int) error {
+	// Look up the college_id using the college name
+	var college models.College
+	if err := initializers.DB.Where("college_name = ?", collegeName).First(&college).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("college not found for name: %s", collegeName)
+		}
+		return fmt.Errorf("failed to find college: %v", err)
+	}
+
+	// Check if a record for this college, batch, and program already exists
+	var capacityAndCount models.CapacityAndCount
+	result := initializers.DB.Where("college_id = ? AND batch_id = ? AND program_id = ?", college.ID, batchID, programID).First(&capacityAndCount)
+
+	// Only create or update the record if it does not already exist
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		// Create a new CapacityAndCount record
+		capacityAndCount = models.CapacityAndCount{
+			CollegeID:     college.ID,
+			BatchID:       batchID,
+			ProgramID:     programID,
+			StudentsCount: 0,
+			IsCenter:      isCenter,
+			Capacity:      capacity,
+		}
+		if err := initializers.DB.Create(&capacityAndCount).Error; err != nil {
+			return fmt.Errorf("failed to create new record: %v", err)
+		}
+	} else if result.Error == nil {
+		// If the record exists, update only if fields need modification
+		needsUpdate := false
+		if capacityAndCount.IsCenter != isCenter {
+			capacityAndCount.IsCenter = isCenter
+			needsUpdate = true
+		}
+		if capacityAndCount.Capacity != capacity {
+			capacityAndCount.Capacity = capacity
+			needsUpdate = true
+		}
+		if needsUpdate {
+			if err := initializers.DB.Save(&capacityAndCount).Error; err != nil {
+				return fmt.Errorf("failed to update record: %v", err)
+			}
+		}
+	}
+
+	return nil
 }

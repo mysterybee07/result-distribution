@@ -1,14 +1,15 @@
 package controllers
 
 import (
-	"errors"
+	"encoding/csv"
 	"fmt"
+	"os"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/mysterybee07/result-distribution-system/initializers"
 	"github.com/mysterybee07/result-distribution-system/models"
 	"github.com/mysterybee07/result-distribution-system/utils"
-	"gorm.io/gorm"
 )
 
 func UploadColleges(c *fiber.Ctx) error {
@@ -77,63 +78,66 @@ func GetColleges(c *fiber.Ctx) error {
 		"center": colleges,
 	})
 }
-
 func AssignCenterAndCapacity(c *fiber.Ctx) error {
-	// Define a struct to hold the incoming JSON data
-	type RequestBody struct {
-		CollegeID uint `json:"college_id"`
-		BatchID   uint `json:"batch_id"`
-		ProgramID uint `json:"program_id"`
-		IsCenter  bool `json:"is_center"`
-		Capacity  int  `json:"capacity"`
-	}
+	// Check the content type of the request
+	contentType := c.Get("Content-Type")
 
-	// Parse JSON data from the request body
-	var body RequestBody
-	if err := c.BodyParser(&body); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Failed to parse request body"})
-	}
-
-	// Check if the college exists in the College model
-	var college models.College
-	if err := initializers.DB.First(&college, body.CollegeID).Error; err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "College not found"})
-	}
-
-	// Try to find the existing CapacityAndCount record for the specified college, batch, and program
-	var capacityAndCount models.CapacityAndCount
-	result := initializers.DB.Where("college_id = ? AND batch_id = ? AND program_id = ?", body.CollegeID, body.BatchID, body.ProgramID).First(&capacityAndCount)
-
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			// If no record is found, create a new CapacityAndCount record with students_count set to 0
-			capacityAndCount = models.CapacityAndCount{
-				CollegeID:     body.CollegeID,
-				BatchID:       body.BatchID,
-				ProgramID:     body.ProgramID,
-				StudentsCount: 0,
-				IsCenter:      body.IsCenter,
-				Capacity:      body.Capacity,
-			}
-			if err := initializers.DB.Create(&capacityAndCount).Error; err != nil {
-				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create new record"})
-			}
-		} else {
-			// If there's another error, return it
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve record"})
+	if contentType == "application/json" {
+		var requestData struct {
+			BatchID   uint `json:"batch_id"`
+			ProgramID uint `json:"program_id"`
+			Records   []struct {
+				CollegeName string `json:"college_name"`
+				IsCenter    bool   `json:"is_center"`
+				Capacity    int    `json:"capacity"`
+			} `json:"records"`
 		}
-	} else {
-		// If the record exists, update the center status and capacity
-		capacityAndCount.IsCenter = body.IsCenter
-		capacityAndCount.Capacity = body.Capacity
 
-		if err := initializers.DB.Save(&capacityAndCount).Error; err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update record"})
+		// Parse JSON data from the request body
+		if err := c.BodyParser(&requestData); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "failed to parse JSON data"})
+		}
+
+		// Process each record in the JSON array
+		for _, record := range requestData.Records {
+			if err := utils.ProcessRecord(record.CollegeName, requestData.BatchID, requestData.ProgramID, record.IsCenter, record.Capacity); err != nil {
+				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+			}
+		}
+
+	} else {
+		// Assume data is coming from a TSV file
+		file, err := os.Open("centers_and_capacities.tsv")
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "failed to open file"})
+		}
+		defer file.Close()
+
+		reader := csv.NewReader(file)
+		reader.Comma = '\t' // Specify tab-delimited file
+		records, err := reader.ReadAll()
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "failed to read file"})
+		}
+
+		for i, record := range records {
+			if i == 0 {
+				continue // Skip header row
+			}
+
+			collegeName := record[0]
+			batchID, _ := strconv.ParseUint(record[1], 10, 32)
+			programID, _ := strconv.ParseUint(record[2], 10, 32)
+			isCenter, _ := strconv.ParseBool(record[3])
+			capacity, _ := strconv.Atoi(record[4])
+
+			if err := utils.ProcessRecord(collegeName, uint(batchID), uint(programID), isCenter, capacity); err != nil {
+				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+			}
 		}
 	}
 
 	return c.JSON(fiber.Map{
-		"message":            "Center status and capacity updated successfully",
-		"capacity_and_count": capacityAndCount,
+		"message": "center status and capacity update completed successfully",
 	})
 }
