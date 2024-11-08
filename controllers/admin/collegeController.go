@@ -1,12 +1,14 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/mysterybee07/result-distribution-system/initializers"
 	"github.com/mysterybee07/result-distribution-system/models"
 	"github.com/mysterybee07/result-distribution-system/utils"
+	"gorm.io/gorm"
 )
 
 func UploadColleges(c *fiber.Ctx) error {
@@ -76,10 +78,62 @@ func GetColleges(c *fiber.Ctx) error {
 	})
 }
 
-// func AssignCenterAndCapacity(c *fiber.Ctx) error{
-// 	var
-// 	collegeID := c.Params("id")
-// 	batchID := c.Params("id")
-// 	programID := c.Params("id")
+func AssignCenterAndCapacity(c *fiber.Ctx) error {
+	// Define a struct to hold the incoming JSON data
+	type RequestBody struct {
+		CollegeID uint `json:"college_id"`
+		BatchID   uint `json:"batch_id"`
+		ProgramID uint `json:"program_id"`
+		IsCenter  bool `json:"is_center"`
+		Capacity  int  `json:"capacity"`
+	}
 
-// }
+	// Parse JSON data from the request body
+	var body RequestBody
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Failed to parse request body"})
+	}
+
+	// Check if the college exists in the College model
+	var college models.College
+	if err := initializers.DB.First(&college, body.CollegeID).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "College not found"})
+	}
+
+	// Try to find the existing CapacityAndCount record for the specified college, batch, and program
+	var capacityAndCount models.CapacityAndCount
+	result := initializers.DB.Where("college_id = ? AND batch_id = ? AND program_id = ?", body.CollegeID, body.BatchID, body.ProgramID).First(&capacityAndCount)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			// If no record is found, create a new CapacityAndCount record with students_count set to 0
+			capacityAndCount = models.CapacityAndCount{
+				CollegeID:     body.CollegeID,
+				BatchID:       body.BatchID,
+				ProgramID:     body.ProgramID,
+				StudentsCount: 0,
+				IsCenter:      body.IsCenter,
+				Capacity:      body.Capacity,
+			}
+			if err := initializers.DB.Create(&capacityAndCount).Error; err != nil {
+				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create new record"})
+			}
+		} else {
+			// If there's another error, return it
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve record"})
+		}
+	} else {
+		// If the record exists, update the center status and capacity
+		capacityAndCount.IsCenter = body.IsCenter
+		capacityAndCount.Capacity = body.Capacity
+
+		if err := initializers.DB.Save(&capacityAndCount).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update record"})
+		}
+	}
+
+	return c.JSON(fiber.Map{
+		"message":            "Center status and capacity updated successfully",
+		"capacity_and_count": capacityAndCount,
+	})
+}

@@ -66,7 +66,7 @@ func AssignCenters(batchID uint, programID uint) ([]CenterAssignment, error) {
 			}
 			// Check distance
 			distance := Haversine(college.Latitude, college.Longitude, center.College.Latitude, center.College.Longitude)
-			if distance < 50 {
+			if distance < 5 {
 				availableCenters = append(availableCenters, center)
 			}
 		}
