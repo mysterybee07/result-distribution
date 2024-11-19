@@ -7,7 +7,7 @@ import (
 // College model
 type College struct {
 	gorm.Model
-	CollegeCode string  `json:"college_code" gorm:"primaryKey;type:varchar(255);unique;not null"`
+	CollegeCode string  `json:"college_code" gorm:"type:varchar(255);unique;not null"`
 	CollegeName string  `json:"college_name" gorm:"not null"`
 	Address     string  `json:"address" gorm:"not null"`
 	Latitude    float64 `json:"latitude" gorm:"not null"`
