@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/mysterybee07/result-distribution-system/initializers"
 	"github.com/mysterybee07/result-distribution-system/models"
+	"gorm.io/gorm"
 )
 
 const (
@@ -22,7 +24,7 @@ const (
 
 // ParseColleges reads a TSV file and returns a slice of College structs
 
-func ParseColleges(filePath string, batchID uint, programID uint) ([]models.College, error) {
+func ParseColleges(filePath string) ([]models.College, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file %s: %w", filePath, err)
@@ -38,56 +40,51 @@ func ParseColleges(filePath string, batchID uint, programID uint) ([]models.Coll
 		return nil, fmt.Errorf("failed to read records from file %s: %w", filePath, err)
 	}
 
-	// Log the records for debugging
-	log.Printf("Records: %+v", records)
-
 	// Iterate over records starting from index 1 to skip header row
 	for _, record := range records[1:] {
-		// Check the length of the record to avoid index out of range errors
-		if len(record) < 6 { // Adjust to 6 since there are only 6 fields
+		// Check the length of the record to ensure it has exactly 5 fields
+		if len(record) < 5 {
 			log.Printf("Invalid record length: %+v", record)
 			continue
 		}
 
-		latitude, err := strconv.ParseFloat(strings.TrimSpace(record[3]), 64) // Index for latitude
+		// Parse latitude and longitude as floats
+		latitude, err := strconv.ParseFloat(strings.TrimSpace(record[3]), 64)
 		if err != nil {
 			log.Printf("Error parsing latitude for college %s: %v", record[1], err)
 			continue
 		}
 
-		longitude, err := strconv.ParseFloat(strings.TrimSpace(record[4]), 64) // Index for longitude
+		longitude, err := strconv.ParseFloat(strings.TrimSpace(record[4]), 64)
 		if err != nil {
 			log.Printf("Error parsing longitude for college %s: %v", record[1], err)
 			continue
 		}
 
-		isCenter, err := strconv.ParseBool(strings.TrimSpace(record[5])) // Index for is_center
-		if err != nil {
-			log.Printf("Error parsing is_center for college %s: %v", record[1], err)
+		collegeCode := strings.TrimSpace(record[0])
+
+		// Check if college with this CollegeCode already exists in the database
+		var existingCollege models.College
+		if err := initializers.DB.Where("college_code = ?", collegeCode).First(&existingCollege).Error; err == nil {
+			log.Printf("Duplicate college code found, skipping entry: %s", collegeCode)
 			continue
 		}
 
-		// Create a new College entry
+		// Create a new College entry if it doesn't exist
 		college := models.College{
-			CollegeCode: strings.TrimSpace(record[0]),
+			CollegeCode: collegeCode,
 			CollegeName: strings.TrimSpace(record[1]),
 			Address:     strings.TrimSpace(record[2]),
 			Latitude:    latitude,
 			Longitude:   longitude,
-			IsCenter:    isCenter,
-			BatchID:     batchID,
-			ProgramID:   programID,
 		}
 
 		colleges = append(colleges, college)
 	}
 
-	// Log the parsed colleges for debugging
-	log.Printf("Parsed Colleges: %+v", colleges)
-
-	// Save parsed colleges to the database
+	// Save parsed colleges to the database if any new colleges are found
 	if len(colleges) == 0 {
-		return nil, fmt.Errorf("failed to store colleges in database: empty slice found")
+		return nil, fmt.Errorf("no new colleges to store in the database")
 	}
 
 	if err := initializers.DB.Create(&colleges).Error; err != nil {
@@ -95,4 +92,54 @@ func ParseColleges(filePath string, batchID uint, programID uint) ([]models.Coll
 	}
 
 	return colleges, nil
+}
+
+// Helper function to process each record
+func ProcessRecord(collegeName string, batchID, programID uint, isCenter bool, capacity int) error {
+	// Look up the college_id using the college name
+	var college models.College
+	if err := initializers.DB.Where("college_name = ?", collegeName).First(&college).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("college not found for name: %s", collegeName)
+		}
+		return fmt.Errorf("failed to find college: %v", err)
+	}
+
+	// Check if a record for this college, batch, and program already exists
+	var capacityAndCount models.CapacityAndCount
+	result := initializers.DB.Where("college_id = ? AND batch_id = ? AND program_id = ?", college.ID, batchID, programID).First(&capacityAndCount)
+
+	// Only create or update the record if it does not already exist
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		// Create a new CapacityAndCount record
+		capacityAndCount = models.CapacityAndCount{
+			CollegeID:     college.ID,
+			BatchID:       batchID,
+			ProgramID:     programID,
+			StudentsCount: 0,
+			IsCenter:      isCenter,
+			Capacity:      capacity,
+		}
+		if err := initializers.DB.Create(&capacityAndCount).Error; err != nil {
+			return fmt.Errorf("failed to create new record: %v", err)
+		}
+	} else if result.Error == nil {
+		// If the record exists, update only if fields need modification
+		needsUpdate := false
+		if capacityAndCount.IsCenter != isCenter {
+			capacityAndCount.IsCenter = isCenter
+			needsUpdate = true
+		}
+		if capacityAndCount.Capacity != capacity {
+			capacityAndCount.Capacity = capacity
+			needsUpdate = true
+		}
+		if needsUpdate {
+			if err := initializers.DB.Save(&capacityAndCount).Error; err != nil {
+				return fmt.Errorf("failed to update record: %v", err)
+			}
+		}
+	}
+
+	return nil
 }
