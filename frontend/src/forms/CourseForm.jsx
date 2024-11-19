@@ -33,14 +33,14 @@ import { useToast } from "@/hooks/use-toast";
 const formSchema = z.object({
     course_code: z.string().min(2, { message: 'Course code must be at least 2 characters long' }),
     name: z.string().min(2, { message: 'Course name must be at least 2 characters long' }),
-    semester_pass_marks: z.string().min(0, { message: 'Semester pass marks must be at least 0' }),
-    practical_pass_marks: z.string().min(0, { message: 'Practical pass marks must be at least 0' }),
-    assistant_pass_marks: z.string().min(0, { message: 'Assistant pass marks must be at least 0' }),
-    semester_total_marks: z.string().min(0, { message: 'Semester total marks must be at least 0' }).max(100, { message: 'Semester total marks must be at most 100' }),
-    practical_total_marks: z.string().min(0, { message: 'Practical total marks must be at least 0' }),
-    assistant_total_marks: z.string().min(0, { message: 'Assistant total marks must be at least 0' }),
-    program_id: z.number(),
-    semester_id: z.number(),
+    semester_pass_marks: z.string().min(1, { message: 'Semester pass marks must be at least 0' }),
+    practical_pass_marks: z.string().min(1, { message: 'Practical pass marks must be at least 0' }),
+    assistant_pass_marks: z.string().min(1, { message: 'Assistant pass marks must be at least 0' }),
+    semester_total_marks: z.string().min(1, { message: 'Semester total marks must be at least 0' }).max(100, { message: 'Semester total marks must be at most 100' }),
+    practical_total_marks: z.string().min(1, { message: 'Practical total marks must be at least 0' }),
+    assistant_total_marks: z.string().min(1, { message: 'Assistant total marks must be at least 0' }),
+    program_id: z.number().min(1, { message: "Program is required." }),
+    semester_id: z.number().min(1, { message: "Semester is required." }),
 })
 
 const CourseForm = () => {
@@ -68,6 +68,7 @@ const CourseForm = () => {
             assistant_total_marks: '',
             program_id: '',
             semester_id: '',
+            is_compulsory: true,
         }
     });
     const { register, handleSubmit, formState: { errors }, setValue, watch, reset } = form;
@@ -117,11 +118,33 @@ const CourseForm = () => {
         onError: (error) => {
             console.error(`Error: ---creating student error---:`, error);
         },
-    }); 
+    });
     const onSubmit = async (data) => {
-        console.log(data);
-        createCourse(data);
-    }
+        // If no courses are added, use the current form data as a course.
+        const updatedCourses = courses.length > 0
+            ? courses
+            : [data];
+
+        const coursePayload = {
+            program_id: Number(data.program_id), // Ensure these are numbers
+            semester_id: Number(data.semester_id),
+            courses: updatedCourses.map(course => ({
+                course_code: course.course_code,
+                name: course.name,
+                semester_pass_marks: Number(course.semester_pass_marks),
+                practical_pass_marks: Number(course.practical_pass_marks),
+                assistant_pass_marks: Number(course.assistant_pass_marks),
+                semester_total_marks: Number(course.semester_total_marks),
+                practical_total_marks: Number(course.practical_total_marks),
+                assistant_total_marks: Number(course.assistant_total_marks),
+                // is_compulsory: true,
+                is_compulsory: course.is_compulsory, // Ensure boolean conversion if necessary
+            })),
+        };
+
+        await createCourse(coursePayload);
+    };
+
 
     return (
         <div className='flex items-center justify-center mt-16'>
@@ -138,47 +161,45 @@ const CourseForm = () => {
                                 {/* Program and Semester */}
                                 <p class="text-lg mb-2 font-semibold">Program and Semester:</p>
                                 <div className='flex gap-2 flex-col'>
-                                    <div className='w-full'>
-                                        <Select
-                                            value={watch('program_id')}
-                                            onValueChange={(value) => setValue('program_id', Number(value))}
-                                        >
-                                            <FormLabel>Select program: </FormLabel>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select program" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectGroup>
-                                                    <SelectLabel>Program</SelectLabel>
-                                                    {Array.isArray(programs) && programs.map((program, index) => (
-                                                        <SelectItem key={index} value={program.ID}>{program.program_name}</SelectItem>
-                                                    ))}
-                                                </SelectGroup>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
+                                    <Select
+                                        value={watch('program_id')}
+                                        onValueChange={(value) => setValue('program_id', Number(value))}
+                                    >
+                                        <FormLabel>Select program: </FormLabel>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select program" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectGroup>
+                                                <SelectLabel>Program</SelectLabel>
+                                                {Array.isArray(programs) && programs.map((program, index) => (
+                                                    <SelectItem key={index} value={program.ID}>{program.program_name}</SelectItem>
+                                                ))}
+                                            </SelectGroup>
+                                        </SelectContent>
+                                        <FormMessage>{errors.program_id?.message}</FormMessage>
+                                    </Select>
 
-                                    <div className='w-full'>
-                                        <Select
-                                            value={watch('semester_id')}
-                                            onValueChange={(value) => {
-                                                console.log("Selected batch ID:", Number(value)); // Debugging line
-                                                setValue('semester_id', Number(value));
-                                            }}                            >
-                                            <FormLabel>Select Semester: </FormLabel>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select Semester" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectGroup>
-                                                    <SelectLabel>Semesters</SelectLabel>
-                                                    {Array.isArray(semesters) && semesters.map((semester, index) => (
-                                                        <SelectItem key={index} value={semester.ID}>{semester.semester_name}</SelectItem>
-                                                    ))}
-                                                </SelectGroup>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
+                                    <Select
+                                        value={watch('semester_id')}
+                                        onValueChange={(value) => {
+                                            console.log("Selected batch ID:", Number(value)); // Debugging line
+                                            setValue('semester_id', Number(value));
+                                        }}                            >
+                                        <FormLabel>Select Semester: </FormLabel>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select Semester" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectGroup>
+                                                <SelectLabel>Semesters</SelectLabel>
+                                                {Array.isArray(semesters) && semesters.map((semester, index) => (
+                                                    <SelectItem key={index} value={semester.ID}>{semester.semester_name}</SelectItem>
+                                                ))}
+                                            </SelectGroup>
+                                        </SelectContent>
+                                        <FormMessage>{errors.semester_id?.message}</FormMessage>
+                                    </Select>
                                 </div>
 
                                 {/* Course */}
@@ -210,6 +231,26 @@ const CourseForm = () => {
                                             </FormItem>
                                         )}
                                     />
+                                    <Select
+                                        value={String(watch('is_compulsory'))} // Ensure the value is a string
+                                        onValueChange={(value) => {
+                                            console.log("Compulsory:", value); // Debugging
+                                            setValue('is_compulsory', value === 'true'); // Convert string back to boolean
+                                        }}
+                                    >
+                                        <FormLabel>Compulsory</FormLabel>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select Subject Type" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectGroup>
+                                                <SelectItem value="true">Compulsory Subject</SelectItem>
+                                                <SelectItem value="false">Elective Subject</SelectItem>
+                                            </SelectGroup>
+                                        </SelectContent>
+                                        <FormMessage>{errors.is_compulsory?.message}</FormMessage>
+                                    </Select>
+
                                 </div>
                             </div>
 
