@@ -37,6 +37,18 @@ const AdminNavbar = () => {
                         >
                             Home
                         </NavLink>
+
+                        <NavLink
+                            to="/admin/college"
+                            className={({ isActive }) =>
+                                isActive
+                                    ? "font-medium flex items-center text-sm transition-colors underline text-blue-600" // Active link styling
+                                    : "font-medium flex items-center text-sm transition-colors hover:underline"
+                            } prefetch={false}
+                        >
+                            College
+                        </NavLink>
+
                         <NavLink
                             to="/admin/exam"
                             className={({ isActive }) =>

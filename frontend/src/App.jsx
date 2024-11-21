@@ -21,6 +21,9 @@ import { DataProvider } from './context/DataContext';
 import BulkStudentForm from './forms/BulkStudentForm';
 import CreateCourse from './pages/courses/CreateCourse';
 import ListCourse from './pages/courses/ListCourse';
+import CreateCollege from './pages/college/createCollege';
+import ListCollege from './pages/college/listCollege';
+import CreateNotice from './pages/notice/CreateNotice';
 
 const ProtectedRoute = ({ element }) => {
   const { isAuthenticated } = useAuth();
@@ -95,6 +98,12 @@ function App() {
                 {/* course */}
                 <Route path="/admin/courses" element={<AdminRoute element={<ListCourse />} />} />
                 <Route path="/admin/courses/create" element={<AdminRoute element={<CreateCourse />} />} />
+                {/* college */}
+                <Route path='/admin/college' element={<AdminRoute element={<ListCollege />} />}/>
+                <Route path='/admin/college/create' element={<AdminRoute element={<CreateCollege />} />}/>
+                {/* Notice */}
+                <Route path="/admin/notice" element={<AdminRoute element={<Dashboard />} />} />
+                <Route path="/admin/notice/create" element={<AdminRoute element={<CreateNotice />} />} />
               </Route>
             </Routes>
           </Router>
