@@ -105,17 +105,30 @@ func UpdateNotice(c *fiber.Ctx) error {
 }
 
 func GetAllNotices(c *fiber.Ctx) error {
-	var notices []models.Notice
+	var allNotices []models.Notice
 
-	// Retrieve all notices from the database
-	if err := initializers.DB.Find(&notices).Error; err != nil {
+	// Retrieve all notices from the database with associated names
+	if err := initializers.DB.Preload("Program").Preload("Batch").Preload("Semester").Find(&allNotices).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Error retrieving notices",
 			"error":   err.Error(),
 		})
 	}
 
-	// Return the list of notices
+	// Transform notices to include names instead of IDs
+	var notices []map[string]interface{}
+	for _, notice := range allNotices {
+		notices = append(notices, map[string]interface{}{
+			"Title":       notice.Title,
+			"Description": notice.Description,
+			"Program":     notice.Program.ProgramName,
+			"Batch":       notice.Batch.Batch,
+			"Semester":    notice.Semester.SemesterName,
+			"FilePath":    notice.FilePath,
+		})
+	}
+
+	// Return the transformed list of notices
 	return c.JSON(fiber.Map{
 		"notices": notices,
 	})
