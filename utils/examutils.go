@@ -1,145 +1,87 @@
 package utils
 
 import (
-	"encoding/csv"
-	"errors"
 	"fmt"
-	"log"
+	"math/rand"
 	"os"
-	"strconv"
-	"strings"
+	"time"
 
 	"github.com/mysterybee07/result-distribution-system/initializers"
 	"github.com/mysterybee07/result-distribution-system/models"
-	"gorm.io/gorm"
 )
 
-const (
-	PREF_DISTANCE_THRESHOLD = 2    // Preferred threshold distance in km
-	ABS_DISTANCE_THRESHOLD  = 7    // Absolute threshold distance in km
-	MIN_STUDENT_IN_CENTER   = 10   // Min. no of students from a school to be assigned to a center in normal circumstances
-	STRETCH_CAPACITY_FACTOR = 0.02 // How much can center capacity be stretched if need arises
-	PREF_CUTOFF             = -4   // Do not allocate students with pref score less than cutoff
-)
+func ExamRoutine(batchID, programID, semesterID uint, startDate, endDate time.Time) (string, error) {
+	// Check for overlapping exams
+	overlapRangeStart := startDate.AddDate(0, 0, -20)
+	overlapRangeEnd := endDate.AddDate(0, 0, 20)
 
-// ParseColleges reads a TSV file and returns a slice of College structs
-
-func ParseColleges(filePath string) ([]models.College, error) {
-	file, err := os.Open(filePath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open file %s: %w", filePath, err)
-	}
-	defer file.Close()
-
-	reader := csv.NewReader(file)
-	reader.Comma = '\t' // Specify tab delimiter for TSV
-
-	var colleges []models.College
-	records, err := reader.ReadAll()
-	if err != nil {
-		return nil, fmt.Errorf("failed to read records from file %s: %w", filePath, err)
+	var overlappingExams []models.ExamRoutine
+	if err := initializers.DB.Where(
+		"program_id = ? AND (start_date BETWEEN ? AND ? OR end_date BETWEEN ? AND ?)",
+		programID, overlapRangeStart, overlapRangeEnd, overlapRangeStart, overlapRangeEnd,
+	).Find(&overlappingExams).Error; err != nil {
+		return "", fmt.Errorf("database error: %w", err)
 	}
 
-	// Iterate over records starting from index 1 to skip header row
-	for _, record := range records[1:] {
-		// Check the length of the record to ensure it has exactly 5 fields
-		if len(record) < 5 {
-			log.Printf("Invalid record length: %+v", record)
-			continue
-		}
-
-		// Parse latitude and longitude as floats
-		latitude, err := strconv.ParseFloat(strings.TrimSpace(record[3]), 64)
-		if err != nil {
-			log.Printf("Error parsing latitude for college %s: %v", record[1], err)
-			continue
-		}
-
-		longitude, err := strconv.ParseFloat(strings.TrimSpace(record[4]), 64)
-		if err != nil {
-			log.Printf("Error parsing longitude for college %s: %v", record[1], err)
-			continue
-		}
-
-		collegeCode := strings.TrimSpace(record[0])
-
-		// Check if college with this CollegeCode already exists in the database
-		var existingCollege models.College
-		if err := initializers.DB.Where("college_code = ?", collegeCode).First(&existingCollege).Error; err == nil {
-			log.Printf("Duplicate college code found, skipping entry: %s", collegeCode)
-			continue
-		}
-
-		// Create a new College entry if it doesn't exist
-		college := models.College{
-			CollegeCode: collegeCode,
-			CollegeName: strings.TrimSpace(record[1]),
-			Address:     strings.TrimSpace(record[2]),
-			Latitude:    latitude,
-			Longitude:   longitude,
-		}
-
-		colleges = append(colleges, college)
+	if len(overlappingExams) > 0 {
+		return "", fmt.Errorf("overlapping exams detected: ensure a 20-day gap between exams for the same program")
 	}
 
-	// Save parsed colleges to the database if any new colleges are found
-	if len(colleges) == 0 {
-		return nil, fmt.Errorf("no new colleges to store in the database")
+	// Fetch courses for the semester and program
+	var courses []models.Course
+	if err := initializers.DB.Where(
+		"program_id = ? AND semester_id = ?",
+		programID, semesterID,
+	).Find(&courses).Error; err != nil {
+		return "", fmt.Errorf("failed to fetch courses: %w", err)
 	}
 
-	if err := initializers.DB.Create(&colleges).Error; err != nil {
-		return nil, fmt.Errorf("failed to store colleges in database: %w", err)
+	if len(courses) == 0 {
+		return "", fmt.Errorf("no courses found for the given program and semester")
 	}
 
-	return colleges, nil
-}
-
-// Helper function to process each record
-func ProcessRecord(collegeName string, batchID, programID uint, isCenter bool, capacity int) error {
-	// Look up the college_id using the college name
-	var college models.College
-	if err := initializers.DB.Where("college_name = ?", collegeName).First(&college).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("college not found for name: %s", collegeName)
-		}
-		return fmt.Errorf("failed to find college: %v", err)
+	// Validate date range
+	days := int(endDate.Sub(startDate).Hours() / 24)
+	if len(courses) > days {
+		return "", fmt.Errorf("not enough days in the range to schedule all exams")
 	}
 
-	// Check if a record for this college, batch, and program already exists
-	var capacityAndCount models.CapacityAndCount
-	result := initializers.DB.Where("college_id = ? AND batch_id = ? AND program_id = ?", college.ID, batchID, programID).First(&capacityAndCount)
+	// Generate exam schedule
+	rand.Seed(time.Now().UnixNano())
+	usedDates := make(map[string]bool)
+	fileContent := "Course Code,Course Name,Exam Date\n"
 
-	// Only create or update the record if it does not already exist
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		// Create a new CapacityAndCount record
-		capacityAndCount = models.CapacityAndCount{
-			CollegeID:     college.ID,
-			BatchID:       batchID,
-			ProgramID:     programID,
-			StudentsCount: 0,
-			IsCenter:      isCenter,
-			Capacity:      capacity,
-		}
-		if err := initializers.DB.Create(&capacityAndCount).Error; err != nil {
-			return fmt.Errorf("failed to create new record: %v", err)
-		}
-	} else if result.Error == nil {
-		// If the record exists, update only if fields need modification
-		needsUpdate := false
-		if capacityAndCount.IsCenter != isCenter {
-			capacityAndCount.IsCenter = isCenter
-			needsUpdate = true
-		}
-		if capacityAndCount.Capacity != capacity {
-			capacityAndCount.Capacity = capacity
-			needsUpdate = true
-		}
-		if needsUpdate {
-			if err := initializers.DB.Save(&capacityAndCount).Error; err != nil {
-				return fmt.Errorf("failed to update record: %v", err)
+	for _, course := range courses {
+		var examDate time.Time
+		for {
+			randomDay := rand.Intn(days)
+			examDate = startDate.AddDate(0, 0, randomDay)
+			if !usedDates[examDate.Format("2006-01-02")] {
+				usedDates[examDate.Format("2006-01-02")] = true
+				break
 			}
 		}
+		fileContent += fmt.Sprintf("%s,%s,%s\n", course.CourseCode, course.Name, examDate.Format("2006-01-02"))
 	}
 
-	return nil
+	// Save exam routine to database
+	examRoutine := models.ExamRoutine{
+		StartDate:  startDate,
+		EndDate:    endDate,
+		BatchID:    batchID,
+		ProgramID:  programID,
+		SemesterID: semesterID,
+	}
+
+	if err := initializers.DB.Create(&examRoutine).Error; err != nil {
+		return "", fmt.Errorf("failed to save routine details: %w", err)
+	}
+
+	// Write the exam schedule to a CSV file
+	fileName := fmt.Sprintf("ExamRoutine_Batch%d_Program%d_Semester%d.csv", batchID, programID, semesterID)
+	if err := os.WriteFile(fileName, []byte(fileContent), 0644); err != nil {
+		return "", fmt.Errorf("failed to write to file: %w", err)
+	}
+
+	return fileName, nil
 }
