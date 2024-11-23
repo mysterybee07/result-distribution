@@ -40,12 +40,15 @@ const formSchema = z.object({
     }),
 });
 
-export default function CreateNoticeForm() {
-    const navigate = useNavigate();
-    // fetching data from context
-    const { programs, batches } = useData();
-    console.log("🚀 ~ CreateNoticeForm ~ batches:", batches)
+import { useEffect } from "react";
 
+export default function CreateNoticeForm({ mode = 'create', notice = {} }) {
+    console.log("🚀 ~ CreateNoticeForm ~ mode:", mode);
+    console.log("🚀 ~ CreateNoticeForm ~ notice:", notice);
+    const navigate = useNavigate();
+    // Fetching data from context
+    const { programs, batches } = useData();
+    console.log("🚀 ~ CreateNoticeForm ~ batches:", batches);
 
     const form = useForm({
         resolver: zodResolver(formSchema),
@@ -59,15 +62,15 @@ export default function CreateNoticeForm() {
         },
     });
     const { watch, setValue } = form;
+
     // Watch for changes in 'program_id'
     const programId = watch('program_id');
 
     // UseQuery to fetch semesters based on selected program_id
     const { data: semesters, isLoading: loadingSemesters, error: errorSemesters } = useQuery({
-        queryKey: ['semesters', programId],  // Use programId in query key for caching
+        queryKey: ['semesters', programId], // Use programId in query key for caching
         queryFn: async () => {
             const response = await api.get(`/semester/by-program/${programId}`);
-            // console.log("🚀 ~ response:", response);
             return response.data.semesters;
         },
         enabled: Boolean(programId), // Only fetch semesters if programId is available
@@ -77,27 +80,26 @@ export default function CreateNoticeForm() {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const { mutate: createNotice } = useMutation({
+    const { mutate: handleSubmitAction } = useMutation({
         mutationFn: async (formData) => {
-            const data = new FormData();
-            // for (const key in formData) {
-            //     data.append(key, formData[key]);
-            // }
-            // const response = await api.post("/notice/create", formData);
-            const response = await axios.post('http://127.0.0.1:3000/notice/create', formData);
-            console.log("🚀 ~ response:", response);
+            const url =
+                mode === "create"
+                    ? "http://127.0.0.1:3000/notice/create"
+                    : `http://127.0.0.1:3000/notice/update/${notice.ID}`;
+            const method = mode === "create" ? "post" : "put";
+            const response = await axios[method](url, formData);
             return response.data;
         },
         onSuccess: () => {
-            navigate("/admin/notice");
+            navigate("/dashboard");
         },
         onError: (error) => {
-            console.error("Error creating notice:", error);
+            console.error(`Error ${mode === "create" ? "creating" : "editing"} notice:`, error);
         },
     });
 
     const onSubmit = (values) => {
-        console.log("🚀 ~ onSubmit ~ values:", values)
+        console.log("🚀 ~ onSubmit ~ values:", values);
         // Create a FormData object
         const formData = new FormData();
         formData.append("title", values.title);
@@ -106,10 +108,25 @@ export default function CreateNoticeForm() {
         formData.append("semester_id", values.semester_id.toString());
         formData.append("batch_id", values.batch_id.toString());
         formData.append("file_path", values.file_path);
-        console.log("🚀 ~ onSubmit ~ formData:", formData)
+        console.log("🚀 ~ onSubmit ~ formData:", formData);
         setIsSubmitting(true);
-        createNotice(formData);
+        handleSubmitAction(formData);
     };
+
+    // Set form values after `notice` data is available
+    useEffect(() => {
+        if (mode === "edit" && notice) {
+            setValue("title", notice.title || "");
+            setValue("description", notice.description || "");
+            setValue("program_id", notice.program_id || "");
+            setValue("batch_id", notice.batch_id || "");
+            setValue("semester_id", notice.semester_id || "");
+        }
+    }, [mode, notice, setValue, programId]);
+
+    if (loadingSemesters) {
+        return <p>Loading semesters...</p>;  // Show loading state for semesters
+    }
 
     return (
         <Form {...form}>
@@ -141,7 +158,6 @@ export default function CreateNoticeForm() {
                     )}
                 />
                 {/* Program and Semester */}
-                <p class="text-lg mb-2 font-semibold">Program and Semester:</p>
                 <div className='flex gap-2 flex-col'>
                     <Select
                         value={watch('program_id')}
@@ -154,20 +170,21 @@ export default function CreateNoticeForm() {
                         <SelectContent>
                             <SelectGroup>
                                 <SelectLabel>Program</SelectLabel>
-                                {Array.isArray(programs) && programs.map((program, index) => (
-                                    <SelectItem key={index} value={program.ID}>{program.program_name}</SelectItem>
+                                {programs?.map((program) => (
+                                    <SelectItem key={program.ID} value={program.ID}>
+                                        {program.program_name}
+                                    </SelectItem>
                                 ))}
                             </SelectGroup>
                         </SelectContent>
-                        {/* <FormMessage>{errors.program_id?.message}</FormMessage> */}
                     </Select>
 
                     <Select
                         value={watch('semester_id')}
                         onValueChange={(value) => {
-                            console.log("Selected batch ID:", Number(value)); // Debugging line
                             setValue('semester_id', Number(value));
-                        }}                            >
+                        }}
+                    >
                         <FormLabel>Select Semester: </FormLabel>
                         <SelectTrigger>
                             <SelectValue placeholder="Select Semester" />
@@ -175,33 +192,35 @@ export default function CreateNoticeForm() {
                         <SelectContent>
                             <SelectGroup>
                                 <SelectLabel>Semesters</SelectLabel>
-                                {Array.isArray(semesters) && semesters.map((semester, index) => (
-                                    <SelectItem key={index} value={semester.ID}>{semester.semester_name}</SelectItem>
+                                {semesters?.map((semester) => (
+                                    <SelectItem key={semester.ID} value={semester.ID}>
+                                        {semester.semester_name}
+                                    </SelectItem>
                                 ))}
                             </SelectGroup>
                         </SelectContent>
-                        {/* <FormMessage>{errors.semester_id?.message}</FormMessage> */}
                     </Select>
                 </div>
                 <Select
                     value={watch('batch_id')}
                     onValueChange={(value) => {
-                        console.log("Selected batch ID:", Number(value)); // Debugging line
                         setValue('batch_id', Number(value));
-                    }}                            >
+                    }}
+                >
                     <FormLabel>Select Batch: </FormLabel>
                     <SelectTrigger>
                         <SelectValue placeholder="Select Batch" />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectGroup>
-                            <SelectLabel>Batchs</SelectLabel>
-                            {Array.isArray(batches) && batches.map((batch, index) => (
-                                <SelectItem key={index} value={batch.ID}>{batch.batch}</SelectItem>
+                            <SelectLabel>Batches</SelectLabel>
+                            {batches?.map((batch) => (
+                                <SelectItem key={batch.ID} value={batch.ID}>
+                                    {batch.batch}
+                                </SelectItem>
                             ))}
                         </SelectGroup>
                     </SelectContent>
-                    {/* <FormMessage>{errors.semester_id?.message}</FormMessage> */}
                 </Select>
                 <FormField
                     control={form.control}
@@ -220,9 +239,16 @@ export default function CreateNoticeForm() {
                     )}
                 />
                 <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? "Creating..." : "Create Notice"}
+                    {isSubmitting
+                        ? mode === "create"
+                            ? "Creating..."
+                            : "Updating..."
+                        : mode === "create"
+                            ? "Create Notice"
+                            : "Update Notice"}
                 </Button>
             </form>
         </Form>
     );
 }
+

@@ -119,18 +119,45 @@ func GetAllNotices(c *fiber.Ctx) error {
 	var notices []map[string]interface{}
 	for _, notice := range allNotices {
 		notices = append(notices, map[string]interface{}{
+			"ID":          notice.ID,
 			"Title":       notice.Title,
 			"Description": notice.Description,
 			"Program":     notice.Program.ProgramName,
 			"Batch":       notice.Batch.Batch,
 			"Semester":    notice.Semester.SemesterName,
 			"FilePath":    notice.FilePath,
+			"Created_at":  notice.CreatedAt,
 		})
 	}
 
 	// Return the transformed list of notices
 	return c.JSON(fiber.Map{
 		"notices": notices,
+	})
+}
+
+func GetNoticeById(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var notice models.Notice
+
+	// Find the notice by ID
+	if err := initializers.DB.First(&notice, id).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"message": "Notice not found",
+		})
+	}
+
+	if err := initializers.DB.Where("id = ?", id).Find(&notice).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Error retrieving notices",
+			"error":   err.Error(),
+		})
+	}
+
+	// Return a success message
+	return c.JSON(fiber.Map{
+		"notice":  notice,
+		"message": "Notice deleted successfully",
 	})
 }
 
