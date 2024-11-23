@@ -11,6 +11,7 @@ import StudentTable from '../../components/StudentTable'
 import DashboardAsideCard from '../../components/DashboardAsideCard'
 import { useAuth } from '../../context/AuthContext'
 import { Navigate } from 'react-router-dom'
+import ListNotice from '../notice/ListNotice'
 
 const Dashboard = () => {
     const {  isAuthenticated } = useAuth();
@@ -47,7 +48,7 @@ const Dashboard = () => {
             </div>
             <div className='grid grid-rows-2 grid-flow-col gap-16'>
                 <div className="row-span-2 col-span-5">
-                    {/* <StudentTable /> */}
+                    <ListNotice />
                 </div>
                 <div className='row-span-2 col-span-1'>
                     <DashboardAsideCard />
