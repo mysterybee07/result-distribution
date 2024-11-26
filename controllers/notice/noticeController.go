@@ -187,7 +187,7 @@ func DeleteNotice(c *fiber.Ctx) error {
 }
 
 func GetNoticesByProgram(c *fiber.Ctx) error {
-	var notices []models.Notice
+	var allNotices []models.Notice
 
 	// Get the program ID from the query parameter
 	programID := c.Query("program_id")
@@ -200,10 +200,24 @@ func GetNoticesByProgram(c *fiber.Ctx) error {
 	}
 
 	// Filter notices by ProgramID
-	if err := initializers.DB.Where("program_id = ?", programID).Find(&notices).Error; err != nil {
+	if err := initializers.DB.Preload("Batch").Preload("Program").Preload("Semester").Where("program_id = ?", programID).Find(&allNotices).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Error retrieving notices",
 			"error":   err.Error(),
+		})
+	}
+	// Transform notices to include names instead of IDs
+	var notices []map[string]interface{}
+	for _, notice := range allNotices {
+		notices = append(notices, map[string]interface{}{
+			"ID":          notice.ID,
+			"Title":       notice.Title,
+			"Description": notice.Description,
+			"Program":     notice.Program.ProgramName,
+			"Batch":       notice.Batch.Batch,
+			"Semester":    notice.Semester.SemesterName,
+			"FilePath":    notice.FilePath,
+			"Created_at":  notice.CreatedAt,
 		})
 	}
 
@@ -214,7 +228,7 @@ func GetNoticesByProgram(c *fiber.Ctx) error {
 }
 
 func GetNoticesByProgramAndBatch(c *fiber.Ctx) error {
-	var notices []models.Notice
+	var allNotices []models.Notice
 
 	// Get the program ID and batch ID from the query parameters
 	programID := c.Query("program_id")
@@ -228,10 +242,24 @@ func GetNoticesByProgramAndBatch(c *fiber.Ctx) error {
 	}
 
 	// Filter notices by ProgramID and BatchID
-	if err := initializers.DB.Where("program_id = ? AND batch_id = ?", programID, batchID).Find(&notices).Error; err != nil {
+	if err := initializers.DB.Preload("Batch").Preload("Program").Preload("Semester").Where("program_id = ? AND batch_id = ?", programID, batchID).Find(&allNotices).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Error retrieving notices",
 			"error":   err.Error(),
+		})
+	}
+	// Transform notices to include names instead of IDs
+	var notices []map[string]interface{}
+	for _, notice := range allNotices {
+		notices = append(notices, map[string]interface{}{
+			"ID":          notice.ID,
+			"Title":       notice.Title,
+			"Description": notice.Description,
+			"Program":     notice.Program.ProgramName,
+			"Batch":       notice.Batch.Batch,
+			"Semester":    notice.Semester.SemesterName,
+			"FilePath":    notice.FilePath,
+			"Created_at":  notice.CreatedAt,
 		})
 	}
 
