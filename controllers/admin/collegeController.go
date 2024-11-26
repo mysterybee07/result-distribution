@@ -13,7 +13,32 @@ import (
 )
 
 func UploadColleges(c *fiber.Ctx) error {
-	// Get the uploaded file
+	// Check the Content-Type header to differentiate between file and JSON input
+	contentType := c.Get("Content-Type")
+
+	if contentType == "application/json" {
+		// Handle JSON input
+		var college models.College
+		if err := c.BodyParser(&college); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Invalid JSON payload",
+			})
+		}
+
+		// Validate and save the college to the database
+		if err := initializers.DB.Create(&college).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to add college", "details": err.Error(),
+			})
+		}
+
+		return c.JSON(fiber.Map{
+			"success": true,
+			"college": college,
+		})
+	}
+
+	// Handle file upload (default behavior)
 	file, err := c.FormFile("file")
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "File upload failed"})
@@ -26,10 +51,17 @@ func UploadColleges(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to save file"})
 	}
 
-	// Call the ParseColleges function (without batchID and programID)
+	// Call the ParseColleges function to parse the file
 	colleges, err := utils.ParseColleges(filePath)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	// Save parsed colleges to the database
+	for _, college := range colleges {
+		if err := initializers.DB.Create(&college).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to save colleges", "details": err.Error()})
+		}
 	}
 
 	return c.JSON(fiber.Map{"success": true, "colleges": colleges})
