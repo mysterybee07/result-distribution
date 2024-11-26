@@ -1,14 +1,16 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/session"
-	"github.com/gofiber/template/html/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/mysterybee07/result-distribution-system/initializers"
-	"github.com/mysterybee07/result-distribution-system/middleware"
 	"github.com/mysterybee07/result-distribution-system/routes"
 )
 
@@ -21,42 +23,50 @@ func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
 		log.Fatal("The port is taken by another process.")
-		port = "8080"
+		port = "3000"
 	}
 	log.Println("Starting the server on port " + port + "..........")
 
 	// Load templates
-	engine := html.New("./resources/views", ".html")
-	engine.AddFunc("add", func(values ...int) int {
-		sum := 0
-		for _, v := range values {
-			sum += v
-		}
-		return sum
-	})
+	// engine := html.New("./resources/views", ".html")
+	// engine.AddFunc("add", func(values ...int) int {
+	// 	sum := 0
+	// 	for _, v := range values {
+	// 		sum += v
+	// 	}
+	// 	return sum
+	// })
 
 	app := fiber.New(fiber.Config{
-		Views: engine,
+		// Views: engine,
 	})
 
 	// Initialize session store
-	store := session.New()
+	// store := session.New()
 
 	// Use session middleware
-	app.Use(func(c *fiber.Ctx) error {
-		sess, err := store.Get(c)
-		if err != nil {
-			return err
-		}
-		c.Locals("session", sess)
-		return c.Next()
-	})
-	// Use flash messages middleware
-	app.Use(middleware.FlashMessages)
-	// Loading static files
-	app.Static("/", "./static")
-	// Loading images
-	app.Static("/static", "./static")
+	// app.Use(func(c *fiber.Ctx) error {
+	// 	sess, err := store.Get(c)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	c.Locals("session", sess)
+	// 	return c.Next()
+	// })
+
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     "http://localhost:5173/",
+		AllowMethods:     "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+		AllowHeaders:     "Origin, Content-Type, Accept",
+		AllowCredentials: true, // Enable cookies for cross-origin requests
+	}))
+
+	// // Use flash messages middleware
+	// app.Use(middleware.FlashMessages)
+	// // Loading static files
+	// app.Static("/", "./static")
+	// // Loading images
+	// app.Static("/static", "./static")
 
 	// Authentication routes
 	routes.Home(app)
@@ -64,21 +74,30 @@ func main() {
 	// Protected routes
 	// app.Use(middleware.AuthRequired)
 
-	// Routes
-	routes.Profile(app)
-	routes.Dashboard(app)
-	routes.Student(app)
-	routes.Batch(app)
-	routes.Program(app)
-	routes.Semester(app)
-	routes.Course(app)
-	routes.Mark(app)
-	routes.Result(app)
-	routes.Error(app)
+	routes.SetupRoutes(app)
 
-	err := app.Listen(":" + port)
-	if err != nil {
-		log.Fatalf("Server failed to listen: %v", err)
+	// Start the server and handle graceful shutdown
+	go func() {
+		if err := app.Listen(":" + port); err != nil {
+			log.Fatalf("Error starting server: %v", err)
+		}
+	}()
+
+	// Graceful shutdown handling
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	log.Println("Shutting down server...")
+
+	// Create a context with a timeout to allow for graceful shutdown
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Shutdown the Fiber app gracefully
+	if err := app.ShutdownWithContext(ctx); err != nil {
+		log.Fatalf("Server forced to shutdown: %v", err)
 	}
-	log.Println("Server exited")
+
+	log.Println("Server exited gracefully")
 }

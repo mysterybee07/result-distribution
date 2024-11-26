@@ -11,6 +11,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
@@ -18,7 +19,7 @@ var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 var JwtSecret = []byte("Ajfdslfjlsdfjldslfj")
 
 func GenerateJwt(userID uint, role string, c *fiber.Ctx) (string, error) {
-	expirationTime := time.Now().Add(5 * time.Minute) // Set token expiration time
+	expirationTime := time.Now().Add(time.Hour * 24) // Set token expiration time
 	claims := jwt.MapClaims{
 		"userID": strconv.Itoa(int(userID)),
 		"role":   role,
@@ -32,14 +33,15 @@ func GenerateJwt(userID uint, role string, c *fiber.Ctx) (string, error) {
 	}
 
 	// Set JWT token as a cookie
-	cookie := fiber.Cookie{
+	c.Cookie(&fiber.Cookie{
 		Name:     "jwt",
 		Value:    tokenString,
-		Expires:  expirationTime,
-		HTTPOnly: true, // Prevent JavaScript from accessing the cookie
-	}
+		Expires:  time.Now().Add(time.Hour * 24),
+		HTTPOnly: true,   // Prevents JavaScript from accessing the cookie
+		Secure:   false,  // Set to true for HTTPS in production
+		SameSite: "None", // Adjust based on your needs (e.g., "Strict" or "None")
+	})
 
-	c.Cookie(&cookie)
 	return tokenString, nil
 }
 
@@ -90,3 +92,47 @@ func SanitizeFileName(fileName string) string {
 	re := regexp.MustCompile(`[^a-zA-Z0-9._-]`)
 	return strings.ToLower(re.ReplaceAllString(fileName, "_"))
 }
+
+// HashPassword hashes a plain text password
+func HashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	return string(bytes), err
+}
+
+// CheckPasswordHash compares a plain text password with a hashed password
+func CheckPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
+}
+
+// ConvertIDs converts batch ID and program ID from string to pointers of uint.
+// Returns an error if any conversion fails.
+func ConvertIDs(batchIDStr, programIDStr string) (batchID, programID *uint, err error) {
+	if batchIDStr != "" {
+		batchUint, err := strconv.ParseUint(batchIDStr, 10, 32)
+		if err != nil {
+			return nil, nil, err // Return the error if conversion fails
+		}
+		batchIDVal := uint(batchUint)
+		batchID = &batchIDVal // Return a pointer to the converted uint
+	}
+
+	if programIDStr != "" {
+		programUint, err := strconv.ParseUint(programIDStr, 10, 32)
+		if err != nil {
+			return nil, nil, err // Return the error if conversion fails
+		}
+		programIDVal := uint(programUint)
+		programID = &programIDVal // Return a pointer to the converted uint
+	}
+
+	return batchID, programID, nil // Return both pointers and nil error
+}
+
+// min returns the minimum of two integers
+// func min(a, b int) int {
+// 	if a < b {
+// 		return a
+// 	}
+// 	return b
+// }

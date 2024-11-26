@@ -15,17 +15,21 @@ func AuthRequired(c *fiber.Ctx) error {
 	token := c.Cookies("jwt")
 
 	if token == "" {
-		return c.Redirect("/login", fiber.StatusFound)
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "unauthorized",
+		})
 	}
 
 	// Validate token and get user ID and role
-	userID, role, err := utils.ParseJwt(token)
+	userID, _, err := utils.ParseJwt(token)
 	if err != nil {
 		log.Printf("Failed to parse JWT: %v\n", err)
-		return c.Redirect("/login", fiber.StatusFound)
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "unauthorized user",
+		})
 	}
 
-	log.Printf("Authenticated user ID: %s, Role: %s\n", userID, role)
+	// log.Printf("Authenticated user ID: %s, Role: %s\n", userID, role)
 
 	// Set user ID and role in locals
 	c.Locals("userID", userID)

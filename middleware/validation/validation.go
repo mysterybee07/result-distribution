@@ -1,7 +1,6 @@
 package validation
 
 import (
-	"errors"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
@@ -93,55 +92,93 @@ func ValidateMarksInput(input *models.MarksPayload, isUpdate bool) error {
 }
 
 func ValidateUser(data *models.User, isUpdate bool) error {
-	// Validate email format
-	if !utils.ValidateEmail(data.Email) {
-		return errors.New("invalid email format")
-	}
-
-	// Check password length only for new registrations or if updating the password
+	// Validate password length
 	if !isUpdate || (isUpdate && len(data.Password) > 0) {
 		if len(data.Password) < 8 {
-			return errors.New("password must be at least 8 characters long")
+			log.Println("Password too short:", data.Password)
+			return fiber.NewError(fiber.StatusBadRequest, "Password must be at least 8 characters long")
 		}
 	}
 
 	if isUpdate {
-		// If it's an update, we only validate email, password, and image URL
+		// Logging for update validation
+		log.Println("Update detected. Skipping batch, program, symbol checks.")
 		if data.Email == "" && data.Password == "" && data.ImageURL == "" {
-			return errors.New("at least one of email, password, or image URL must be provided for update")
+			log.Println("No update fields provided")
+			return fiber.NewError(fiber.StatusBadRequest, "At least one of email, password, or image must be provided for update")
 		}
 		var existingUser models.User
 		if err := initializers.DB.Where("email = ?", data.Email).First(&existingUser).Error; err == nil && existingUser.ID != data.ID {
-			return errors.New("email is already taken")
+			log.Println("Email is already taken:", data.Email)
+			return fiber.NewError(fiber.StatusBadRequest, "Email is already taken")
 		}
-		return nil // No additional validation needed for updates
+		return nil
 	}
 
-	// If it's a new user registration, validate all required fields
-	if data.BatchID == nil || data.ProgramID == nil || data.SymbolNumber == "" || data.RegistrationNumber == "" || data.Email == "" || data.Password == "" {
-		return errors.New("batch ID, program ID, symbol, registration, email, and password are required for regular users")
+	// New user validation
+	// Check if BatchID is provided
+	if data.BatchID == nil {
+		log.Println("Missing BatchID")
+		return fiber.NewError(fiber.StatusBadRequest, "Batch ID is required")
+	}
+
+	// Check if ProgramID is provided
+	if data.ProgramID == nil {
+		log.Println("Missing ProgramID")
+		return fiber.NewError(fiber.StatusBadRequest, "Program ID is required")
+	}
+
+	// Check if SymbolNumber is provided
+	if data.SymbolNumber == "" {
+		log.Println("Missing SymbolNumber")
+		return fiber.NewError(fiber.StatusBadRequest, "Symbol Number is required")
+	}
+
+	// Check if RegistrationNumber is provided
+	if data.RegistrationNumber == "" {
+		log.Println("Missing RegistrationNumber")
+		return fiber.NewError(fiber.StatusBadRequest, "Registration Number is required")
+	}
+
+	// Check if Email is provided
+	if data.Email == "" {
+		log.Println("Missing Email")
+		return fiber.NewError(fiber.StatusBadRequest, "Email is required")
+	} else if !utils.ValidateEmail(data.Email) {
+		log.Println("Invalid email format:", data.Email)
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid email format")
+	}
+
+	// Check if Password is provided
+	if data.Password == "" {
+		log.Println("Missing Password")
+		return fiber.NewError(fiber.StatusBadRequest, "Password is required")
 	}
 
 	// Check if symbol and registration exist in the students table for the given batch and program
 	var student models.Student
 	if err := initializers.DB.Where("symbol_number = ? AND registration_number = ? AND batch_id = ? AND program_id = ?", data.SymbolNumber, data.RegistrationNumber, *data.BatchID, *data.ProgramID).First(&student).Error; err != nil {
-		return errors.New("invalid symbol or registration for the specified batch and program")
+		log.Println("Invalid symbol/registration for batch and program:", data.SymbolNumber, data.RegistrationNumber)
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid symbol or registration for the specified batch and program")
 	}
 
-	// Check for unique email if not updating or email has changed
+	// Check for unique email
 	var existingUser models.User
 	if err := initializers.DB.Where("email = ?", data.Email).First(&existingUser).Error; err == nil && existingUser.ID != data.ID {
-		return errors.New("email is already taken")
+		log.Println("Email already taken:", data.Email)
+		return fiber.NewError(fiber.StatusBadRequest, "Email is already taken")
 	}
 
-	// Check if symbol number is unique for the given batch and program
+	// Check if symbol number is unique for the batch and program
 	if err := initializers.DB.Where("symbol_number = ? AND batch_id = ? AND program_id = ?", data.SymbolNumber, data.BatchID, data.ProgramID).First(&existingUser).Error; err == nil && existingUser.ID != data.ID {
-		return errors.New("symbol number is already taken for the specified batch and program")
+		log.Println("Symbol number already taken:", data.SymbolNumber)
+		return fiber.NewError(fiber.StatusBadRequest, "Symbol number is already taken for the specified batch and program")
 	}
 
-	// Check if registration number is unique for the given batch and program
+	// Check if registration number is unique for the batch and program
 	if err := initializers.DB.Where("registration_number = ? AND batch_id = ? AND program_id = ?", data.RegistrationNumber, data.BatchID, data.ProgramID).First(&existingUser).Error; err == nil && existingUser.ID != data.ID {
-		return errors.New("registration number is already taken for the specified batch and program")
+		log.Println("Registration number already taken:", data.RegistrationNumber)
+		return fiber.NewError(fiber.StatusBadRequest, "Registration number is already taken for the specified batch and program")
 	}
 
 	return nil

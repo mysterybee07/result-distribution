@@ -1,7 +1,6 @@
 package models
 
 import (
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -20,14 +19,12 @@ type User struct {
 	Program            *Program `gorm:"foreignkey:ProgramID;constraint:OnDelete:SET NULL;"` // Nullable foreign key
 }
 
-// HashPassword hashes a plain text password
-func HashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	return string(bytes), err
-}
-
-// CheckPasswordHash compares a plain text password with a hashed password
-func CheckPasswordHash(password, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
+type UserInput struct {
+	ProgramID          uint   `form:"program_id" json:"program_id"`
+	BatchID            uint   `form:"batch_id" json:"batch_id"`
+	SymbolNumber       string `form:"symbol_number" json:"symbol_number"`
+	RegistrationNumber string `form:"registration_number" json:"registration_number"`
+	Email              string `form:"email" json:"email"`
+	Password           string `form:"password" json:"password"`
+	Role               string `form:"role" json:"role"`
 }
