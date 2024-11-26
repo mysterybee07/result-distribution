@@ -54,7 +54,7 @@ func StoreRegister(c *fiber.Ctx) error {
 		})
 	}
 
-	hashedPassword, err := models.HashPassword(user.Password)
+	hashedPassword, err := utils.HashPassword(user.Password)
 	if err != nil {
 		log.Println("Failed to hash password")
 		c.Status(fiber.StatusBadRequest)
@@ -120,7 +120,7 @@ func LoginUser(c *fiber.Ctx) error {
 	}
 
 	// Check if the password is correct
-	if !models.CheckPasswordHash(loginData.Password, user.Password) {
+	if !utils.CheckPasswordHash(loginData.Password, user.Password) {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Incorrect password or identifier",
 		})
@@ -172,7 +172,7 @@ func UpdateUser(c *fiber.Ctx) error {
 	}
 
 	if updateData.Password != "" {
-		hashpassword, err := models.HashPassword(updateData.Password)
+		hashpassword, err := utils.HashPassword(updateData.Password)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"message": "Failed to hash password",
