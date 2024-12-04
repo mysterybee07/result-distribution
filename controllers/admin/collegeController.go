@@ -16,6 +16,7 @@ func UploadColleges(c *fiber.Ctx) error {
 	// Get the uploaded file
 	file, err := c.FormFile("file")
 	if err != nil {
+		fmt.Println("Error receiving file:", err) // Log to console for debugging
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "File upload failed"})
 	}
 
