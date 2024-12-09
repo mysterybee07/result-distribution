@@ -117,6 +117,7 @@ const StudentForm = () => {
                     fullname: data.fullname,
                     symbol_number: data.symbol_number,
                     registration_number: data.registration_number,
+                    college_id: data.college_id,
                 }
             ]
         }
