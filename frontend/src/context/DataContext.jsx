@@ -25,7 +25,7 @@ export const DataProvider = ({ children }) => {
     // const { data:semesters, isLoading: loadingSemesters, error: errorSemesters } = useQuery({
     //     queryKey: ['semesters'],
     //     queryFn: async () => {
-    //         const response = await api.get('/semester');
+    //         const response = await api.get('/semester/by-program/');
     //         return response.data.semesters;
     //     },
     // });
