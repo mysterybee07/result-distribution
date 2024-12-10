@@ -30,11 +30,9 @@ const ListCollege = () => {
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
   return (
-    <div>
-      <div className='flex justify-between items-center'>
-        <TableCaption className='text-center'>List of colleges</TableCaption>
-        < Button onClick={() => navigate('/admin/college/create')} size="sm" > Add College</Button>
-      </div>
+    <>
+      <TableCaption className='flex self-start'>List of colleges</TableCaption>
+      <Button onClick={() => navigate('/admin/college/create')} size="sm" className='flex self-end' > Add College</Button>
       <Table className="text-left">
         <TableHeader>
           <TableRow>
@@ -54,7 +52,7 @@ const ListCollege = () => {
         </TableHeader>
         <TableBody>
           {college.map((data, index) => (
-            <TableRow>
+            <TableRow key={index}>
               <TableCell>{index + 1}</TableCell>
               <TableCell>{data.college_name}</TableCell>
               <TableCell>{data.address}</TableCell>
@@ -73,7 +71,7 @@ const ListCollege = () => {
           ))}
         </TableBody>
       </Table>
-    </div>
+    </>
   )
 }
 
