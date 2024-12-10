@@ -25,6 +25,7 @@ import CreateCollege from './pages/college/createCollege';
 import ListCollege from './pages/college/listCollege';
 import CreateNotice from './pages/notice/CreateNotice';
 import EditNotice from './pages/notice/EditNotice';
+import EditCourse from './pages/courses/EditCourse';
 
 const ProtectedRoute = ({ element }) => {
   const { isAuthenticated } = useAuth();
@@ -99,6 +100,7 @@ function App() {
                 {/* course */}
                 <Route path="/admin/courses" element={<AdminRoute element={<ListCourse />} />} />
                 <Route path="/admin/courses/create" element={<AdminRoute element={<CreateCourse />} />} />
+                <Route path="/admin/courses/edit/:id" element={<AdminRoute element={<EditCourse />} />} />
                 {/* college */}
                 <Route path='/admin/college' element={<AdminRoute element={<ListCollege />} />}/>
                 <Route path='/admin/college/create' element={<AdminRoute element={<CreateCollege />} />}/>

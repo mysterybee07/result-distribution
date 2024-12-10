@@ -11,12 +11,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { Button } from '../../components/ui/button';
+import { FaEdit } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 const ListCourse = () => {
+  const navigate = useNavigate();
   const { programs } = useData();
   // console.log("🚀 ~ ListCourse ~ semester:", semester)
   const [selectedProgram, setSelectedProgram] = useState("");
   const [selectedSemester, setSelectedSemester] = useState("");
+  const [search, setSearch] = useState(false);
   console.log("🚀 ~ ListCourse ~ selectedProgram:", selectedProgram)
   const {
     data: semesters,
@@ -45,7 +59,7 @@ const ListCourse = () => {
   const { data: courses = [], isLoading, error } = useQuery({
     queryKey: ["courses", selectedProgram, selectedSemester], // Include program and semester in the queryKey
     queryFn: fetchCourse,
-    enabled: !!selectedProgram && !!selectedSemester, // Run only when both values are truthy
+    enabled: search // Run only when both values are truthy
   });
 
   console.log(courses);
@@ -94,6 +108,7 @@ const ListCourse = () => {
               alert("Please select both a program and a semester.");
               return;
             }
+            setSearch(true);
             // No need to call fetchCourse directly; react-query handles it
             // The `enabled` option in useQuery ensures the query runs when values are valid
           }}
@@ -102,17 +117,61 @@ const ListCourse = () => {
         </Button>
 
       </div>
-      <div>
-        {Array.isArray(courses) && courses.map((course, index) => (
-          <div key={index}>
-            <h1>{course.name}</h1>
-            <p>{course.course_code}</p>
-            <p>{course.is_compulsory ? 'true' : 'false'}</p>
-            <p>{course.semester_total_marks}</p>
-            <p>{course.practical_total_marks}</p>
-            <p>{course.assistant_total_marks}</p>
-          </div>
-        ))}
+      <div className='mt-4'>
+        {courses.length === 0 ?
+          <div>
+            No data found.
+            <p>Try selecting a program and semester.</p>
+          </div> : (
+            <Table>
+              <TableHeader>
+                {/* First Row for Main Headers */}
+                <TableRow>
+                  <TableHead rowSpan={2}>Course Code</TableHead>
+                  <TableHead rowSpan={2}>Course Name</TableHead>
+                  <TableHead rowSpan={2}>Is Compulsory</TableHead>
+                  <TableHead colSpan={2} className="text-center">Semester</TableHead>
+                  <TableHead colSpan={2} className="text-center">Practical</TableHead>
+                  <TableHead colSpan={2} className="text-center">Assistant</TableHead>
+                  <TableHead rowSpan={2}>Action</TableHead>
+                </TableRow>
+                {/* Second Row for Sub-Headers */}
+                <TableRow className="text-center">
+                  <TableHead>Total Marks</TableHead>
+                  <TableHead>Pass Marks</TableHead>
+                  <TableHead>Total Marks</TableHead>
+                  <TableHead>Pass Marks</TableHead>
+                  <TableHead>Total Marks</TableHead>
+                  <TableHead>Pass Marks</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {/* Map through courses */}
+                {Array.isArray(courses) &&
+                  courses.map((course, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{course.course_code}</TableCell>
+                      <TableCell>{course.name}</TableCell>
+                      <TableCell>{course.is_compulsory ? 'True' : 'False'}</TableCell>
+                      <TableCell>{course.semester_total_marks}</TableCell>
+                      <TableCell>{course.semester_pass_marks}</TableCell>
+                      <TableCell>{course.practical_total_marks}</TableCell>
+                      <TableCell>{course.practical_pass_marks}</TableCell>
+                      <TableCell>{course.assistant_total_marks}</TableCell>
+                      <TableCell>{course.assistant_pass_marks}</TableCell>
+                      <TableCell>
+                        <FaEdit
+                          className="text-blue-600 cursor-pointer"
+                          onClick={() => navigate(`/admin/courses/edit/${course.ID}`)}
+                        />
+                      </TableCell>
+
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          )}
+
       </div>
     </>
   )
