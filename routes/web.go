@@ -204,6 +204,7 @@ func SetupRoutes(app *fiber.App) {
 	course.Post("/create", adminController.CreateCourses)
 	course.Put("/update/:id", adminController.UpdateCourse)
 	course.Get("/filter", adminController.GetFilteredCourses)
+	course.Get("/:id", adminController.GetCourseById)
 
 	// Mark Routes
 	mark := app.Group("/marks")
@@ -251,5 +252,6 @@ func SetupRoutes(app *fiber.App) {
 	college.Get("", adminController.GetColleges)
 	college.Post("/upload-college", adminController.UploadColleges)
 	college.Get("/centers", adminController.GetCenterColleges)
-
+	college.Put("/update-college/:id", adminController.UpdateCollege)
+	college.Delete("/delete-college/:id", adminController.DeleteCollege)
 }

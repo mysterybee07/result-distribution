@@ -36,7 +36,7 @@ const Dashboard = () => {
             selectedProgram && selectedBatch ? `/notice/by-program-and-batch?program_id=${selectedProgram}&batch_id=${selectedBatch}`
                 : selectedProgram ? `/notice/by-program?program_id=${selectedProgram}`
                     : '/notice'; // Conditional URL based on programId
-        const response = await api.get(apiUrl);
+        const response = await api.get(apiUrl);        
         console.log(response.data.notices);
         return Array.isArray(response.data.notices) ? response.data.notices : []; // Ensure it's always an array
     };
