@@ -15,9 +15,14 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarFooter,
 } from "@/components/ui/sidebar"
 import { ChevronRightIcon } from "@radix-ui/react-icons"
 import { Link, useLocation } from "react-router-dom"
+// import { NavUser } from "@/components/nav-user"
+import { NavUser} from "./ui/nav-user"
+import { useAuth } from "../context/AuthContext"
+
 
 // This is sample data.
 const data = {
@@ -113,6 +118,14 @@ export function AppSidebar({ ...props }) {
   const location = useLocation(); // Get the current location
   const currentPath = location.pathname; // Extract the pathname
   console.log("🚀 ~ AppSidebar ~ currentPath:", currentPath)
+  const { isAuthenticated, logout, userData } = useAuth();
+  console.log("🚀 ~ AppSidebar ~ userData:", userData)
+  const user = {
+    // TODO: change this no name later
+    name: userData?.role,
+    email: userData?.email,
+    avatar: userData?.avatar,
+  }
 
   return (
     <Sidebar {...props}>
@@ -122,15 +135,15 @@ export function AppSidebar({ ...props }) {
 
       <SidebarContent className="gap-0">
         <SidebarGroup>
-          <a
-            href="/dashboard"
+          <Link
+            to="/dashboard"
           >
             <SidebarMenuButton className={currentPath === "/dashboard" ? " font-semibold bg-sidebar-accent" : "font-semibold text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"}
             >
 
               Home
             </SidebarMenuButton>
-          </a>
+          </Link>
         </SidebarGroup>
         {/* We create a collapsible SidebarGroup for each parent. */}
         {data.navMain.map((item) => (
@@ -178,6 +191,9 @@ export function AppSidebar({ ...props }) {
           </Collapsible>
         ))}
       </SidebarContent>
+      <SidebarFooter>
+        <NavUser user={user} logout={logout}/>
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );
