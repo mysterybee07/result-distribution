@@ -63,6 +63,7 @@ func Connect() {
 		&models.College{},
 		&models.CapacityAndCount{},
 		&models.ExamRoutine{},
+		&models.ExamSchedules{},
 	); err != nil {
 		log.Fatalf("Error migrating database: %v", err)
 	}

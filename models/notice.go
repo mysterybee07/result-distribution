@@ -13,6 +13,7 @@ type Notice struct {
 	Batch       Batch    `gorm:"foreignKey:BatchID" json:"-"`
 	Program     Program  `gorm:"foreignKey:ProgramID" json:"-"`
 	Semester    Semester `gorm:"foreignKey:SemesterID" json:"-"`
+	Status      string   `gorm:"not null; default:NotPublished" json:"status"`
 }
 
 type NoticeInput struct {
