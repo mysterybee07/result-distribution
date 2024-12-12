@@ -12,8 +12,11 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { FaEdit, FaTrash } from 'react-icons/fa';
+import { Button } from '../../components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 const ListCollege = () => {
+  const navigate = useNavigate();
   const fetchColleges = async () => {
     const response = await api.get("/college");
     console.log("🚀 ~ fetchColleges ~ response:", response.data.center)
@@ -27,44 +30,48 @@ const ListCollege = () => {
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
   return (
-    <Table className="text-left">
-      <TableHeader>
-        <TableRow>
-          <TableHead>
-            S.N
-          </TableHead>
-          <TableHead>
-            Name
-          </TableHead>
-          <TableHead>
-            Address
-          </TableHead>
-          <TableHead>
-            Action
-          </TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {college.map((data, index) => (
+    <>
+      <TableCaption className='flex self-start'>List of colleges</TableCaption>
+      <Button onClick={() => navigate('/admin/college/create')} size="sm" className='flex self-end' > Add College</Button>
+      <Table className="text-left">
+        <TableHeader>
           <TableRow>
-            <TableCell>{index + 1}</TableCell>
-            <TableCell>{data.college_name}</TableCell>
-            <TableCell>{data.address}</TableCell>
-            <TableCell className="flex items-center gap-4">
-              {/* todo change after route has been added */}
-              <FaEdit
-                className="text-blue-600 cursor-pointer"
-                onClick={() => navigate(`/admin/students/edit/${data.ID}`)}
-              />
-              <FaTrash
-                onClick={() => navigate(`/admin/students/${data.ID}`)}
-                className="text-red-600"
-              />
-            </TableCell>
+            <TableHead>
+              S.N
+            </TableHead>
+            <TableHead>
+              Name
+            </TableHead>
+            <TableHead>
+              Address
+            </TableHead>
+            <TableHead>
+              Action
+            </TableHead>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {college.map((data, index) => (
+            <TableRow key={index}>
+              <TableCell>{index + 1}</TableCell>
+              <TableCell>{data.college_name}</TableCell>
+              <TableCell>{data.address}</TableCell>
+              <TableCell className="flex items-center gap-4">
+                {/* todo change after route has been added */}
+                <FaEdit
+                  className="text-blue-600 cursor-pointer"
+                  onClick={() => navigate(`/admin/students/edit/${data.ID}`)}
+                />
+                <FaTrash
+                  onClick={() => navigate(`/admin/students/${data.ID}`)}
+                  className="text-red-600"
+                />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </>
   )
 }
 
