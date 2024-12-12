@@ -24,7 +24,7 @@ func ExamRoutine(batchID, programID, semesterID uint, startDate, endDate time.Ti
 	}
 
 	if len(overlappingExams) > 0 {
-		return "", nil, fmt.Errorf("Overlapping exams detected: Ensure a 20-day gap between exams for the same program")
+		return "", nil, fmt.Errorf("overlapping exams detected: Ensure a 20-day gap between exams for the same program")
 	}
 
 	// Fetch courses for the semester and program
@@ -43,7 +43,7 @@ func ExamRoutine(batchID, programID, semesterID uint, startDate, endDate time.Ti
 	// Validate date range
 	days := int(endDate.Sub(startDate).Hours() / 24)
 	if len(courses) > days {
-		return "", nil, fmt.Errorf("Not enough days in the range to schedule all exams")
+		return "", nil, fmt.Errorf("not enough days in the range to schedule all exams")
 	}
 
 	// Generate exam schedule
