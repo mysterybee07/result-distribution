@@ -242,10 +242,12 @@ func SetupRoutes(app *fiber.App) {
 	notice.Get("/by-id/:id", noticeController.GetNoticeById)
 	notice.Get("/by-program", noticeController.GetNoticesByProgram)
 	notice.Get("/by-program-and-batch", noticeController.GetNoticesByProgramAndBatch)
+	notice.Post("/publish", noticeController.PublishNotice)
 
 	exam := app.Group("/exam")
 	exam.Get("/assign-centers", examController.AssignCentersHandler)
 	exam.Post("/update-center-and-capacity", adminController.AssignCenterAndCapacity)
+	exam.Post("/schedule/create", adminController.CreateExamRoutine)
 	exam.Post("/schedule/publish", adminController.PublishExamRoutine)
 
 	college := app.Group("/college")

@@ -1,13 +1,16 @@
 package controllers
 
 import (
+	"fmt"
+
 	"github.com/gofiber/fiber/v2"
+	"github.com/mysterybee07/result-distribution-system/initializers"
 	"github.com/mysterybee07/result-distribution-system/middleware/validation"
 	"github.com/mysterybee07/result-distribution-system/models"
 	"github.com/mysterybee07/result-distribution-system/utils"
 )
 
-func PublishExamRoutine(c *fiber.Ctx) error {
+func CreateExamRoutine(c *fiber.Ctx) error {
 
 	// Parse request body
 	var req models.ExamRoutineRequest
@@ -33,5 +36,32 @@ func PublishExamRoutine(c *fiber.Ctx) error {
 		"message":       "Exams routine published successfully",
 		"fileName":      fileName,
 		"examSchedules": examSchedules,
+	})
+}
+
+func PublishExamRoutine(c *fiber.Ctx) error {
+
+	id := c.Params("id")
+
+	var examRoutine models.ExamRoutine
+
+	if err := initializers.DB.First(&examRoutine, id).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"errror": "Exam Routine with id not found",
+		})
+	}
+	examRoutine.Status = "Published"
+
+	// Save the updated ExamRoutine
+	if err := initializers.DB.Save(&examRoutine).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": fmt.Sprintf("Failed to update status: %v", err),
+		})
+	}
+
+	// Return a success response
+	return c.JSON(fiber.Map{
+		"message":     "ExamRoutine status updated to Published",
+		"examRoutine": examRoutine,
 	})
 }
