@@ -227,18 +227,24 @@ func LoginUser(c *fiber.Ctx) error {
 	if err := initializers.DB.Where("email = ? OR symbol_number = ?", loginData.Identifier, loginData.Identifier).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"errors": fiber.Map{"identifier": "User not found for the provided email or symbol"},
+				"errors": fiber.Map{
+					"identifier": "User not found for the provided email or symbol",
+				},
 			})
 		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"errors": fiber.Map{"message": "Database error occurred"},
+			"errors": fiber.Map{
+				"message": "Database error occurred",
+			},
 		})
 	}
 
 	// Check if the password is correct
 	if !utils.CheckPasswordHash(loginData.Password, user.Password) {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"errors": fiber.Map{"password": "Incorrect password or identifier"},
+			"errors": fiber.Map{
+				"password": "Incorrect password or identifier",
+			},
 		})
 	}
 
