@@ -63,6 +63,7 @@ const Layout = () => {
 const queryClient = new QueryClient();
 
 function App() {
+  // const { isAuthenticated } = useAuth();
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
