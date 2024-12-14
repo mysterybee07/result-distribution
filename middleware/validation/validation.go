@@ -2,6 +2,7 @@ package validation
 
 import (
 	"log"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/mysterybee07/result-distribution-system/initializers"
@@ -181,5 +182,37 @@ func ValidateUser(data *models.User, isUpdate bool) error {
 		return fiber.NewError(fiber.StatusBadRequest, "Registration number is already taken for the specified batch and program")
 	}
 
+	return nil
+}
+
+// ValidateExamScheduleRequest validates the request body for creating an exam schedule
+func ValidateExamScheduleRequest(req *models.ExamRoutineRequest) error {
+	// Validate that the dates are not in the past and that the end date is after the start date
+	currentTime := time.Now()
+	if req.StartDate.Before(currentTime) {
+		return fiber.NewError(fiber.StatusBadRequest, "Start date cannot be in the past")
+	}
+	if req.EndDate.Before(currentTime) {
+		return fiber.NewError(fiber.StatusBadRequest, "End date cannot be in the past")
+	}
+	if req.EndDate.Before(req.StartDate) {
+		return fiber.NewError(fiber.StatusBadRequest, "End date must be after the start date")
+	}
+
+	// Validate foreign keys for Batch, Program, and Semester
+	var batch models.Batch
+	var program models.Program
+	var semester models.Semester
+	if err := initializers.DB.First(&batch, req.BatchID).Error; err != nil {
+		return fiber.NewError(fiber.StatusNotFound, "Batch not found")
+	}
+	if err := initializers.DB.First(&program, req.ProgramID).Error; err != nil {
+		return fiber.NewError(fiber.StatusNotFound, "Program not found")
+	}
+	if err := initializers.DB.First(&semester, req.SemesterID).Error; err != nil {
+		return fiber.NewError(fiber.StatusNotFound, "Semester not found")
+	}
+
+	// Validation passed
 	return nil
 }

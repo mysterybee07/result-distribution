@@ -29,28 +29,21 @@ import { useQuery } from "@tanstack/react-query"
 import api from "../api"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { useData } from "../context/DataContext"
 
 export default function DashboardAsideCard() {
-    const { data: programs, isLoading, error } = useQuery({
-        queryKey: ['programs'],
-        queryFn: async () => {
-            const response = await api.get("/program");
-            return response.data.programs;
-        },
-    });
+    const {
+        programs,
+        loadingPrograms,
+        errorPrograms,
+        batches,
+        loadingBatches,
+        errorBatches,
+    } = useData();
 
-    const { data: batches } = useQuery({
-        queryKey: ['batches'],
-        queryFn: async () => {
-            const response = await api.get("/batch");
-            return response.data.batches;
-        },
-    });
-    // console.log(programs);
+    if (loadingPrograms && loadingBatches) return <div>Loading...</div>;
 
-    if (isLoading) return <div>Loading...</div>;
-
-    if (error) return <div>Error: {error.message}</div>;
+    if (errorPrograms && errorBatches) return <div>Error: {errorBatches.message || errorPrograms.message}</div>;
 
     return (
         <Tabs defaultValue="program" className="w-[400px]">

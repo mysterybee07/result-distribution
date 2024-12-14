@@ -23,7 +23,7 @@ func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
 		log.Fatal("The port is taken by another process.")
-		port = "8080"
+		port = "3000"
 	}
 	log.Println("Starting the server on port " + port + "..........")
 

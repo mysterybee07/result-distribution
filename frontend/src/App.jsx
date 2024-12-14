@@ -19,6 +19,15 @@ import StudentForm from './forms/StudentForm';
 import { LoginForm } from './forms/LoginForm';
 import { DataProvider } from './context/DataContext';
 import BulkStudentForm from './forms/BulkStudentForm';
+import CreateCourse from './pages/courses/CreateCourse';
+import ListCourse from './pages/courses/ListCourse';
+import CreateCollege from './pages/college/createCollege';
+import ListCollege from './pages/college/listCollege';
+import CreateNotice from './pages/notice/CreateNotice';
+import EditNotice from './pages/notice/EditNotice';
+import EditCourse from './pages/courses/EditCourse';
+import { Demo } from './pages/Demo';
+import AdminLayout from './layout/AuthLayout';
 
 const ProtectedRoute = ({ element }) => {
   const { isAuthenticated } = useAuth();
@@ -26,10 +35,12 @@ const ProtectedRoute = ({ element }) => {
 };
 
 const AdminRoute = ({ element }) => {
-  const { isAuthenticated, role } = useAuth();
+  const { isAuthenticated, role, loading } = useAuth();
+  if (loading) return <p>Loading...</p>;
+  console.log("🚀 ~ AdminRoute ~ role:", role)
 
   if (!isAuthenticated) return <Navigate to="/login" />;
-  if (!role === "admin") return <Navigate to="/" />;
+  if (role !== "admin") return <Navigate to="/" />;
 
   return element;
 };
@@ -47,18 +58,7 @@ const Layout = () => {
   );
 };
 
-const AdminLayout = () => {
-  return (
-    <div className="mt-16 p-0 w-full flex flex-col min-h-screen">
-      <AdminNavbar />
-      <div className="flex-grow">
-        <Toaster />
-        <Outlet />
-      </div>
-      <Footer />
-    </div>
-  );
-};
+
 
 const queryClient = new QueryClient();
 
@@ -79,13 +79,28 @@ function App() {
               </Route>
 
               {/* Admin routes */}
+              <Route path="/demo" element={<AdminRoute element={<Demo />} />} />
               <Route element={<AdminLayout />}>
-                <Route path="/admin" element={<AdminRoute element={<Dashboard />} />} />
+
+                <Route path="/dashboard" element={<AdminRoute element={<Dashboard />} />} />
                 <Route path="/admin/exam" element={<AdminRoute element={<Dashboard />} />} />
                 <Route path="/admin/result" element={<AdminRoute element={<Dashboard />} />} />
+                {/* student */}
                 <Route path="/admin/students" element={<AdminRoute element={<Student />} />} />
                 <Route path="/admin/students/create" element={<AdminRoute element={<StudentForm />} />} />
+                <Route path="/admin/students/edit/:id" element={<AdminRoute element={<StudentForm />} />} />
                 <Route path="/admin/students/create/bulk" element={<AdminRoute element={<BulkStudentForm />} />} />
+                {/* course */}
+                <Route path="/admin/courses" element={<AdminRoute element={<ListCourse />} />} />
+                <Route path="/admin/courses/create" element={<AdminRoute element={<CreateCourse />} />} />
+                <Route path="/admin/courses/edit/:id" element={<AdminRoute element={<EditCourse />} />} />
+                {/* college */}
+                <Route path='/admin/college' element={<AdminRoute element={<ListCollege />} />} />
+                <Route path='/admin/college/create' element={<AdminRoute element={<CreateCollege />} />} />
+                {/* Notice */}
+                <Route path="/admin/notice" element={<AdminRoute element={<Dashboard />} />} />
+                <Route path="/admin/notice/create" element={<AdminRoute element={<CreateNotice />} />} />
+                <Route path="/admin/notice/edit/:id" element={<AdminRoute element={<EditNotice />} />} />
               </Route>
             </Routes>
           </Router>

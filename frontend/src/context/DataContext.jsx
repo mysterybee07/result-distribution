@@ -22,8 +22,35 @@ export const DataProvider = ({ children }) => {
         },
     });
 
+    // const { data:semesters, isLoading: loadingSemesters, error: errorSemesters } = useQuery({
+    //     queryKey: ['semesters'],
+    //     queryFn: async () => {
+    //         const response = await api.get('/semester/by-program/');
+    //         return response.data.semesters;
+    //     },
+    // });
+
+    const { data: students, isLoading: loadingStudents, error: errorStudents } = useQuery({
+        queryKey: ['students'],
+        queryFn: async () => {
+            const response = await api.get('/students');
+            return response.data.students;
+        },
+    });
+
     return (
-        <DataContext.Provider value={{ programs, loadingPrograms, errorPrograms, batches, loadingBatches, errorBatches }}>
+        <DataContext.Provider
+            value={{
+                programs,
+                loadingPrograms,
+                errorPrograms,
+                batches,
+                loadingBatches,
+                errorBatches,
+                // semesters,
+                // loadingSemesters,
+                // errorSemesters,
+            }}>
             {children}
         </DataContext.Provider>
     );

@@ -126,6 +126,7 @@ import (
 	adminController "github.com/mysterybee07/result-distribution-system/controllers/admin"
 	authController "github.com/mysterybee07/result-distribution-system/controllers/auth"
 	errorController "github.com/mysterybee07/result-distribution-system/controllers/error"
+	examController "github.com/mysterybee07/result-distribution-system/controllers/exam"
 	noticeController "github.com/mysterybee07/result-distribution-system/controllers/notice"
 	userController "github.com/mysterybee07/result-distribution-system/controllers/user"
 	"github.com/mysterybee07/result-distribution-system/middleware"
@@ -166,11 +167,14 @@ func SetupRoutes(app *fiber.App) {
 	student.Get("/edit/:id", adminController.EditStudent)
 	student.Post("/create", adminController.CreateStudents)
 	student.Get("/filter", adminController.GetFilteredStudents)
+	student.Delete("/delete", adminController.DeleteStudent)
+	student.Get("/pass-students-by-semester", adminController.PassingStudentsBySemester)
+	student.Get("/fail-students-by-course", adminController.FailedStudentsByCourse)
 
 	// Batch Routes
 	batch := app.Group("/batch")
 	// batch := app.Group("/batches", middleware.AuthRequired, middleware.SuperadminRequired)
-	batch.Get("/", adminController.GetBatches)
+	batch.Get("", adminController.GetBatches)
 	batch.Post("/create", adminController.CreateBatch)
 	batch.Put("/update/:id", adminController.UpdateBatch)
 	// batch.Get("/")
@@ -190,16 +194,17 @@ func SetupRoutes(app *fiber.App) {
 	// semester.Post("/", adminController.CreateSemester)
 	semester.Post("/create", adminController.CreateSemester)
 	semester.Put("/update/:id", adminController.UpdateSemester)
-	semester.Get("/by-program", adminController.GetSemestersByProgramID)
+	semester.Get("/by-program/:id", adminController.GetSemestersByProgramID)
 
 	// Course Routes
 	course := app.Group("/courses")
 	// course := app.Group("/courses", middleware.AuthRequired, middleware.SuperadminRequired)
-	course.Get("/", adminController.Course)
+	// course.Get("/", adminController.Course)
 	// course.Post("/create", adminController.CreateCourses)
 	course.Post("/create", adminController.CreateCourses)
 	course.Put("/update/:id", adminController.UpdateCourse)
 	course.Get("/filter", adminController.GetFilteredCourses)
+	course.Get("/:id", adminController.GetCourseById)
 
 	// Mark Routes
 	mark := app.Group("/marks")
@@ -224,15 +229,31 @@ func SetupRoutes(app *fiber.App) {
 	errorGroup.Get("/500", errorController.ServerError)
 
 	// Dashboard Routes
-	dashboard := app.Group("/dashboard")
-	dashboard.Get("/", adminController.Index)
-	dashboard.Get("/failstudents", adminController.FailStudents)
+	// dashboard := app.Group("/dashboard")
+	// dashboard.Get("/", adminController.Index)
+	// dashboard.Get("/failstudents", adminController.FailStudents)
 
 	//notice routes
 	notice := app.Group("/notice")
 	notice.Get("", noticeController.GetAllNotices)
 	notice.Post("/create", noticeController.CreateNotice)
+	notice.Delete("/delete/:id", noticeController.DeleteNotice)
 	notice.Put("/update/:id", noticeController.UpdateNotice)
+	notice.Get("/by-id/:id", noticeController.GetNoticeById)
 	notice.Get("/by-program", noticeController.GetNoticesByProgram)
 	notice.Get("/by-program-and-batch", noticeController.GetNoticesByProgramAndBatch)
+	notice.Post("/publish", noticeController.PublishNotice)
+
+	exam := app.Group("/exam")
+	exam.Get("/assign-centers", examController.AssignCentersHandler)
+	exam.Post("/update-center-and-capacity", adminController.AssignCenterAndCapacity)
+	exam.Post("/schedule/create", adminController.CreateExamRoutine)
+	exam.Post("/schedule/publish", adminController.PublishExamRoutine)
+
+	college := app.Group("/college")
+	college.Get("", adminController.GetColleges)
+	college.Post("/upload-college", adminController.UploadColleges)
+	college.Get("/centers", adminController.GetCenterColleges)
+	college.Put("/update-college/:id", adminController.UpdateCollege)
+	college.Delete("/delete-college/:id", adminController.DeleteCollege)
 }

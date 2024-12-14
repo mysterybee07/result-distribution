@@ -33,11 +33,17 @@ func Course(c *fiber.Ctx) error {
 
 // StoreCourse handles storing multiple courses in a single request
 func CreateCourses(c *fiber.Ctx) error {
-
 	var payload models.CoursesPayload
 	if err := c.BodyParser(&payload); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Failed to parse request body",
+		})
+	}
+
+	// Check if courses were provided
+	if len(payload.Courses) == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "No courses provided. Please specify at least one course.",
 		})
 	}
 
@@ -70,6 +76,13 @@ func CreateCourses(c *fiber.Ctx) error {
 	var courses []models.Course
 	// Validate and create courses
 	for _, course := range payload.Courses {
+		// Validate that course has necessary fields
+		if course.CourseCode == "" || course.Name == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Course code and name cannot be empty",
+			})
+		}
+
 		course.ProgramID = payload.ProgramID
 		course.SemesterID = payload.SemesterID
 
@@ -146,5 +159,20 @@ func GetFilteredCourses(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"courses": courses,
+	})
+}
+
+func GetCourseById(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var course models.Course
+	if err := initializers.DB.First(&course, id).Error; err != nil {
+		c.Status(fiber.StatusNotFound)
+		return c.JSON(fiber.Map{
+			"error": "Course not found",
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Course retrieve successfully",
+		"course":  course,
 	})
 }
