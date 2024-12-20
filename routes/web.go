@@ -132,17 +132,17 @@ import (
 	"github.com/mysterybee07/result-distribution-system/middleware"
 )
 
-func Home(app *fiber.App) {
-	app.Get("", authController.Home)
-}
+// func Home(app *fiber.App) {
+// 	app.Get("", authController.Home)
+// }
 
 func SetupRoutes(app *fiber.App) {
 	// Home/User Routes
 	user := app.Group("/user")
 
-	user.Get("/register", authController.Register)
+	// user.Get("/register", authController.Register)
 	user.Post("/register", authController.StoreRegister)
-	user.Get("/login", authController.Login)
+	// user.Get("/login", authController.Login)
 	user.Post("/login", authController.LoginUser)
 	user.Post("/logout", authController.LogoutUser)
 	user.Get("/forgot-password", authController.ForgotPassword)
@@ -204,6 +204,7 @@ func SetupRoutes(app *fiber.App) {
 	course.Post("/create", adminController.CreateCourses)
 	course.Put("/update/:id", adminController.UpdateCourse)
 	course.Get("/filter", adminController.GetFilteredCourses)
+	course.Get("/:id", adminController.GetCourseById)
 
 	// Mark Routes
 	mark := app.Group("/marks")
@@ -241,14 +242,18 @@ func SetupRoutes(app *fiber.App) {
 	notice.Get("/by-id/:id", noticeController.GetNoticeById)
 	notice.Get("/by-program", noticeController.GetNoticesByProgram)
 	notice.Get("/by-program-and-batch", noticeController.GetNoticesByProgramAndBatch)
+	notice.Post("/publish", noticeController.PublishNotice)
 
 	exam := app.Group("/exam")
 	exam.Get("/assign-centers", examController.AssignCentersHandler)
 	exam.Post("/update-center-and-capacity", adminController.AssignCenterAndCapacity)
+	exam.Post("/schedule/create", adminController.CreateExamRoutine)
 	exam.Post("/schedule/publish", adminController.PublishExamRoutine)
 
 	college := app.Group("/college")
+	college.Get("", adminController.GetColleges)
 	college.Post("/upload-college", adminController.UploadColleges)
 	college.Get("/centers", adminController.GetCenterColleges)
-
+	college.Put("/update-college/:id", adminController.UpdateCollege)
+	college.Delete("/delete-college/:id", adminController.DeleteCollege)
 }

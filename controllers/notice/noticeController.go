@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"fmt"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/mysterybee07/result-distribution-system/initializers"
 	"github.com/mysterybee07/result-distribution-system/models"
@@ -266,5 +268,29 @@ func GetNoticesByProgramAndBatch(c *fiber.Ctx) error {
 	// Return the filtered notices
 	return c.JSON(fiber.Map{
 		"notices": notices,
+	})
+}
+
+func PublishNotice(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	var notice models.Notice
+
+	if err := initializers.DB.First(&notice, id).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": fmt.Sprintf("Notice Not Found. Error: %v", err),
+		})
+	}
+
+	notice.Status = "Published"
+
+	if err := initializers.DB.Save(&notice).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Unable to publish notice",
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Notice Publish Successfully",
+		"notice":  notice,
 	})
 }

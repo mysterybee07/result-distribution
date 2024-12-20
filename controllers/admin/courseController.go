@@ -161,3 +161,18 @@ func GetFilteredCourses(c *fiber.Ctx) error {
 		"courses": courses,
 	})
 }
+
+func GetCourseById(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var course models.Course
+	if err := initializers.DB.First(&course, id).Error; err != nil {
+		c.Status(fiber.StatusNotFound)
+		return c.JSON(fiber.Map{
+			"error": "Course not found",
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Course retrieve successfully",
+		"course":  course,
+	})
+}
