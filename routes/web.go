@@ -132,17 +132,17 @@ import (
 	"github.com/mysterybee07/result-distribution-system/middleware"
 )
 
-func Home(app *fiber.App) {
-	app.Get("", authController.Home)
-}
+// func Home(app *fiber.App) {
+// 	app.Get("", authController.Home)
+// }
 
 func SetupRoutes(app *fiber.App) {
 	// Home/User Routes
 	user := app.Group("/user")
 
-	user.Get("/register", authController.Register)
+	// user.Get("/register", authController.Register)
 	user.Post("/register", authController.StoreRegister)
-	user.Get("/login", authController.Login)
+	// user.Get("/login", authController.Login)
 	user.Post("/login", authController.LoginUser)
 	user.Post("/logout", authController.LogoutUser)
 	user.Get("/forgot-password", authController.ForgotPassword)

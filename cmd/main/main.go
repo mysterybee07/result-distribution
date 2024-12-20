@@ -69,7 +69,7 @@ func main() {
 	// app.Static("/static", "./static")
 
 	// Authentication routes
-	routes.Home(app)
+	// routes.Home(app)
 
 	// Protected routes
 	// app.Use(middleware.AuthRequired)

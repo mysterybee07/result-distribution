@@ -14,39 +14,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// var initializers *gorm.DB
-func Home(c *fiber.Ctx) error {
-	err := c.Render("index", fiber.Map{})
-	if err != nil {
-		c.Status(fiber.StatusInternalServerError).SendString("Error rendering page")
-		return err
-	}
-	return nil
-
-}
-
-func Register(c *fiber.Ctx) error {
-	var batches []models.Batch
-	if err := initializers.DB.Find(&batches).Error; err != nil {
-		c.Status(fiber.StatusInternalServerError).SendString("Error fetching batches")
-		return err
-	}
-	var programs []models.Program
-	if err := initializers.DB.Find(&programs).Error; err != nil {
-		c.Status(fiber.StatusInternalServerError).SendString("Error fetching programs")
-		return err
-	}
-	err := c.Render("users/signup", fiber.Map{
-		"Programs": programs,
-		"Batches":  batches,
-	})
-	if err != nil {
-		c.Status(fiber.StatusInternalServerError).SendString("Error rendering page")
-		return err
-	}
-	return nil
-}
-
 // StoreRegister handles the registration of a new user
 
 func StoreRegister(c *fiber.Ctx) error {
@@ -120,89 +87,6 @@ func StoreRegister(c *fiber.Ctx) error {
 		"user":    user,
 	})
 }
-
-func Login(c *fiber.Ctx) error {
-	err := c.Render("users/login", fiber.Map{})
-	if err != nil {
-		c.Status(fiber.StatusInternalServerError).SendString("Error rendering page")
-		return err
-	}
-	return nil
-}
-
-// LoginUser handles user login
-
-// func LoginUser(c *fiber.Ctx) error {
-// 	type LoginData struct {
-// 		Identifier string `json:"identifier"`
-// 		Password   string `json:"password"`
-// 	}
-
-// 	var loginData LoginData
-
-// 	// Parse the login data
-// 	if err := c.BodyParser(&loginData); err != nil {
-// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-// 			"message": "Unable to parse login data",
-// 		})
-// 	}
-
-// 	// Find user by email or symbol
-// 	var user models.User
-// 	// if err := initializers.DB.Where("email = ? OR symbol_number = ?", loginData.Identifier, loginData.Identifier).First(&user).Error; err != nil {
-// 	// 	return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-// 	// 		"message": "No user found for the email or symbol",
-// 	// 	})
-// 	// }
-
-// 	// // Check if the password is correct
-// 	// if !utils.CheckPasswordHash(loginData.Password, user.Password) {
-// 	// 	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-// 	// 		"message": "Incorrect password or identifier",
-// 	// 	})
-// 	// }
-
-// 	if err := initializers.DB.Where("email = ? OR symbol_number = ?", loginData.Identifier, loginData.Identifier).First(&user).Error; err != nil {
-// 		// Check if the error is a "not found" error
-// 		if errors.Is(err, gorm.ErrRecordNotFound) {
-// 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-// 				"message": "No user found for the email or symbol",
-// 			})
-// 		}
-// 		// Handle other possible database errors here if necessary
-// 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-// 			"message": "Database error occurred",
-// 		})
-// 	}
-
-// 	// Check if the password is correct
-// 	if !utils.CheckPasswordHash(loginData.Password, user.Password) {
-// 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-// 			"message": "Incorrect password or identifier",
-// 		})
-// 	}
-
-// 	// Successful login
-// 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-// 		"message": "Login successful",
-// 		// Include any other relevant information here
-// 	})
-
-// 	// Create JWT token
-// 	token, err := utils.GenerateJwt(user.ID, user.Role, c)
-// 	if err != nil {
-// 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-// 			"message": "Failed to Generate JWT tokens",
-// 		})
-// 	}
-
-// 	// Return success response
-// 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-// 		"message": "User login successful",
-// 		"user":    user,
-// 		"token":   token, // Optional: you can return the token in the response as well
-// 	})
-// }
 
 func LoginUser(c *fiber.Ctx) error {
 	type LoginData struct {
@@ -360,9 +244,6 @@ func LogoutUser(c *fiber.Ctx) error {
 
 func AuthorizedUser(c *fiber.Ctx) error {
 	userID := c.Locals("userID").(string) // Retrieve user ID from locals
-
-	// Log userID and role for debugging
-	// log.Printf("Parsed UserID: %s, Role: %s", userID, role)
 
 	// Retrieve user information from database
 	var user models.User
