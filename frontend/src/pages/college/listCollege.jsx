@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import React from 'react'
+import React, { useState } from 'react'
 import api from '../../api';
 import {
   Table,
@@ -14,9 +14,11 @@ import {
 import { FaEdit, FaTrash } from 'react-icons/fa';
 import { Button } from '../../components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { UpdateCenter } from '../../components/UpdateCenter';
 
 const ListCollege = () => {
   const navigate = useNavigate();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const fetchColleges = async () => {
     const response = await api.get("/college");
     console.log("🚀 ~ fetchColleges ~ response:", response.data.center)
@@ -66,11 +68,12 @@ const ListCollege = () => {
                   onClick={() => navigate(`/admin/students/${data.ID}`)}
                   className="text-red-600"
                 />
+                <UpdateCenter />
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
-      </Table>
+      </Table >
     </>
   )
 }
