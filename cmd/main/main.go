@@ -27,16 +27,6 @@ func main() {
 	}
 	log.Println("Starting the server on port " + port + "..........")
 
-	// Load templates
-	// engine := html.New("./resources/views", ".html")
-	// engine.AddFunc("add", func(values ...int) int {
-	// 	sum := 0
-	// 	for _, v := range values {
-	// 		sum += v
-	// 	}
-	// 	return sum
-	// })
-
 	app := fiber.New(fiber.Config{
 		// Views: engine,
 	})

@@ -67,7 +67,7 @@ func UploadColleges(c *fiber.Ctx) error {
 
 	// Save parsed colleges to the database
 	for _, college := range colleges {
-		if err := initializers.DB.Create(&college).Error; err != nil {
+		if err := initializers.DB.FirstOrCreate(&college).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error":   "Failed to save colleges",
 				"details": err.Error(),
@@ -123,6 +123,7 @@ func GetColleges(c *fiber.Ctx) error {
 		"center": colleges,
 	})
 }
+
 func AssignCenterAndCapacity(c *fiber.Ctx) error {
 	// Check the content type of the request
 	contentType := c.Get("Content-Type")
