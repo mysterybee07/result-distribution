@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/csv"
+	"fmt"
 	"os"
 	"strconv"
 
@@ -20,7 +21,8 @@ func UploadColleges(c *fiber.Ctx) error {
 		// Handle JSON input
 		if err := c.BodyParser(&college); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Invalid JSON payload", "err": err.Error(),
+				"error": "Invalid JSON payload",
+				"err":   err.Error(),
 			})
 		}
 
@@ -37,34 +39,45 @@ func UploadColleges(c *fiber.Ctx) error {
 		})
 	}
 
-	// // Handle file upload (default behavior)
-	// file, err := c.FormFile("file")
-	// if err != nil {
-	// 	fmt.Println("Error receiving file:", err) // Log to console for debugging
-	// 	return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "File upload failed"})
-	// }
+	// Handle file upload (default behavior)
+	file, err := c.FormFile("file")
+	if err != nil {
+		fmt.Println("Error receiving file:", err) // Log to console for debugging
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "File upload failed",
+		})
+	}
 
-	// // Save the uploaded file to a temporary location
-	// filePath := fmt.Sprintf("./uploads/%s", file.Filename)
-	// err = c.SaveFile(file, filePath)
-	// if err != nil {
-	// 	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to save file"})
-	// }
+	// Save the uploaded file to a temporary location
+	filePath := fmt.Sprintf("./uploads/%s", file.Filename)
+	err = c.SaveFile(file, filePath)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to save file",
+		})
+	}
 
-	// // Call the ParseColleges function to parse the file
-	// colleges, err := utils.ParseColleges(filePath)
-	// if err != nil {
-	// 	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
-	// }
+	// Call the ParseColleges function to parse the file
+	colleges, err := utils.ParseColleges(filePath)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
 
-	// // Save parsed colleges to the database
-	// for _, college := range colleges {
-	// 	if err := initializers.DB.Create(&college).Error; err != nil {
-	// 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to save colleges", "details": err.Error()})
-	// 	}
-	// }
+	// Save parsed colleges to the database
+	for _, college := range colleges {
+		if err := initializers.DB.FirstOrCreate(&college).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error":   "Failed to save colleges",
+				"details": err.Error(),
+			})
+		}
+	}
 
-	return c.JSON(fiber.Map{"success": true, "colleges": college})
+	return c.JSON(fiber.Map{
+		"success": true, "colleges": colleges,
+	})
 }
 
 func GetCenterCollegesByProgramAndBatch(c *fiber.Ctx) error {
@@ -96,47 +109,27 @@ func GetCenterCollegesByProgramAndBatch(c *fiber.Ctx) error {
 		"centers": centers,
 	})
 }
-
-func GetAllCenterColleges(c *fiber.Ctx) error {
-
-	type CenterResponse struct {
-		CollegeName   string `json:"college_name"`
-		Address       string `json:"address"`
-		Capacity      int    `json:"capacity"`
-		StudentsCount int    `json:"students_count"`
-	}
-
-	var centers []CenterResponse
-
-	// Join College and select required fields
-	if err := initializers.DB.Model(&models.CapacityAndCount{}).
-		Joins("JOIN colleges ON colleges.id = capacity_and_counts.college_id").
-		Select("colleges.college_name as college_name,colleges.address, capacity_and_counts.capacity, capacity_and_counts.students_count").
-		Scan(&centers).Error; err != nil {
-
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to fetch center colleges",
-		})
-	}
-
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"centers": centers,
-	})
-}
-
 func GetColleges(c *fiber.Ctx) error {
-	var colleges []models.College
-	// var colleges []models.College
-	// var colleges []models.College
+	var results []struct {
+		CollegeCode string `json:"college_code"`
+		CollegeName string `json:"college_name"`
+		Address     string `json:"address"`
+		IsCenter    bool   `json:"is_center"`
+		Capacity    int    `json:"capacity"`
+	}
 
-	if err := initializers.DB.Find(&colleges).Error; err != nil {
+	if err := initializers.DB.Table("colleges").
+		Select("colleges.college_code, colleges.college_name, colleges.address, COALESCE(capacity_and_counts.is_center, false) AS is_center, COALESCE(capacity_and_counts.capacity, 0) AS capacity").
+		Joins("LEFT JOIN capacity_and_counts ON colleges.id = capacity_and_counts.college_id").
+		Find(&results).Error; err != nil {
 		c.Status(fiber.StatusInternalServerError)
 		return c.JSON(fiber.Map{
-			"error": "College not found",
+			"error": "Failed to fetch colleges",
 		})
 	}
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"center": colleges,
+		"colleges": results,
 	})
 }
 

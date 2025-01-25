@@ -22,24 +22,26 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { UpdateCenter } from "../../components/UpdateCenter";
 
+// TODO: when the center is true don't let the user select
 export default function ListCollege() {
   const navigate = useNavigate();
   const [sorting, setSorting] = useState([]);
   const [filter, setFilter] = useState("");
   const [selectedColleges, setSelectedColleges] = useState([]);
-  
+
   console.log("🚀 ~ ListCollege ~ selectedColleges:", selectedColleges)
 
   const fetchColleges = async () => {
     const response = await api.get("/college");
     console.log("🚀 ~ fetchColleges ~ response:", response.data.center);
-    return response.data.center;
+    return response.data.colleges;
   };
 
   const { data: college = [], isLoading, error } = useQuery({
     queryKey: ["colleges"],
     queryFn: fetchColleges,
   });
+  console.log("🚀 ~ ListCollege ~ college:", college)
 
   const handleCheckboxChange = (id) => {
     setSelectedColleges((prev) =>
@@ -99,7 +101,7 @@ export default function ListCollege() {
               className="text-red-600 cursor-pointer"
               onClick={() => navigate(`/admin/students/${data.ID}`)}
             />
-            <UpdateCenter />
+            <UpdateCenter center={data.is_center} />
           </div>
         );
       },
@@ -131,18 +133,20 @@ export default function ListCollege() {
           onChange={(e) => setFilter(e.target.value)}
           className="max-w-sm"
         />
-        {selectedColleges.length > 0 &&
-          <Button
-            onClick={() => navigate(`/admin/center/create?colleges=${encodeURIComponent(JSON.stringify(selectedColleges))}`)}
-            size="sm"
-          >
-            Update as center
-          </Button>
+        <div className="flex gap-2">
+          {selectedColleges.length > 0 &&
+            <Button
+              onClick={() => navigate(`/admin/center/create?colleges=${encodeURIComponent(JSON.stringify(selectedColleges))}`)}
+              size="sm"
+            >
+              Update as center
+            </Button>
 
-        }
-        <Button onClick={() => navigate("/admin/college/create")} size="sm">
-          Add College
-        </Button>
+          }
+          <Button onClick={() => navigate("/admin/college/create")} size="sm">
+            Add College
+          </Button>
+        </div>
       </div>
       <div className="rounded-md border">
         <Table>

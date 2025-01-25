@@ -12,7 +12,7 @@ import {
     DrawerTrigger,
 } from "@/components/ui/drawer"
 
-export function UpdateCenter() {
+export function UpdateCenter({ center }) {
     const [goal, setGoal] = React.useState(1)
 
     function onClick(adjustment) {
@@ -28,7 +28,18 @@ export function UpdateCenter() {
     return (
         <Drawer>
             <DrawerTrigger asChild>
-                <Button variant="outline">Center</Button>
+                <Button
+                    variant="outline"
+                    disabled={!center}
+                    style={{
+                        backgroundColor: center ? "green" : "transparent",
+                        color: center ? "white" : "black",
+                        borderColor: center ? "green" : "gray",
+                    }}
+                >
+                    Center
+                </Button>
+
             </DrawerTrigger>
             <DrawerContent>
                 <div className="mx-auto w-full max-w-sm">
