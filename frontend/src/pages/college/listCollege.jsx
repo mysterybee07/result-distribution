@@ -95,13 +95,13 @@ export default function ListCollege() {
           <div className="flex items-center gap-4">
             <FaEdit
               className="text-blue-600 cursor-pointer"
-              onClick={() => navigate(`/admin/students/edit/${data.ID}`)}
+              onClick={() => navigate(`/admin/students/edit/${data.id}`)}
             />
             <FaTrash
               className="text-red-600 cursor-pointer"
-              onClick={() => navigate(`/admin/students/${data.ID}`)}
+              onClick={() => navigate(`/admin/students/${data.id}`)}
             />
-            <UpdateCenter center={data.is_center} capacity={data.capacity} id={data.ID}/>
+            <UpdateCenter center={data.is_center} capacity={data.capacity} id={data.id}/>
           </div>
         );
       },

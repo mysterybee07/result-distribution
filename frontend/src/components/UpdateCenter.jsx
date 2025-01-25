@@ -1,4 +1,4 @@
-import * as React from "react"
+import React, { useState } from "react"
 import { Minus, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -12,27 +12,38 @@ import {
     DrawerTrigger,
 } from "@/components/ui/drawer"
 import api from "../api"
+import { useToast } from "@/hooks/use-toast";
 
 export function UpdateCenter({ center, capacity, id }) {
-    // console.log("🚀 ~ UpdateCenter ~ id:", id)
-    const [goal, setGoal] = React.useState(capacity)
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [goal, setGoal] = useState(capacity)
+    const { toast } = useToast();
 
     function onClick(adjustment) {
         setGoal(goal + adjustment)
     }
 
     const handleClick = async () => {
-        const capacity = goal;
+        const capacity = goal; // Assuming `goal` is the desired capacity value
         try {
-            const response = await api.post(`/exam/update-capacity/${id}`, capacity);
+            const response = await api.post(`/exam/update-capacity/${id}`, {
+                capacity: Number(capacity), // Ensure capacity is sent as an object
+            });
+            console.log("🚀 ~ handleClick ~ response:", response)
+            const data = response.data;
             if (response.status === 200) {
-                return navigate('/admin/college')
-            } 
+                setIsDrawerOpen(false); // Close the drawer on success
+                toast({
+                    title: "Center Updated",
+                    description: JSON.stringify(data.message),
+                    variant: "success",
+                })
+            }
         } catch (err) {
-            setMessage("Failed to send request.");
             console.error(err);
         }
-    }
+    };
+
     return (
         <Drawer>
             <DrawerTrigger asChild>
@@ -44,6 +55,7 @@ export function UpdateCenter({ center, capacity, id }) {
                         color: center ? "white" : "black",
                         borderColor: center ? "green" : "gray",
                     }}
+                // onClick={() => setIsDrawerOpen(true)} // Open the drawer
                 >
                     Center
                 </Button>
@@ -84,7 +96,7 @@ export function UpdateCenter({ center, capacity, id }) {
                                                 setGoal(newValue);
                                             }
                                         }}
-                                        className="w-full text-center text-7xl font-bold tracking-tighter bg-transparent border-none outline-none"
+                                        className="w-full text-center text-7xl font-bold bg-transparent border-none outline-none"
                                     />
 
 

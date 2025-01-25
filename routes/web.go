@@ -247,7 +247,7 @@ func SetupRoutes(app *fiber.App) {
 	exam := app.Group("/exam")
 	exam.Get("/assign-centers", examController.AssignCentersHandler)
 	exam.Post("/update-center-and-capacity", adminController.AssignCenterAndCapacity)
-	exam.Post("/update-capacity", adminController.UpdateCapacity)
+	exam.Post("/update-capacity/:id", adminController.UpdateCapacity)
 	exam.Post("/schedule/create", adminController.CreateExamRoutine)
 	exam.Post("/schedule/publish", adminController.PublishExamRoutine)
 
