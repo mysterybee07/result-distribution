@@ -254,3 +254,41 @@ func DeleteCollege(c *fiber.Ctx) error {
 		"message": "College deleted successfully",
 	})
 }
+
+func UpdateCapacity(c *fiber.Ctx) error {
+	centerID := c.Params("id")
+
+	// Parse request body to get the new capacity value
+	type RequestBody struct {
+		Capacity int `json:"capacity"`
+	}
+	var requestBody RequestBody
+
+	if err := c.BodyParser(&requestBody); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid request body",
+		})
+	}
+
+	// Find the center by ID and ensure it's a center
+	var center models.CapacityAndCount
+	if err := initializers.DB.Where("id = ? AND is_center = ?", centerID, true).First(&center).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"message": "Center not found or not a valid center",
+		})
+	}
+
+	// Update the capacity
+	center.Capacity = requestBody.Capacity
+	if err := initializers.DB.Save(&center).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to update capacity",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message":  "Capacity updated successfully",
+		"center":   center.CollegeID,
+		"capacity": center.Capacity,
+	})
+}
