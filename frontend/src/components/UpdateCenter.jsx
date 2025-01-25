@@ -11,18 +11,27 @@ import {
     DrawerTitle,
     DrawerTrigger,
 } from "@/components/ui/drawer"
+import api from "../api"
 
-export function UpdateCenter({ center, capacity }) {
+export function UpdateCenter({ center, capacity, id }) {
+    // console.log("🚀 ~ UpdateCenter ~ id:", id)
     const [goal, setGoal] = React.useState(capacity)
 
     function onClick(adjustment) {
         setGoal(goal + adjustment)
     }
 
-    const handleClick = () => {
-        const is_center = true;
-        const college_name = '';
-        const capacity = '';
+    const handleClick = async () => {
+        const capacity = goal;
+        try {
+            const response = await api.post(`/exam/update-capacity/${id}`, capacity);
+            if (response.status === 200) {
+                return navigate('/admin/college')
+            } 
+        } catch (err) {
+            setMessage("Failed to send request.");
+            console.error(err);
+        }
     }
     return (
         <Drawer>

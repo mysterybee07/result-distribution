@@ -101,7 +101,7 @@ export default function ListCollege() {
               className="text-red-600 cursor-pointer"
               onClick={() => navigate(`/admin/students/${data.ID}`)}
             />
-            <UpdateCenter center={data.is_center} capacity={data.capacity}/>
+            <UpdateCenter center={data.is_center} capacity={data.capacity} id={data.ID}/>
           </div>
         );
       },
