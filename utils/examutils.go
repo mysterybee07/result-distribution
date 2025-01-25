@@ -10,100 +10,8 @@ import (
 	"github.com/mysterybee07/result-distribution-system/models"
 )
 
-// func ExamRoutine(batchID, programID, semesterID uint, startDate, endDate time.Time) (string, interface{}, error) {
-// 	// Check for overlapping exams
-// 	overlapRangeStart := startDate.AddDate(0, 0, -20)
-// 	overlapRangeEnd := endDate.AddDate(0, 0, 20)
-
-// 	var overlappingExams []models.ExamRoutine
-// 	if err := initializers.DB.Where(
-// 		"program_id = ? AND (start_date BETWEEN ? AND ? OR end_date BETWEEN ? AND ?)",
-// 		programID, overlapRangeStart, overlapRangeEnd, overlapRangeStart, overlapRangeEnd,
-// 	).Find(&overlappingExams).Error; err != nil {
-// 		return "", nil, fmt.Errorf("database error: %w", err)
-// 	}
-
-// 	if len(overlappingExams) > 0 {
-// 		return "", nil, fmt.Errorf("overlapping exams detected: Ensure a 20-day gap between exams for the same program")
-// 	}
-
-// 	// Fetch courses for the semester and program
-// 	var courses []models.Course
-// 	if err := initializers.DB.Where(
-// 		"program_id = ? AND semester_id = ?",
-// 		programID, semesterID,
-// 	).Find(&courses).Error; err != nil {
-// 		return "", nil, fmt.Errorf("failed to fetch courses: %w", err)
-// 	}
-
-// 	if len(courses) == 0 {
-// 		return "", nil, fmt.Errorf("no courses found for the given program and semester")
-// 	}
-
-// 	// Validate date range
-// 	days := int(endDate.Sub(startDate).Hours() / 24)
-// 	if len(courses) > days {
-// 		return "", nil, fmt.Errorf("not enough days in the range to schedule all exams")
-// 	}
-
-// 	// Generate exam schedule
-// 	rand.Seed(time.Now().UnixNano())
-// 	usedDates := make(map[string]bool)
-// 	fileContent := "Course Code,Course Name,Exam Date\n"
-
-// 	// Create exam routine entry
-// 	examRoutine := models.ExamRoutine{
-// 		StartDate:  startDate,
-// 		EndDate:    endDate,
-// 		BatchID:    batchID,
-// 		ProgramID:  programID,
-// 		SemesterID: semesterID,
-// 	}
-
-// 	if err := initializers.DB.Create(&examRoutine).Error; err != nil {
-// 		return "", nil, fmt.Errorf("failed to save routine details: %w", err)
-// 	}
-
-// 	var examSchedules []models.ExamSchedules
-// 	for _, course := range courses {
-// 		var examDate time.Time
-// 		for {
-// 			randomDay := rand.Intn(days)
-// 			examDate = startDate.AddDate(0, 0, randomDay)
-// 			if !usedDates[examDate.Format("2006-01-02")] {
-// 				usedDates[examDate.Format("2006-01-02")] = true
-// 				break
-// 			}
-// 		}
-
-// 		// Append to file content
-// 		fileContent += fmt.Sprintf("%s,%s,%s\n", course.CourseCode, course.Name, examDate.Format("2006-01-02"))
-
-// 		// Save exam schedule to the database
-// 		examSchedule := models.ExamSchedules{
-// 			CourseID:      course.ID,
-// 			ExamRoutineID: examRoutine.ID,
-// 			ExamDate:      examDate,
-// 		}
-// 		if err := initializers.DB.Create(&examSchedule).Error; err != nil {
-// 			return "", nil, fmt.Errorf("failed to save exam schedule: %w", err)
-// 		}
-// 		examSchedules = append(examSchedules, examSchedule)
-// 	}
-
-// 	// Write the exam schedule to a CSV file
-// 	fileName := fmt.Sprintf("ExamRoutine_Batch%d_Program%d_Semester%d.csv", batchID, programID, semesterID)
-// 	if err := os.WriteFile(fileName, []byte(fileContent), 0644); err != nil {
-// 		return "", nil, fmt.Errorf("failed to write to file: %w", err)
-// 	}
-
-// 	// Return the file name and the generated exam schedules as JSON data
-// 	return fileName, examSchedules, nil
-// }
-
-// ExamRoutine schedules exams prioritizing compulsory courses using Genetic Algorithm
 func ExamRoutine(batchID, programID, semesterID uint, startDate, endDate time.Time) (string, interface{}, error) {
-	// Check for overlapping exams
+	// Check for overlapping exams within a 20-day range
 	overlapRangeStart := startDate.AddDate(0, 0, -20)
 	overlapRangeEnd := endDate.AddDate(0, 0, 20)
 
@@ -139,10 +47,10 @@ func ExamRoutine(batchID, programID, semesterID uint, startDate, endDate time.Ti
 		}
 	}
 
-	// Shuffle the compulsory courses
+	// Shuffle compulsory courses for randomness
 	compulsoryCourses = ShuffleCourses(compulsoryCourses)
 
-	// Create a new exam routine in the database
+	// Create the exam routine record
 	examRoutine := models.ExamRoutine{
 		StartDate:  startDate,
 		EndDate:    endDate,
@@ -159,12 +67,13 @@ func ExamRoutine(batchID, programID, semesterID uint, startDate, endDate time.Ti
 	fileContent := "Course Code,Course Name,Exam Date\n"
 	examSchedules := make([]models.ExamSchedules, 0)
 
-	// Scheduling compulsory courses with random gaps
+	// Schedule compulsory courses with gap logic
 	currentDate := startDate
+	gap := calculateGap(startDate, endDate, len(compulsoryCourses))
+
 	for _, course := range compulsoryCourses {
-		// Ensure exams are not scheduled on Saturdays
-		for currentDate.Weekday() == time.Saturday {
-			currentDate = currentDate.AddDate(0, 0, 1)
+		for isWeekend(currentDate) {
+			currentDate = currentDate.AddDate(0, 0, 1) // Skip weekends
 		}
 
 		fileContent += fmt.Sprintf("%s,%s,%s\n", course.CourseCode, course.Name, currentDate.Format("2006-01-02"))
@@ -180,13 +89,15 @@ func ExamRoutine(batchID, programID, semesterID uint, startDate, endDate time.Ti
 		}
 
 		examSchedules = append(examSchedules, examSchedule)
-
-		// Random gap of 1-3 days for next exam date
-		currentDate = currentDate.AddDate(0, 0, rand.Intn(3)+1)
+		currentDate = currentDate.AddDate(0, 0, gap) // Move to the next exam date
 	}
 
-	// Schedule all non-compulsory courses at the end date
+	// Schedule non-compulsory courses on the last day (endDate)
 	for _, course := range nonCompulsoryCourses {
+		for isWeekend(endDate) {
+			endDate = endDate.AddDate(0, 0, -1) // Avoid weekends
+		}
+
 		fileContent += fmt.Sprintf("%s,%s,%s\n", course.CourseCode, course.Name, endDate.Format("2006-01-02"))
 
 		examSchedule := models.ExamSchedules{
@@ -213,6 +124,18 @@ func ExamRoutine(batchID, programID, semesterID uint, startDate, endDate time.Ti
 }
 
 // Helper Functions
+func calculateGap(startDate, endDate time.Time, numCourses int) int {
+	totalDays := int(endDate.Sub(startDate).Hours() / 24)
+	if numCourses == 0 {
+		return 0
+	}
+	return totalDays / numCourses
+}
+
+// Helper function to check if a date falls on a weekend
+func isWeekend(date time.Time) bool {
+	return date.Weekday() == time.Saturday || date.Weekday() == time.Sunday
+}
 
 // shuffleCourses randomizes the course order
 func ShuffleCourses(courses []models.Course) []models.Course {
