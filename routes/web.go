@@ -253,7 +253,8 @@ func SetupRoutes(app *fiber.App) {
 	college := app.Group("/college")
 	college.Get("", adminController.GetColleges)
 	college.Post("/upload-college", adminController.UploadColleges)
-	college.Get("/centers", adminController.GetCenterColleges)
+	college.Get("/centers-by-program-and-batch", adminController.GetCenterCollegesByProgramAndBatch)
+	college.Get("/all-centers", adminController.GetAllCenterColleges)
 	college.Put("/update-college/:id", adminController.UpdateCollege)
 	college.Delete("/delete-college/:id", adminController.DeleteCollege)
 }

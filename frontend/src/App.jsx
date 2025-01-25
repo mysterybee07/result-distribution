@@ -6,7 +6,7 @@ import Register from './pages/Register';
 import Exam from './pages/Exam';
 import Profile from './pages/Profile';
 import Result from './pages/Result';
-import Footer from './components/Footer';
+// import Footer from './components/Footer';
 import Navbar from './components/Navbar';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -28,6 +28,8 @@ import EditNotice from './pages/notice/EditNotice';
 import EditCourse from './pages/courses/EditCourse';
 import { Demo } from './pages/Demo';
 import AdminLayout from './layout/AuthLayout';
+import CreateCenter from './pages/college/createCenter';
+import ListCenter from './pages/college/listCenter';
 
 const ProtectedRoute = ({ element }) => {
   const { isAuthenticated } = useAuth();
@@ -53,7 +55,7 @@ const Layout = () => {
         <Toaster />
         <Outlet />
       </div>
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 };
@@ -98,6 +100,8 @@ function App() {
                 {/* college */}
                 <Route path='/admin/college' element={<AdminRoute element={<ListCollege />} />} />
                 <Route path='/admin/college/create' element={<AdminRoute element={<CreateCollege />} />} />
+                <Route path='/admin/center' element={<AdminRoute element={<ListCenter />} />} />
+                <Route path='/admin/center/create' element={<AdminRoute element={<CreateCenter />} />} />
                 {/* Notice */}
                 <Route path="/admin/notice" element={<AdminRoute element={<Dashboard />} />} />
                 <Route path="/admin/notice/create" element={<AdminRoute element={<CreateNotice />} />} />
