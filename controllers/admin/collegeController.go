@@ -111,6 +111,7 @@ func GetCenterColleges(c *fiber.Ctx) error {
 }
 func GetColleges(c *fiber.Ctx) error {
 	var results []struct {
+		ID          uint   `json:"id"` // Changed type to uint for ID
 		CollegeCode string `json:"college_code"`
 		CollegeName string `json:"college_name"`
 		Address     string `json:"address"`
@@ -119,11 +120,10 @@ func GetColleges(c *fiber.Ctx) error {
 	}
 
 	if err := initializers.DB.Table("colleges").
-		Select("colleges.college_code, colleges.college_name, colleges.address, COALESCE(capacity_and_counts.is_center, false) AS is_center, COALESCE(capacity_and_counts.capacity, 0) AS capacity").
+		Select("colleges.id, colleges.college_code, colleges.college_name, colleges.address, COALESCE(capacity_and_counts.is_center, false) AS is_center, COALESCE(capacity_and_counts.capacity, 0) AS capacity").
 		Joins("LEFT JOIN capacity_and_counts ON colleges.id = capacity_and_counts.college_id").
 		Find(&results).Error; err != nil {
-		c.Status(fiber.StatusInternalServerError)
-		return c.JSON(fiber.Map{
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to fetch colleges",
 		})
 	}
