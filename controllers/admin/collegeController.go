@@ -111,16 +111,25 @@ func GetCenterColleges(c *fiber.Ctx) error {
 }
 
 func GetColleges(c *fiber.Ctx) error {
-	var colleges []models.College
+	var results []struct {
+		CollegeCode string `json:"college_code"`
+		CollegeName string `json:"college_name"`
+		IsCenter    bool   `json:"is_center"`
+		Capacity    int    `json:"capacity"`
+	}
 
-	if err := initializers.DB.Find(&colleges).Error; err != nil {
+	if err := initializers.DB.Table("colleges").
+		Select("colleges.college_code, colleges.college_name, COALESCE(capacity_and_counts.is_center, false) AS is_center, COALESCE(capacity_and_counts.capacity, 0) AS capacity").
+		Joins("LEFT JOIN capacity_and_counts ON colleges.id = capacity_and_counts.college_id").
+		Find(&results).Error; err != nil {
 		c.Status(fiber.StatusInternalServerError)
 		return c.JSON(fiber.Map{
-			"error": "College not found",
+			"error": "Failed to fetch colleges",
 		})
 	}
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"center": colleges,
+		"colleges": results,
 	})
 }
 
