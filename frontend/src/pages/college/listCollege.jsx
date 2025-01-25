@@ -22,7 +22,6 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { UpdateCenter } from "../../components/UpdateCenter";
 
-// TODO: when the center is true don't let the user select
 export default function ListCollege() {
   const navigate = useNavigate();
   const [sorting, setSorting] = useState([]);
@@ -70,6 +69,7 @@ export default function ListCollege() {
           type="checkbox"
           checked={selectedColleges.includes(row.original.college_name)}
           onChange={() => handleCheckboxChange(row.original.college_name)}
+          disabled={row.original.is_center} // Disable if is_center is true
         />
       ),
     },
@@ -101,7 +101,7 @@ export default function ListCollege() {
               className="text-red-600 cursor-pointer"
               onClick={() => navigate(`/admin/students/${data.ID}`)}
             />
-            <UpdateCenter center={data.is_center} />
+            <UpdateCenter center={data.is_center} capacity={data.capacity}/>
           </div>
         );
       },

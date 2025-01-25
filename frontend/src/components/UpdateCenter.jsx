@@ -12,8 +12,8 @@ import {
     DrawerTrigger,
 } from "@/components/ui/drawer"
 
-export function UpdateCenter({ center }) {
-    const [goal, setGoal] = React.useState(1)
+export function UpdateCenter({ center, capacity }) {
+    const [goal, setGoal] = React.useState(capacity)
 
     function onClick(adjustment) {
         setGoal(goal + adjustment)
@@ -23,7 +23,6 @@ export function UpdateCenter({ center }) {
         const is_center = true;
         const college_name = '';
         const capacity = '';
-
     }
     return (
         <Drawer>
