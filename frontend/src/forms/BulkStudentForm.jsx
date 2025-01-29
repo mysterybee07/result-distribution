@@ -91,6 +91,7 @@ const BulkStudentForm = ({ isDrawerOpen, setIsDrawerOpen }) => {
                 fullname: student.fullname,
                 symbol_number: student.symbol_number,
                 registration_number: student.registration_number,
+                college_id: student.college_id,
             })),
         }
         createStudent(student);

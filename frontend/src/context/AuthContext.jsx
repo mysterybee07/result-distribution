@@ -33,8 +33,13 @@ export const AuthProvider = ({ children }) => {
         }
     };
     useEffect(() => {
-        // Fetch user data on mount
-        getUserData();
+        // Check if user is already authenticated
+        const storedAuthState = localStorage.getItem('isAuthenticated');
+        if (storedAuthState === 'true') {
+            getUserData();
+        } else {
+            setLoading(false); // If not authenticated, stop loading
+        }
     }, []);
 
     const login = (user) => {
@@ -44,15 +49,25 @@ export const AuthProvider = ({ children }) => {
 
         // Persist user data to localStorage
         localStorage.setItem('user', JSON.stringify(user));
+        localStorage.setItem('isAuthenticated', 'true');
     };
 
-    const logout = () => {
-        setIsAuthenticated(false);
-        setRole('');
-        setUserData(null); // Clear user data on logout
-
-        // Clear user data from localStorage
-        // localStorage.removeItem('user');
+    const logout = async () => {
+        try {
+            const response = await fetch('http://127.0.0.1:3000/user/logout', {
+                method: 'POST',
+                credentials: 'include', // Include cookies in the request
+            });
+        } catch (error) {
+            console.error('Error loggin out:', error);
+        } finally {
+            setIsAuthenticated(false);
+            setRole('');
+            setUserData(null); // Clear user data on logout
+            // Clear user data from localStorage
+            localStorage.removeItem('user');
+            localStorage.setItem('isAuthenticated', 'false');
+        }
     };
 
     return (

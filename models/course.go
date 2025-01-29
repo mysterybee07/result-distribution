@@ -6,7 +6,7 @@ import (
 
 type Course struct {
 	gorm.Model
-	CourseCode          string   `gorm:"column:course_code" json:"course_code"`
+	CourseCode          string   `gorm:"unique" json:"course_code"`
 	Name                string   `gorm:"not null" json:"name"`
 	SemesterPassMarks   int      `json:"semester_pass_marks" validate:"required"`
 	PracticalPassMarks  *int     `json:"practical_pass_marks,omitempty"`

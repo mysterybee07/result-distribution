@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"fmt"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/mysterybee07/result-distribution-system/initializers"
 	"github.com/mysterybee07/result-distribution-system/models"
@@ -187,7 +189,7 @@ func DeleteNotice(c *fiber.Ctx) error {
 }
 
 func GetNoticesByProgram(c *fiber.Ctx) error {
-	var notices []models.Notice
+	var allNotices []models.Notice
 
 	// Get the program ID from the query parameter
 	programID := c.Query("program_id")
@@ -200,10 +202,24 @@ func GetNoticesByProgram(c *fiber.Ctx) error {
 	}
 
 	// Filter notices by ProgramID
-	if err := initializers.DB.Where("program_id = ?", programID).Find(&notices).Error; err != nil {
+	if err := initializers.DB.Preload("Batch").Preload("Program").Preload("Semester").Where("program_id = ?", programID).Find(&allNotices).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Error retrieving notices",
 			"error":   err.Error(),
+		})
+	}
+	// Transform notices to include names instead of IDs
+	var notices []map[string]interface{}
+	for _, notice := range allNotices {
+		notices = append(notices, map[string]interface{}{
+			"ID":          notice.ID,
+			"Title":       notice.Title,
+			"Description": notice.Description,
+			"Program":     notice.Program.ProgramName,
+			"Batch":       notice.Batch.Batch,
+			"Semester":    notice.Semester.SemesterName,
+			"FilePath":    notice.FilePath,
+			"Created_at":  notice.CreatedAt,
 		})
 	}
 
@@ -214,7 +230,7 @@ func GetNoticesByProgram(c *fiber.Ctx) error {
 }
 
 func GetNoticesByProgramAndBatch(c *fiber.Ctx) error {
-	var notices []models.Notice
+	var allNotices []models.Notice
 
 	// Get the program ID and batch ID from the query parameters
 	programID := c.Query("program_id")
@@ -228,15 +244,53 @@ func GetNoticesByProgramAndBatch(c *fiber.Ctx) error {
 	}
 
 	// Filter notices by ProgramID and BatchID
-	if err := initializers.DB.Where("program_id = ? AND batch_id = ?", programID, batchID).Find(&notices).Error; err != nil {
+	if err := initializers.DB.Preload("Batch").Preload("Program").Preload("Semester").Where("program_id = ? AND batch_id = ?", programID, batchID).Find(&allNotices).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Error retrieving notices",
 			"error":   err.Error(),
+		})
+	}
+	// Transform notices to include names instead of IDs
+	var notices []map[string]interface{}
+	for _, notice := range allNotices {
+		notices = append(notices, map[string]interface{}{
+			"ID":          notice.ID,
+			"Title":       notice.Title,
+			"Description": notice.Description,
+			"Program":     notice.Program.ProgramName,
+			"Batch":       notice.Batch.Batch,
+			"Semester":    notice.Semester.SemesterName,
+			"FilePath":    notice.FilePath,
+			"Created_at":  notice.CreatedAt,
 		})
 	}
 
 	// Return the filtered notices
 	return c.JSON(fiber.Map{
 		"notices": notices,
+	})
+}
+
+func PublishNotice(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	var notice models.Notice
+
+	if err := initializers.DB.First(&notice, id).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": fmt.Sprintf("Notice Not Found. Error: %v", err),
+		})
+	}
+
+	notice.Status = "Published"
+
+	if err := initializers.DB.Save(&notice).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Unable to publish notice",
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Notice Publish Successfully",
+		"notice":  notice,
 	})
 }
