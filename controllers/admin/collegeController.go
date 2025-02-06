@@ -287,8 +287,8 @@ func UpdateCapacity(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message":  "Capacity updated successfully",
-		"center":   center.CollegeID,
+		"message": "Capacity updated successfully",
+		// "center":   center.CollegeID,
 		"capacity": center.Capacity,
 	})
 }
