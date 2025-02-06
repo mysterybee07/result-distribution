@@ -18,6 +18,8 @@ func CreateExamRoutine(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid input"})
 	}
 
+	fmt.Println(req)
+
 	// Call the validation function
 	if err := validation.ValidateExamScheduleRequest(&req); err != nil {
 		return c.Status(err.(*fiber.Error).Code).JSON(fiber.Map{"error": err.(*fiber.Error).Message})

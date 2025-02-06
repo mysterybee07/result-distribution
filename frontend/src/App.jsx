@@ -30,6 +30,8 @@ import { Demo } from './pages/Demo';
 import AdminLayout from './layout/AuthLayout';
 import CreateCenter from './pages/college/createCenter';
 import ListCenter from './pages/college/listCenter';
+import AssignCenter from './pages/exam/ExamSchedule';
+import ExamSchedule from './pages/exam/ExamSchedule';
 
 const ProtectedRoute = ({ element }) => {
   const { isAuthenticated } = useAuth();
@@ -106,6 +108,9 @@ function App() {
                 <Route path="/admin/notice" element={<AdminRoute element={<Dashboard />} />} />
                 <Route path="/admin/notice/create" element={<AdminRoute element={<CreateNotice />} />} />
                 <Route path="/admin/notice/edit/:id" element={<AdminRoute element={<EditNotice />} />} />
+                {/* Exam */}
+                <Route path="/admin/center/assign" element={<AdminRoute element={<ExamSchedule />} />} />
+
               </Route>
             </Routes>
           </Router>

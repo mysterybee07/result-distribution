@@ -99,6 +99,10 @@ const data = {
           title: "Add Exam",
           url: "/admin/exam",
         },
+        {
+          title: "Assign Center",
+          url: "/admin/center/assign",
+        },
       ],
     },
     {
