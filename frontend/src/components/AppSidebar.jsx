@@ -100,7 +100,7 @@ const data = {
           url: "/admin/exam",
         },
         {
-          title: "Assign Center",
+          title: "Exam Schedule",
           url: "/admin/center/assign",
         },
       ],
