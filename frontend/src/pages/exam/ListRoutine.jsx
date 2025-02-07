@@ -25,7 +25,7 @@ const ListRoutine = () => {
 
         try {
             const response = await api.post(`/exam/schedule/publish/${id}`, {
-                published: newState, // Send the new state
+                status: newState, // Send the new state
             });
 
             console.log("✅ Toggle Successful:", response.data);
