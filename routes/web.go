@@ -124,6 +124,8 @@ package routes
 import (
 	"github.com/gofiber/fiber/v2"
 	adminController "github.com/mysterybee07/result-distribution-system/controllers/admin"
+
+	// controllers "github.com/mysterybee07/result-distribution-system/controllers/admin"
 	authController "github.com/mysterybee07/result-distribution-system/controllers/auth"
 	errorController "github.com/mysterybee07/result-distribution-system/controllers/error"
 	examController "github.com/mysterybee07/result-distribution-system/controllers/exam"
@@ -245,6 +247,9 @@ func SetupRoutes(app *fiber.App) {
 	notice.Post("/publish", noticeController.PublishNotice)
 
 	exam := app.Group("/exam")
+	exam.Get("/routines", adminController.ListExamsRoutine)
+	exam.Get("/schedules", adminController.ListExamSchedules)
+	exam.Get("/schedules/by-batch-program", adminController.GetFilteredExamSchedules)
 	exam.Get("/assign-centers", examController.AssignCentersHandler)
 	exam.Post("/update-center-and-capacity", adminController.AssignCenterAndCapacity)
 	exam.Put("/update-capacity/:id", adminController.UpdateCapacity)

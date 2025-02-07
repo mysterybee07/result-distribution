@@ -19,7 +19,6 @@ func CreateExamRoutine(c *fiber.Ctx) error {
 	}
 
 	fmt.Println(req)
-
 	// Call the validation function
 	if err := validation.ValidateExamScheduleRequest(&req); err != nil {
 		return c.Status(err.(*fiber.Error).Code).JSON(fiber.Map{"error": err.(*fiber.Error).Message})
@@ -65,5 +64,127 @@ func PublishExamRoutine(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"message":     "ExamRoutine status updated to Published",
 		"examRoutine": examRoutine,
+	})
+}
+
+func ListExamsRoutine(c *fiber.Ctx) error {
+	var examRoutines []models.ExamRoutine
+
+	if err := initializers.DB.
+		Preload("Batch").
+		Preload("Program").
+		Preload("Semester").
+		Find(&examRoutines).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "no exam routines available",
+		})
+	}
+
+	// Transform response to include names instead of IDs
+	var response []fiber.Map
+	for _, routine := range examRoutines {
+		response = append(response, fiber.Map{
+			"start_date": routine.StartDate,
+			"end_date":   routine.EndDate,
+			"batch":      routine.Batch.Batch,           // Assuming Batch has a `Name` field
+			"program":    routine.Program.ProgramName,   // Assuming Program has a `Name` field
+			"semester":   routine.Semester.SemesterName, // Assuming Semester has a `Name` field
+			"status":     routine.Status,
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message":      "routines retrieved successfully",
+		"examRoutines": response,
+	})
+}
+
+func ListExamSchedules(c *fiber.Ctx) error {
+	var examSchedules []models.ExamSchedules
+
+	// Preload related data to fetch names instead of IDs
+	if err := initializers.DB.
+		Preload("Course").
+		Preload("ExamRoutine.Batch").
+		Preload("ExamRoutine.Program").
+		Preload("ExamRoutine.Semester").
+		Find(&examSchedules).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "no exam schedules available",
+		})
+	}
+
+	// Transform response to include names instead of IDs
+	var schedules []fiber.Map
+	for _, schedule := range examSchedules {
+		schedules = append(schedules, fiber.Map{
+			"exam_date": schedule.ExamDate,
+			"course":    schedule.Course.Name,
+			"batch":     schedule.ExamRoutine.Batch.Batch,
+			"program":   schedule.ExamRoutine.Program.ProgramName,
+			"semester":  schedule.ExamRoutine.Semester.SemesterName,
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message":       "exam schedules retrieved successfully",
+		"examSchedules": schedules,
+	})
+}
+
+func GetFilteredExamSchedules(c *fiber.Ctx) error {
+	var examSchedules []models.ExamSchedules
+
+	// Extract filter parameters from the request
+	batchID := c.Query("batch_id")
+	programID := c.Query("program_id")
+	semesterID := c.Query("semester_id")
+
+	// Build the query with necessary filters
+	query := initializers.DB.
+		Preload("Course").
+		Preload("ExamRoutine.Batch").
+		Preload("ExamRoutine.Program").
+		Preload("ExamRoutine.Semester").
+		Joins("JOIN exam_routines ON exam_routines.id = exam_schedules.exam_routine_id")
+
+	// Apply filters if provided
+	if batchID != "" {
+		query = query.Where("exam_routines.batch_id = ?", batchID)
+	}
+	if programID != "" {
+		query = query.Where("exam_routines.program_id = ?", programID)
+	}
+	if semesterID != "" {
+		query = query.Where("exam_routines.semester_id = ?", semesterID)
+	}
+
+	// Execute the query
+	if err := query.Find(&examSchedules).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "error retrieving exam schedules",
+		})
+	}
+
+	// Check if no schedules are found
+	if len(examSchedules) == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "no exam schedules found with the given filters",
+		})
+	}
+
+	// Transform response to include names instead of IDs
+	var schedulesCourse []fiber.Map
+	for _, schedule := range examSchedules {
+		schedulesCourse = append(schedulesCourse, fiber.Map{
+			"courseCode": schedule.Course.CourseCode,
+			"course":     schedule.Course.Name,
+			"exam_date":  schedule.ExamDate.Format("2006-01-02"),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message":       "exam schedules retrieved successfully",
+		"examSchedules": schedulesCourse,
 	})
 }
