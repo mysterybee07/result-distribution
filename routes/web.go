@@ -156,7 +156,7 @@ func SetupRoutes(app *fiber.App) {
 
 	// Profile Routes
 	profile := app.Group("/profile")
-	profile.Get("/", middleware.AuthRequired, userController.GetUserProfile)
+	profile.Get("", middleware.AuthRequired, userController.GetUserProfile)
 
 	// Student Routes
 	student := app.Group("/students")
