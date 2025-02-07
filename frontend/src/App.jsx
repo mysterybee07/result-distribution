@@ -32,6 +32,7 @@ import CreateCenter from './pages/college/createCenter';
 import ListCenter from './pages/college/listCenter';
 import AssignCenter from './pages/exam/ExamSchedule';
 import ExamSchedule from './pages/exam/ExamSchedule';
+import ListExams from './pages/exam/ListExams';
 
 const ProtectedRoute = ({ element }) => {
   const { isAuthenticated } = useAuth();
@@ -88,7 +89,7 @@ function App() {
               <Route element={<AdminLayout />}>
 
                 <Route path="/dashboard" element={<AdminRoute element={<Dashboard />} />} />
-                <Route path="/admin/exam" element={<AdminRoute element={<Dashboard />} />} />
+                {/* <Route path="/admin/exam" element={<AdminRoute element={<Dashboard />} />} /> */}
                 <Route path="/admin/result" element={<AdminRoute element={<Dashboard />} />} />
                 {/* student */}
                 <Route path="/admin/students" element={<AdminRoute element={<Student />} />} />
@@ -109,7 +110,8 @@ function App() {
                 <Route path="/admin/notice/create" element={<AdminRoute element={<CreateNotice />} />} />
                 <Route path="/admin/notice/edit/:id" element={<AdminRoute element={<EditNotice />} />} />
                 {/* Exam */}
-                <Route path="/admin/center/assign" element={<AdminRoute element={<ExamSchedule />} />} />
+                <Route path="/admin/exam" element={<AdminRoute element={<ListExams />} />} />
+                <Route path="/admin/exam/create" element={<AdminRoute element={<ExamSchedule />} />} />
 
               </Route>
             </Routes>

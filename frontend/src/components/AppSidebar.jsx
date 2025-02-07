@@ -96,12 +96,8 @@ const data = {
           url: "/admin/exam",
         },
         {
-          title: "Add Exam",
-          url: "/admin/exam",
-        },
-        {
           title: "Exam Schedule",
-          url: "/admin/center/assign",
+          url: "/admin/exam/create",
         },
       ],
     },

@@ -41,17 +41,15 @@ const ExamSchedule = () => {
 
     const {
         data: semesters,
-        isLoading: loadingSemesters,
-        error: errorSemesters,
     } = useQuery({
         queryKey: ["semesters", examData.programId], // Add `selectedProgram` to the query key
         queryFn: async () => {
             const response = await api.get(`/semester/by-program/${examData.programId}`);
-            return response.data.semesters;
+            return response?.data?.semesters;
         },
         enabled: !!examData.programId,
     });
-        console.log("🚀 ~ ExamSchedule ~ semesters:", semesters)
+        // console.log("🚀 ~ ExamSchedule ~ semesters:", semesters)
     const handleChange = (e) => {
         setExamData({ ...examData, [e.target.name]: e.target.value });
     };
@@ -128,7 +126,7 @@ const ExamSchedule = () => {
                                 className="border rounded p-2 w-full"
                             >
                                 <option value="" disabled>Select Semester</option>
-                                {semesters.map((semester) => (
+                                {semesters?.map((semester) => (
                                     <option key={semester.ID} value={semester.ID}>{semester.semester_name}</option>
                                 ))}
                             </select>
