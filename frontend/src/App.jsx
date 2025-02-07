@@ -33,6 +33,7 @@ import ListCenter from './pages/college/listCenter';
 import AssignCenter from './pages/exam/ExamSchedule';
 import ExamSchedule from './pages/exam/ExamSchedule';
 import ListExams from './pages/exam/ListExams';
+import ListRoutine from './pages/exam/ListRoutine';
 
 const ProtectedRoute = ({ element }) => {
   const { isAuthenticated } = useAuth();
@@ -42,7 +43,7 @@ const ProtectedRoute = ({ element }) => {
 const AdminRoute = ({ element }) => {
   const { isAuthenticated, role, loading } = useAuth();
   if (loading) return <p>Loading...</p>;
-  console.log("🚀 ~ AdminRoute ~ role:", role)
+  // console.log("🚀 ~ AdminRoute ~ role:", role)
 
   if (!isAuthenticated) return <Navigate to="/login" />;
   if (role !== "admin") return <Navigate to="/" />;
@@ -111,6 +112,7 @@ function App() {
                 <Route path="/admin/notice/edit/:id" element={<AdminRoute element={<EditNotice />} />} />
                 {/* Exam */}
                 <Route path="/admin/exam" element={<AdminRoute element={<ListExams />} />} />
+                <Route path="/admin/exam/routine" element={<AdminRoute element={<ListRoutine />} />} />
                 <Route path="/admin/exam/create" element={<AdminRoute element={<ExamSchedule />} />} />
 
               </Route>

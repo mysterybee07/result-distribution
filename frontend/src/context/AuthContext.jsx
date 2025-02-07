@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log("🚀 ~ getUserData ~ data:", data)
+                // console.log("🚀 ~ getUserData ~ data:", data)
                 setUserData(data.data);
                 setIsAuthenticated(true);
                 setRole(data.data.role);

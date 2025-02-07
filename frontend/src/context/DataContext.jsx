@@ -25,14 +25,14 @@ export const DataProvider = ({ children, isAuthenticated }) => {
     });
 
     // Uncomment this block if semesters data needs to be fetched
-    const { data: semesters, isLoading: loadingSemesters, error: errorSemesters } = useQuery({
-        queryKey: ['semesters'],
-        queryFn: async () => {
-            const response = await api.get('/semester/by-program/');
-            return response.data.semesters;
-        },
-        enabled: isAuthenticated, // Query runs only if user is authenticated
-    });
+    // const { data: semesters, isLoading: loadingSemesters, error: errorSemesters } = useQuery({
+    //     queryKey: ['semesters'],
+    //     queryFn: async () => {
+    //         const response = await api.get('/semester/by-program/');
+    //         return response.data.semesters;
+    //     },
+    //     enabled: isAuthenticated, // Query runs only if user is authenticated
+    // });
 
     const { data: students, isLoading: loadingStudents, error: errorStudents } = useQuery({
         queryKey: ['students'],
@@ -52,9 +52,9 @@ export const DataProvider = ({ children, isAuthenticated }) => {
                 batches,
                 loadingBatches,
                 errorBatches,
-                semesters,
-                loadingSemesters,
-                errorSemesters,
+                // semesters,
+                // loadingSemesters,
+                // errorSemesters,
                 students,
                 loadingStudents,
                 errorStudents,

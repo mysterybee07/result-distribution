@@ -96,6 +96,10 @@ const data = {
           url: "/admin/exam",
         },
         {
+          title: "Routine",
+          url: "/admin/exam/routine",
+        },
+        {
           title: "Exam Schedule",
           url: "/admin/exam/create",
         },
@@ -121,9 +125,9 @@ const data = {
 export function AppSidebar({ ...props }) {
   const location = useLocation(); // Get the current location
   const currentPath = location.pathname; // Extract the pathname
-  console.log("🚀 ~ AppSidebar ~ currentPath:", currentPath)
+  // console.log("🚀 ~ AppSidebar ~ currentPath:", currentPath)
   const { isAuthenticated, logout, userData } = useAuth();
-  console.log("🚀 ~ AppSidebar ~ userData:", userData)
+  // console.log("🚀 ~ AppSidebar ~ userData:", userData)
   const user = {
     // TODO: change this no name later
     name: userData?.role,
