@@ -91,10 +91,10 @@ const data = {
       title: "Exam",
       url: "/admin/exam",
       items: [
-        {
-          title: "View Exam",
-          url: "/admin/exam",
-        },
+        // {
+        //   title: "View Exam",
+        //   url: "/admin/exam",
+        // },
         {
           title: "Routine",
           url: "/admin/exam/routine",
