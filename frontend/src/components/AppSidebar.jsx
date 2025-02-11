@@ -53,10 +53,10 @@ const data = {
           title: "Add College",
           url: "/admin/college/create",
         },
-        {
-          title: "List Center",
-          url: "/admin/center",
-        },
+        // {
+        //   title: "List Center",
+        //   url: "/admin/center",
+        // },
       ],
     },
     {

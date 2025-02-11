@@ -17,16 +17,26 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { UpdateCenter } from "../../components/UpdateCenter";
+import MapComponent from "../../components/MapComponent";
 
 export default function ListCollege() {
   const navigate = useNavigate();
   const [sorting, setSorting] = useState([]);
   const [filter, setFilter] = useState("");
   const [selectedColleges, setSelectedColleges] = useState([]);
+  const [selected, setSelected] = useState("all");
 
   console.log("🚀 ~ ListCollege ~ selectedColleges:", selectedColleges)
 
@@ -41,6 +51,12 @@ export default function ListCollege() {
     queryFn: fetchColleges,
   });
   console.log("🚀 ~ ListCollege ~ college:", college)
+
+  const filteredColleges = college.filter((item) => {
+    if (selected === "center") return item.is_center;
+    if (selected === "notCenter") return !item.is_center;
+    return true; // Default case: show all
+  });
 
   const handleCheckboxChange = (id) => {
     setSelectedColleges((prev) =>
@@ -101,7 +117,7 @@ export default function ListCollege() {
               className="text-red-600 cursor-pointer"
               onClick={() => navigate(`/admin/students/${data.id}`)}
             />
-            <UpdateCenter center={data.is_center} capacity={data.capacity} id={data.id}/>
+            <UpdateCenter center={data.is_center} capacity={data.capacity} id={data.id} />
           </div>
         );
       },
@@ -109,7 +125,7 @@ export default function ListCollege() {
   ];
 
   const table = useReactTable({
-    data: college,
+    data: filteredColleges,
     columns,
     state: {
       sorting,
@@ -127,12 +143,25 @@ export default function ListCollege() {
   return (
     <div className="w-full">
       <div className="flex text-left items-center justify-between py-4">
-        <Input
-          placeholder="Search colleges..."
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="max-w-sm"
-        />
+        <div className="flex gap-2">
+          <Input
+            placeholder="Search colleges..."
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="max-w-sm"
+          />
+          <Select onValueChange={(value) => setSelected(value)}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="center">Centers</SelectItem>
+              <SelectItem value="notCenter">Not Center</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="flex gap-2">
           {selectedColleges.length > 0 &&
             <Button
@@ -149,6 +178,7 @@ export default function ListCollege() {
         </div>
       </div>
       <div className="rounded-md border">
+
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
