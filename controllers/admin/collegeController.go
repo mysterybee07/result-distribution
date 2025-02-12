@@ -110,6 +110,7 @@ func GetCenterCollegesByProgramAndBatch(c *fiber.Ctx) error {
 	})
 }
 func GetColleges(c *fiber.Ctx) error {
+	// TODO: also fetch the lat and long
 	var results []struct {
 		ID          uint   `json:"id"` // Changed type to uint for ID
 		CollegeCode string `json:"college_code"`

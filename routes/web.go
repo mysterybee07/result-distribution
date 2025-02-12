@@ -203,6 +203,7 @@ func SetupRoutes(app *fiber.App) {
 	// course := app.Group("/courses", middleware.AuthRequired, middleware.SuperadminRequired)
 	// course.Get("/", adminController.Course)
 	// course.Post("/create", adminController.CreateCourses)
+	// TODO: get all courses
 	course.Post("/create", adminController.CreateCourses)
 	course.Put("/update/:id", adminController.UpdateCourse)
 	course.Get("/filter", adminController.GetFilteredCourses)
