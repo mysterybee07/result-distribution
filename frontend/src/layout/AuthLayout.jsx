@@ -49,7 +49,7 @@ const AdminLayout = () => {
     return (
         <>
             <SidebarProvider>
-                <AppSidebar />
+                <AppSidebar/>
                 <SidebarInset>
                     <header className="flex sticky top-0 bg-dark h-12 shrink-0 items-center gap-2 border-b px-4">
                         <SidebarTrigger className="-ml-1" />

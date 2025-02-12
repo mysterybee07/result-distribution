@@ -1,33 +1,34 @@
-// import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-// import "leaflet/dist/leaflet.css";
+import React from 'react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
 
-// const MapComponent = ({ lat, lng }) => {
-//     return (
-//         <MapContainer center={[lat, lng]} zoom={13} style={{ height: "400px", width: "100%" }}>
-//             <TileLayer
-//                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-//             />
-//             <Marker position={[lat, lng]}>
-//                 <Popup>Location: {lat}, {lng}</Popup>
-//             </Marker>
-//         </MapContainer>
-//     );
-// };
+const MapComponent = ({ college }) => {
+    console.log("🚀 ~ MapComponent ~ college:", college)
+    // Define the initial position of the map
+    const center = [27.6663423, 85.3330053]; // Latitude and Longitude (e.g., London)
 
-// export default MapComponent;
-
-import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
-
-const MapComponent = ({ lat, lng }) => {
-    const mapContainerStyle = { height: "400px", width: "100%" };
-    const center = { lat, lng };
+    // Define marker positions
+    const markers = [
+        { position: [27.6663423, 85.3330053], content: "Marker 1" },
+        { position: [51.51, -0.1], content: "Marker 2" },
+        { position: [51.49, -0.08], content: "Marker 3" },
+    ];
 
     return (
-        <LoadScript googleMapsApiKey="YOUR_GOOGLE_MAPS_API_KEY">
-            <GoogleMap mapContainerStyle={mapContainerStyle} center={center} zoom={13}>
-                <Marker position={center} />
-            </GoogleMap>
-        </LoadScript>
+        <MapContainer center={center} zoom={15} style={{ width: "100%", height: "50vh" }}>
+            {/* Add a tile layer (map background) */}
+            <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            />
+
+            {/* Add markers */}
+            {markers.map((marker, index) => (
+                <Marker key={index} position={marker.position}>
+                    <Popup>{marker.content}</Popup>
+                </Marker>
+            ))}
+        </MapContainer>
     );
 };
 

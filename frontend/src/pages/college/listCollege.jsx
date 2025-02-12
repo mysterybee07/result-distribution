@@ -52,11 +52,11 @@ export default function ListCollege() {
   });
   console.log("🚀 ~ ListCollege ~ college:", college)
 
-  const filteredColleges = college.filter((item) => {
-    if (selected === "center") return item.is_center;
-    if (selected === "notCenter") return !item.is_center;
-    return true; // Default case: show all
-  });
+  // const filteredColleges = college.filter((item) => {
+  //   if (selected === "center") return item.is_center;
+  //   if (selected === "notCenter") return !item.is_center;
+  //   return true; // Default case: show all
+  // });
 
   const handleCheckboxChange = (id) => {
     setSelectedColleges((prev) =>
@@ -125,7 +125,7 @@ export default function ListCollege() {
   ];
 
   const table = useReactTable({
-    data: filteredColleges,
+    data: college,
     columns,
     state: {
       sorting,
@@ -150,7 +150,7 @@ export default function ListCollege() {
             onChange={(e) => setFilter(e.target.value)}
             className="max-w-sm"
           />
-          <Select onValueChange={(value) => setSelected(value)}>
+          {/* <Select onValueChange={(value) => setSelected(value)}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filter" />
             </SelectTrigger>
@@ -159,7 +159,7 @@ export default function ListCollege() {
               <SelectItem value="center">Centers</SelectItem>
               <SelectItem value="notCenter">Not Center</SelectItem>
             </SelectContent>
-          </Select>
+          </Select> */}
         </div>
 
         <div className="flex gap-2">
@@ -177,6 +177,8 @@ export default function ListCollege() {
           </Button>
         </div>
       </div>
+      <MapComponent college={college}/>
+
       <div className="rounded-md border">
 
         <Table>

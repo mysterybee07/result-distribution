@@ -136,7 +136,7 @@ export function AppSidebar({ ...props }) {
   }
 
   return (
-    <Sidebar {...props}>
+    <Sidebar {...props} className="sm:w-64">
       <SidebarHeader>
         Result-e
       </SidebarHeader>
@@ -158,7 +158,7 @@ export function AppSidebar({ ...props }) {
           <Collapsible
             key={item.title}
             title={item.title}
-            defaultOpen
+            // defaultOpen
             className="group/collapsible"
           >
             <SidebarGroup>
