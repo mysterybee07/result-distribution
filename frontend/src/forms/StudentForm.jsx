@@ -127,7 +127,7 @@ const StudentForm = () => {
 
     return (
         <div className='flex items-center justify-center mt-16'>
-            <Card className="w-1/2 shadow-lg hover:shadow-2xl py-8 text-start">
+            <Card className="w-full shadow-lg hover:shadow-2xl py-8 text-start">
                 <CardContent>
                     <h1 className="text-xl font-bold mb-4">
                         {isEditMode ? 'Edit Student' : 'Create Student'}

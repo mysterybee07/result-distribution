@@ -119,6 +119,20 @@ const data = {
         },
       ],
     },
+    {
+      title: "Marks",
+      url: "/admin/marks",
+      items: [
+        {
+          title: "All Marks",
+          url: "/admin/marks",
+        },
+        {
+          title: "Add Marks",
+          url: "/admin/marks/create",
+        },
+      ],
+    },
   ],
 }
 
