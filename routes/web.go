@@ -156,7 +156,7 @@ func SetupRoutes(app *fiber.App) {
 
 	// Profile Routes
 	profile := app.Group("/profile")
-	profile.Get("/", middleware.AuthRequired, userController.GetUserProfile)
+	profile.Get("", middleware.AuthRequired, userController.GetUserProfile)
 
 	// Student Routes
 	student := app.Group("/students")
@@ -201,7 +201,7 @@ func SetupRoutes(app *fiber.App) {
 	// Course Routes
 	course := app.Group("/courses")
 	// course := app.Group("/courses", middleware.AuthRequired, middleware.SuperadminRequired)
-	// course.Get("/", adminController.Course)
+	course.Get("", adminController.GetAllCourses)
 	// course.Post("/create", adminController.CreateCourses)
 	// TODO: get all courses
 	course.Post("/create", adminController.CreateCourses)

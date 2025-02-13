@@ -41,20 +41,34 @@ func CreateExamRoutine(c *fiber.Ctx) error {
 }
 
 func PublishExamRoutine(c *fiber.Ctx) error {
-
 	id := c.Params("id")
 	fmt.Println(id)
 
+	// Fetch the existing ExamRoutine
 	var examRoutine models.ExamRoutine
 	if err := c.BodyParser(&examRoutine); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid input"})
 	}
 	if err := initializers.DB.First(&examRoutine, id).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"errror": "Exam Routine with id not found",
+			"error": "Exam Routine with the given ID not found",
 		})
 	}
 	examRoutine.Status = true
+
+	// Parse the request body to get the status
+	var requestBody struct {
+		Status bool `json:"status"`
+	}
+
+	if err := c.BodyParser(&requestBody); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+	}
+
+	// Update the status field
+	examRoutine.Status = requestBody.Status
 
 	// Save the updated ExamRoutine
 	if err := initializers.DB.Save(&examRoutine).Error; err != nil {
@@ -64,8 +78,8 @@ func PublishExamRoutine(c *fiber.Ctx) error {
 	}
 
 	// Return a success response
-	return c.JSON(fiber.Map{
-		"message":     "ExamRoutine status updated to Published",
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message":     "Exam Routine status updated successfully",
 		"examRoutine": examRoutine,
 	})
 }

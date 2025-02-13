@@ -9,14 +9,6 @@ import (
 	"github.com/mysterybee07/result-distribution-system/models"
 )
 
-func Profile(c *fiber.Ctx) error {
-	err := c.Render("users/profile", fiber.Map{})
-	if err != nil {
-		c.Status(fiber.StatusInternalServerError).SendString("Error rendering page")
-		return err
-	}
-	return nil
-}
 func GetUserProfile(c *fiber.Ctx) error {
 	// Get userID from context
 	userID, ok := c.Locals("userID").(string)
@@ -86,20 +78,8 @@ func GetUserProfile(c *fiber.Ctx) error {
 		}
 	}
 
-	// Calculate totalMarksTotal marks
-	// var totalMarksTotal int
-	// if err := initializers.DB.Model(&models.Mark{}).Where("course_id IN (?) AND student_id =?", student.Batch.CourseIDs, student.ID).
-	//     Joins("JOIN courses ON marks.course_id = courses.id").
-	//     Sum(&totalMarksTotal).Error; err!= nil {
-	//     log.Printf("Failed to calculate total marks: %v\n", err)
-	//     return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Server error"})
-	// }
-
-	// // Calculate percentage
-	// percentage := float64(totalMarksObtained) / float64(totalMarksTotal) * 10
-
 	// Return user profile
-	return c.Render("users/profile", fiber.Map{
+	return c.JSON(fiber.Map{
 		"Users":    user,
 		"Students": student,
 		"Marks":    marks,
