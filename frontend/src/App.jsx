@@ -6,7 +6,7 @@ import Register from './pages/Register';
 import Exam from './pages/Exam';
 import Profile from './pages/Profile';
 import Result from './pages/Result';
-import Footer from './components/Footer';
+// import Footer from './components/Footer';
 import Navbar from './components/Navbar';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -28,6 +28,14 @@ import EditNotice from './pages/notice/EditNotice';
 import EditCourse from './pages/courses/EditCourse';
 import { Demo } from './pages/Demo';
 import AdminLayout from './layout/AuthLayout';
+import CreateCenter from './pages/college/createCenter';
+import ListCenter from './pages/college/listCenter';
+import AssignCenter from './pages/exam/ExamSchedule';
+import ExamSchedule from './pages/exam/ExamSchedule';
+import ListExams from './pages/exam/ListExams';
+import ListRoutine from './pages/exam/ListRoutine';
+import ListMarks from './pages/marks/AddMarks';
+import AddMarks from './pages/marks/AddMarks';
 
 const ProtectedRoute = ({ element }) => {
   const { isAuthenticated } = useAuth();
@@ -37,7 +45,7 @@ const ProtectedRoute = ({ element }) => {
 const AdminRoute = ({ element }) => {
   const { isAuthenticated, role, loading } = useAuth();
   if (loading) return <p>Loading...</p>;
-  console.log("🚀 ~ AdminRoute ~ role:", role)
+  // console.log("🚀 ~ AdminRoute ~ role:", role)
 
   if (!isAuthenticated) return <Navigate to="/login" />;
   if (role !== "admin") return <Navigate to="/" />;
@@ -53,54 +61,79 @@ const Layout = () => {
         <Toaster />
         <Outlet />
       </div>
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 };
+
+
+// User Routes
+const userRoutes = [
+  { path: "/", element: <Homepage /> },
+  { path: "/login", element: <Login /> },
+  { path: "/register", element: <Register /> },
+  { path: "/exam", element: <ProtectedRoute element={<Exam />} /> },
+  { path: "/profile", element: <ProtectedRoute element={<Profile />} /> },
+  { path: "/result", element: <ProtectedRoute element={<Result />} /> },
+];
+
+// Admin Routes
+const adminRoutes = [
+  { path: "/dashboard", element: <Dashboard /> },
+  { path: "/admin/result", element: <Dashboard /> },
+  // Student
+  { path: "/admin/students", element: <Student /> },
+  { path: "/admin/students/create", element: <StudentForm /> },
+  { path: "/admin/students/edit/:id", element: <StudentForm /> },
+  { path: "/admin/students/create/bulk", element: <BulkStudentForm /> },
+  // Course
+  { path: "/admin/courses", element: <ListCourse /> },
+  { path: "/admin/courses/create", element: <CreateCourse /> },
+  { path: "/admin/courses/edit/:id", element: <EditCourse /> },
+  // College & Center
+  { path: "/admin/college", element: <ListCollege /> },
+  { path: "/admin/college/create", element: <CreateCollege /> },
+  { path: "/admin/center", element: <ListCenter /> },
+  { path: "/admin/center/create", element: <CreateCenter /> },
+  // Notice
+  { path: "/admin/notice", element: <Dashboard /> },
+  { path: "/admin/notice/create", element: <CreateNotice /> },
+  { path: "/admin/notice/edit/:id", element: <EditNotice /> },
+  // Exam
+  { path: "/admin/exam", element: <ListExams /> },
+  { path: "/admin/exam/routine", element: <ListRoutine /> },
+  { path: "/admin/exam/create", element: <ExamSchedule /> },
+  // Marks
+  { path: "/admin/marks/create", element: <AddMarks /> },
+];
 
 
 
 const queryClient = new QueryClient();
 
 function App() {
+  // const { isAuthenticated } = useAuth();
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <DataProvider>
           <Router>
             <Routes>
+              {/* User Routes */}
               <Route element={<Layout />}>
-                <Route path="/" element={<Homepage />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/exam" element={<ProtectedRoute element={<Exam />} />} />
-                <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
-                <Route path="/result" element={<ProtectedRoute element={<Result />} />} />
+                {userRoutes.map(({ path, element }) => (
+                  <Route key={path} path={path} element={element} />
+                ))}
               </Route>
 
-              {/* Admin routes */}
+              {/* Demo Route */}
               <Route path="/demo" element={<AdminRoute element={<Demo />} />} />
-              <Route element={<AdminLayout />}>
 
-                <Route path="/dashboard" element={<AdminRoute element={<Dashboard />} />} />
-                <Route path="/admin/exam" element={<AdminRoute element={<Dashboard />} />} />
-                <Route path="/admin/result" element={<AdminRoute element={<Dashboard />} />} />
-                {/* student */}
-                <Route path="/admin/students" element={<AdminRoute element={<Student />} />} />
-                <Route path="/admin/students/create" element={<AdminRoute element={<StudentForm />} />} />
-                <Route path="/admin/students/edit/:id" element={<AdminRoute element={<StudentForm />} />} />
-                <Route path="/admin/students/create/bulk" element={<AdminRoute element={<BulkStudentForm />} />} />
-                {/* course */}
-                <Route path="/admin/courses" element={<AdminRoute element={<ListCourse />} />} />
-                <Route path="/admin/courses/create" element={<AdminRoute element={<CreateCourse />} />} />
-                <Route path="/admin/courses/edit/:id" element={<AdminRoute element={<EditCourse />} />} />
-                {/* college */}
-                <Route path='/admin/college' element={<AdminRoute element={<ListCollege />} />} />
-                <Route path='/admin/college/create' element={<AdminRoute element={<CreateCollege />} />} />
-                {/* Notice */}
-                <Route path="/admin/notice" element={<AdminRoute element={<Dashboard />} />} />
-                <Route path="/admin/notice/create" element={<AdminRoute element={<CreateNotice />} />} />
-                <Route path="/admin/notice/edit/:id" element={<AdminRoute element={<EditNotice />} />} />
+              {/* Admin Routes */}
+              <Route element={<AdminLayout />}>
+                {adminRoutes.map(({ path, element }) => (
+                  <Route key={path} path={path} element={<AdminRoute element={element} />} />
+                ))}
               </Route>
             </Routes>
           </Router>

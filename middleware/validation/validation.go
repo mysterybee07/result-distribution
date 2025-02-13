@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -189,6 +190,9 @@ func ValidateUser(data *models.User, isUpdate bool) error {
 func ValidateExamScheduleRequest(req *models.ExamRoutineRequest) error {
 	// Validate that the dates are not in the past and that the end date is after the start date
 	currentTime := time.Now()
+	fmt.Println(currentTime)
+	fmt.Println(req.StartDate)
+	// fmt.Println(req.EndDate)
 	if req.StartDate.Before(currentTime) {
 		return fiber.NewError(fiber.StatusBadRequest, "Start date cannot be in the past")
 	}
