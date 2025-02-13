@@ -57,7 +57,7 @@ func ExamRoutine(batchID, programID, semesterID uint, startDate, endDate time.Ti
 		BatchID:    batchID,
 		ProgramID:  programID,
 		SemesterID: semesterID,
-		Status:     "NotPublished",
+		Status:     false,
 	}
 
 	if err := initializers.DB.Create(&examRoutine).Error; err != nil {

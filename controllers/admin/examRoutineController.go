@@ -42,14 +42,19 @@ func CreateExamRoutine(c *fiber.Ctx) error {
 
 func PublishExamRoutine(c *fiber.Ctx) error {
 	id := c.Params("id")
+	fmt.Println(id)
 
 	// Fetch the existing ExamRoutine
 	var examRoutine models.ExamRoutine
+	if err := c.BodyParser(&examRoutine); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid input"})
+	}
 	if err := initializers.DB.First(&examRoutine, id).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "Exam Routine with the given ID not found",
 		})
 	}
+	examRoutine.Status = true
 
 	// Parse the request body to get the status
 	var requestBody struct {
@@ -96,6 +101,7 @@ func ListExamsRoutine(c *fiber.Ctx) error {
 	var response []fiber.Map
 	for _, routine := range examRoutines {
 		response = append(response, fiber.Map{
+			"id":         routine.ID,
 			"start_date": routine.StartDate,
 			"end_date":   routine.EndDate,
 			"batch":      routine.Batch.Batch,           // Assuming Batch has a `Name` field

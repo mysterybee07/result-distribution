@@ -1,8 +1,6 @@
 Course Code,Course Name,Exam Date
-CS102,Data Structures,2025-02-28
-CS103,Database Management Systems,2025-03-03
-CS104,Operating Systems,2025-03-06
-CS101,Computer Science Fundamentals,2025-03-10
-CS105,Artificial Intelligence,2025-03-12
-CS106,Cloud Computing,2025-03-12
-CS107,Cyber Security,2025-03-12
+CSC112,AI,2025-02-14
+CSC114,DSA,2025-02-19
+CSC113,ML,2025-02-24
+CSC111,IIT,2025-03-03
+CSC115,NS,2025-03-07

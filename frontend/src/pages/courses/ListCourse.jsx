@@ -85,6 +85,7 @@ const ListCourse = () => {
             </SelectGroup>
           </SelectContent>
         </Select>
+        
         <Select
           value={selectedSemester}
           onValueChange={(value) => setSelectedSemester(value)}

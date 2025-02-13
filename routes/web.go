@@ -203,6 +203,7 @@ func SetupRoutes(app *fiber.App) {
 	// course := app.Group("/courses", middleware.AuthRequired, middleware.SuperadminRequired)
 	// course.Get("/", adminController.Course)
 	// course.Post("/create", adminController.CreateCourses)
+	// TODO: get all courses
 	course.Post("/create", adminController.CreateCourses)
 	course.Put("/update/:id", adminController.UpdateCourse)
 	course.Get("/filter", adminController.GetFilteredCourses)
@@ -254,12 +255,13 @@ func SetupRoutes(app *fiber.App) {
 	exam.Post("/update-center-and-capacity", adminController.AssignCenterAndCapacity)
 	exam.Put("/update-capacity/:id", adminController.UpdateCapacity)
 	exam.Post("/schedule/create", adminController.CreateExamRoutine)
-	exam.Post("/schedule/publish", adminController.PublishExamRoutine)
+	exam.Post("/schedule/publish/:id", adminController.PublishExamRoutine)
 
 	college := app.Group("/college")
 	college.Get("", adminController.GetColleges)
 	college.Post("/upload-college", adminController.UploadColleges)
-	college.Get("/centers", adminController.GetCenterColleges)
+	college.Get("/centers-by-program-and-batch", adminController.GetCenterCollegesByProgramAndBatch)
+	// college.Get("/all-centers", adminController.GetAllCenterColleges)
 	college.Put("/update-college/:id", adminController.UpdateCollege)
 	college.Delete("/delete-college/:id", adminController.DeleteCollege)
 }

@@ -15,10 +15,10 @@ import (
 func UploadColleges(c *fiber.Ctx) error {
 	// Check the Content-Type header to differentiate between file and JSON input
 	contentType := c.Get("Content-Type")
+	var college models.College
 
 	if contentType == "application/json" {
 		// Handle JSON input
-		var college models.College
 		if err := c.BodyParser(&college); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": "Invalid JSON payload",
@@ -80,7 +80,7 @@ func UploadColleges(c *fiber.Ctx) error {
 	})
 }
 
-func GetCenterColleges(c *fiber.Ctx) error {
+func GetCenterCollegesByProgramAndBatch(c *fiber.Ctx) error {
 	batchID := c.Query("batch_id")
 	programID := c.Query("program_id")
 
@@ -110,6 +110,7 @@ func GetCenterColleges(c *fiber.Ctx) error {
 	})
 }
 func GetColleges(c *fiber.Ctx) error {
+	// TODO: also fetch the lat and long
 	var results []struct {
 		ID          uint   `json:"id"` // Changed type to uint for ID
 		CollegeCode string `json:"college_code"`
