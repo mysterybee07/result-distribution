@@ -58,7 +58,7 @@ func PublishExamRoutine(c *fiber.Ctx) error {
 
 	// Parse the request body to get the status
 	var requestBody struct {
-		Status string `json:"status"`
+		Status bool `json:"status"`
 	}
 
 	if err := c.BodyParser(&requestBody); err != nil {

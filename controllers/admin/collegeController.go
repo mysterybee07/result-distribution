@@ -109,19 +109,21 @@ func GetCenterCollegesByProgramAndBatch(c *fiber.Ctx) error {
 		"centers": centers,
 	})
 }
+
 func GetColleges(c *fiber.Ctx) error {
-	// TODO: also fetch the lat and long
 	var results []struct {
-		ID          uint   `json:"id"` // Changed type to uint for ID
+		ID          uint   `json:"id"`
 		CollegeCode string `json:"college_code"`
 		CollegeName string `json:"college_name"`
+		Latitude    string `json:"latitude"`
+		Longitude   string `json:"longitude"`
 		Address     string `json:"address"`
 		IsCenter    bool   `json:"is_center"`
 		Capacity    int    `json:"capacity"`
 	}
 
 	if err := initializers.DB.Table("colleges").
-		Select("colleges.id, colleges.college_code, colleges.college_name, colleges.address, COALESCE(capacity_and_counts.is_center, false) AS is_center, COALESCE(capacity_and_counts.capacity, 0) AS capacity").
+		Select("colleges.id, colleges.college_code, colleges.college_name, colleges.address, colleges.latitude, colleges.longitude, COALESCE(capacity_and_counts.is_center, false) AS is_center, COALESCE(capacity_and_counts.capacity, 0) AS capacity").
 		Joins("LEFT JOIN capacity_and_counts ON colleges.id = capacity_and_counts.college_id").
 		Find(&results).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
