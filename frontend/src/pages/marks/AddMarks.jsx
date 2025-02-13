@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import api from "../../api";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectLabel, SelectGroup, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useData } from '../../context/DataContext';
 
 
 const createMarks = async () => {
@@ -9,7 +10,28 @@ const createMarks = async () => {
     return data;
 };
 
+const fetchCourse = async ({ queryKey }) => {
+    const [, program_id, semester_id] = queryKey; // Destructure from queryKey
+    if (!program_id || !semester_id) {
+        return []; // Return an empty array if required params are missing
+    }
+    const response = await api.get(`/courses/filter?program_id=${program_id}&semester_id=${semester_id}`);
+    console.log("🚀 ~ fetchCourse ~ response:", response.data.courses);
+    return response.data.courses;
+};
+
+const fetchFilteredStudents = async ({ queryKey }) => {
+    const [, batch_id, program_id, semester_id] = queryKey;
+    const response = await api.get(`/students/filter?batch_id=${batch_id}&program_id=${program_id}&semester_id=${semester_id}`);
+    console.log("🚀 ~ fetchFilteredStudents ~ response:", response)
+    return response.data.students;
+};
+
 const AddMarks = () => {
+    const { batches, programs } = useData();
+
+    // console.log("🚀 ~ AddMarks ~ batches:", batches)
+    // console.log("🚀 ~ AddMarks ~ programs:", programs)
     const [formData, setFormData] = useState({
         batchID: '',
         programID: '',
@@ -24,6 +46,34 @@ const AddMarks = () => {
             }
         ]
     });
+
+    // query to fetch the semester
+    const {
+        data: semesters,
+    } = useQuery({
+        queryKey: ["semesters", formData.programID], // Add `selectedProgram` to the query key
+        queryFn: async () => {
+            const response = await api.get(`/semester/by-program/${formData.programID}`);
+            return response.data.semesters;
+        },
+        enabled: !!formData.programID, // Run the query only if `selectedProgram` is truthy
+    });
+
+    // query to fetch releated course
+    const { data: courses = [] } = useQuery({
+        queryKey: ["courses", formData.programID, formData.semesterID], // Include program and semester in the queryKey
+        queryFn: fetchCourse,
+        // enabled: search // Run only when both values are truthy
+    });
+    // console.log("🚀 ~ AddMarks ~ courses:", courses)
+
+    // query to fetch students
+    const { data: students = [] } = useQuery({
+        queryKey: ["students", formData.batchID, formData.programID, formData.semesterID],
+        queryFn: fetchFilteredStudents,
+        enabled: !!formData.batchID && !!formData.programID && !!formData.semesterID
+    });
+    console.log("🚀 ~ AddMarks ~ students:", students)
 
     const mutation = useMutation({
         mutationFn: createMarks,
@@ -113,14 +163,17 @@ const AddMarks = () => {
                                     <label className="text-left block text-sm font-semibold text-gray-700">
                                         Batch
                                     </label>
-                                    <Select onValueChange={(value) => setFormData({ ...formData, batchID: value })}>
+                                    <Select value={formData.batchID} onValueChange={(value) => setFormData({ ...formData, batchID: Number(value) })}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select Batch" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {batchOptions.map((batch) => (
-                                                <SelectItem key={batch} value={batch}>{batch}</SelectItem>
-                                            ))}
+                                            <SelectGroup>
+                                                <SelectLabel>Programs</SelectLabel>
+                                                {Array.isArray(batches) && batches.map((batch, index) => (
+                                                    <SelectItem key={index} value={batch.ID}>{batch.batch}</SelectItem>
+                                                ))}
+                                            </SelectGroup>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -129,14 +182,17 @@ const AddMarks = () => {
                                     <label className="text-left block text-sm font-semibold text-gray-700">
                                         Program
                                     </label>
-                                    <Select onValueChange={(value) => setFormData({ ...formData, programID: value })}>
+                                    <Select value={formData.programID} onValueChange={(value) => setFormData({ ...formData, programID: Number(value) })}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select Program" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {programOptions.map((program) => (
-                                                <SelectItem key={program} value={program}>{program}</SelectItem>
-                                            ))}
+                                            <SelectGroup>
+                                                <SelectLabel>Programs</SelectLabel>
+                                                {Array.isArray(programs) && programs.map((program, index) => (
+                                                    <SelectItem key={index} value={program.ID}>{program.program_name}</SelectItem>
+                                                ))}
+                                            </SelectGroup>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -145,14 +201,17 @@ const AddMarks = () => {
                                     <label className="text-left block text-sm font-semibold text-gray-700">
                                         Semester
                                     </label>
-                                    <Select onValueChange={(value) => setFormData({ ...formData, semesterID: value })}>
+                                    <Select value={formData.semesterID} onValueChange={(value) => setFormData({ ...formData, semesterID: Number(value) })}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select Semester" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {semesterOptions.map((semester) => (
-                                                <SelectItem key={semester} value={semester}>{semester}</SelectItem>
-                                            ))}
+                                            <SelectGroup>
+                                                <SelectLabel>Semesters</SelectLabel>
+                                                {Array.isArray(semesters) && semesters.map((semester, index) => (
+                                                    <SelectItem key={index} value={semester.ID}>Semester {semester.semester_name}</SelectItem>
+                                                ))}
+                                            </SelectGroup>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -161,13 +220,13 @@ const AddMarks = () => {
                                     <label className="text-left block text-sm font-semibold text-gray-700">
                                         Course
                                     </label>
-                                    <Select onValueChange={(value) => setFormData({ ...formData, courseID: value })}>
+                                    <Select value={formData.courseID} onValueChange={(value) => setFormData({ ...formData, courseID: Number(value) })}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select Course" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {courseOptions.map((course) => (
-                                                <SelectItem key={course} value={course}>{course}</SelectItem>
+                                            {Array.isArray(courses) && courses.map((course, index) => (
+                                                <SelectItem key={index} value={course.ID}>{course.name}</SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
@@ -195,7 +254,7 @@ const AddMarks = () => {
                                                     Student ID
                                                 </label>
                                                 <input
-                                                    type="number"
+                                                    type="text"
                                                     name="studentID"
                                                     value={student.studentID}
                                                     onChange={(e) => handleInputChange(e, index)}
