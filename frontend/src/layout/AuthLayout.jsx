@@ -51,7 +51,7 @@ const AdminLayout = () => {
             <SidebarProvider>
                 <AppSidebar/>
                 <SidebarInset>
-                    <header className="flex sticky top-0 bg-dark h-12 shrink-0 items-center gap-2 border-b px-4">
+                    <header className="flex sticky top-0 bg-gray-200 z-50 h-12 shrink-0 items-center gap-2 border-b px-4 mb-8">
                         <SidebarTrigger className="-ml-1" />
                         <Separator orientation="vertical" className="mr-2 h-4" />
                         <Breadcrumb>
