@@ -177,7 +177,7 @@ export default function ListCollege() {
           </Button>
         </div>
       </div>
-      <MapComponent college={college}/>
+      <MapComponent colleges={college}/>
 
       <div className="rounded-md border">
 

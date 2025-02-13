@@ -25,7 +25,13 @@ import { Button } from '../../components/ui/button';
 import { FaEdit } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
-// Fetch courses function (moved outside for better reusability)
+// Fetch courses function 
+const fetchAllCourse = async () => {
+  const response = await api.get(`/courses`);
+  console.log("🚀 ~ fetchAllCourse ~ response:", response)
+  return response.data.courses;
+};
+
 const fetchCourse = async ({ queryKey }) => {
   const [, program_id, semester_id] = queryKey;
   if (!program_id || !semester_id) return [];
@@ -54,11 +60,20 @@ const ListCourse = () => {
   });
 
   // Fetch courses based on selected program & semester
-  const { data: courses = [], isLoading, error } = useQuery({
+  const { data: allCourses = [], isLoading, error } = useQuery({
+    queryKey: ["allCourses"],
+    queryFn: fetchAllCourse,
+  });
+  console.log("🚀 ~ ListCourse ~ allCourses:", allCourses)
+
+  const { data: courses = [] } = useQuery({
     queryKey: ["courses", selectedProgram, selectedSemester],
     queryFn: fetchCourse,
     enabled: search,
   });
+
+  // Determine which list to show
+  const displayedCourses = search ? courses : allCourses;
 
   // Show loading or error messages
   if (isLoading) return <div>Loading courses...</div>;
@@ -116,7 +131,7 @@ const ListCourse = () => {
 
       </div>
       <div className='mt-4'>
-        {courses.length === 0 ?
+        {displayedCourses.length === 0 ?
           <div>
             No data found.
             <p>Try selecting a program and semester.</p>
@@ -145,8 +160,8 @@ const ListCourse = () => {
               </TableHeader>
               <TableBody>
                 {/* Map through courses */}
-                {Array.isArray(courses) &&
-                  courses.map((course, index) => (
+                {Array.isArray(displayedCourses) &&
+                  displayedCourses.map((course, index) => (
                     <TableRow key={index}>
                       <TableCell>{course.course_code}</TableCell>
                       <TableCell>{course.name}</TableCell>

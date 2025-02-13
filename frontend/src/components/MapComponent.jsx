@@ -2,17 +2,16 @@ import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 
-const MapComponent = ({ college }) => {
-    console.log("🚀 ~ MapComponent ~ college:", college)
+const MapComponent = ({ colleges }) => {
+    console.log("🚀 ~ MapComponent ~ college:", colleges)
     // Define the initial position of the map
     const center = [27.6663423, 85.3330053]; // Latitude and Longitude (e.g., London)
 
     // Define marker positions
-    const markers = [
-        { position: [27.6663423, 85.3330053], content: "Marker 1" },
-        { position: [51.51, -0.1], content: "Marker 2" },
-        { position: [51.49, -0.08], content: "Marker 3" },
-    ];
+    const markers = colleges.map((college) => ({
+        position: [parseFloat(college.latitude), parseFloat(college.longitude)],
+        content: college.college_name,
+      }));
 
     return (
         <MapContainer center={center} zoom={15} style={{ width: "100%", height: "50vh" }}>
