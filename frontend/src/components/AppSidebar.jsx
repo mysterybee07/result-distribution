@@ -53,6 +53,10 @@ const data = {
           title: "Add College",
           url: "/admin/college/create",
         },
+        // {
+        //   title: "List Center",
+        //   url: "/admin/center",
+        // },
       ],
     },
     {
@@ -87,13 +91,17 @@ const data = {
       title: "Exam",
       url: "/admin/exam",
       items: [
+        // {
+        //   title: "View Exam",
+        //   url: "/admin/exam",
+        // },
         {
-          title: "View Exam",
-          url: "/admin/exam",
+          title: "Routine",
+          url: "/admin/exam/routine",
         },
         {
-          title: "Add Exam",
-          url: "/admin/exam",
+          title: "Exam Schedule",
+          url: "/admin/exam/create",
         },
       ],
     },
@@ -111,15 +119,29 @@ const data = {
         },
       ],
     },
+    {
+      title: "Marks",
+      url: "/admin/marks",
+      items: [
+        {
+          title: "All Marks",
+          url: "/admin/marks",
+        },
+        {
+          title: "Add Marks",
+          url: "/admin/marks/create",
+        },
+      ],
+    },
   ],
 }
 
 export function AppSidebar({ ...props }) {
   const location = useLocation(); // Get the current location
   const currentPath = location.pathname; // Extract the pathname
-  console.log("🚀 ~ AppSidebar ~ currentPath:", currentPath)
+  // console.log("🚀 ~ AppSidebar ~ currentPath:", currentPath)
   const { isAuthenticated, logout, userData } = useAuth();
-  console.log("🚀 ~ AppSidebar ~ userData:", userData)
+  // console.log("🚀 ~ AppSidebar ~ userData:", userData)
   const user = {
     // TODO: change this no name later
     name: userData?.role,
@@ -128,7 +150,7 @@ export function AppSidebar({ ...props }) {
   }
 
   return (
-    <Sidebar {...props}>
+    <Sidebar {...props} className="sm:w-64">
       <SidebarHeader>
         Result-e
       </SidebarHeader>
@@ -150,7 +172,7 @@ export function AppSidebar({ ...props }) {
           <Collapsible
             key={item.title}
             title={item.title}
-            defaultOpen
+            // defaultOpen
             className="group/collapsible"
           >
             <SidebarGroup>

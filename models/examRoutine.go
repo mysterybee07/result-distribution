@@ -13,7 +13,7 @@ type ExamRoutine struct {
 	BatchID    uint      `json:"batch_id"`
 	ProgramID  uint      `json:"program_id"`
 	SemesterID uint      `json:"semester_id"`
-	Status     string    `gorm:"not null; default:NotPublished" json:"status"`
+	Status     bool      `gorm:"not null; default:false" json:"status"`
 
 	// Foreign key associations
 	Batch    Batch    `gorm:"foreignKey:BatchID"`

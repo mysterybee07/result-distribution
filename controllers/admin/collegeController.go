@@ -15,10 +15,10 @@ import (
 func UploadColleges(c *fiber.Ctx) error {
 	// Check the Content-Type header to differentiate between file and JSON input
 	contentType := c.Get("Content-Type")
+	var college models.College
 
 	if contentType == "application/json" {
 		// Handle JSON input
-		var college models.College
 		if err := c.BodyParser(&college); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": "Invalid JSON payload",
@@ -80,7 +80,7 @@ func UploadColleges(c *fiber.Ctx) error {
 	})
 }
 
-func GetCenterColleges(c *fiber.Ctx) error {
+func GetCenterCollegesByProgramAndBatch(c *fiber.Ctx) error {
 	batchID := c.Query("batch_id")
 	programID := c.Query("program_id")
 
@@ -111,16 +111,28 @@ func GetCenterColleges(c *fiber.Ctx) error {
 }
 
 func GetColleges(c *fiber.Ctx) error {
-	var colleges []models.College
+	var results []struct {
+		ID          uint   `json:"id"`
+		CollegeCode string `json:"college_code"`
+		CollegeName string `json:"college_name"`
+		Latitude    string `json:"latitude"`
+		Longitude   string `json:"longitude"`
+		Address     string `json:"address"`
+		IsCenter    bool   `json:"is_center"`
+		Capacity    int    `json:"capacity"`
+	}
 
-	if err := initializers.DB.Find(&colleges).Error; err != nil {
-		c.Status(fiber.StatusInternalServerError)
-		return c.JSON(fiber.Map{
-			"error": "College not found",
+	if err := initializers.DB.Table("colleges").
+		Select("colleges.id, colleges.college_code, colleges.college_name, colleges.address, colleges.latitude, colleges.longitude, COALESCE(capacity_and_counts.is_center, false) AS is_center, COALESCE(capacity_and_counts.capacity, 0) AS capacity").
+		Joins("LEFT JOIN capacity_and_counts ON colleges.id = capacity_and_counts.college_id").
+		Find(&results).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to fetch colleges",
 		})
 	}
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"center": colleges,
+		"colleges": results,
 	})
 }
 
@@ -243,5 +255,43 @@ func DeleteCollege(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 
 		"message": "College deleted successfully",
+	})
+}
+
+func UpdateCapacity(c *fiber.Ctx) error {
+	centerID := c.Params("id")
+
+	// Parse request body to get the new capacity value
+	type RequestBody struct {
+		Capacity int `json:"capacity"`
+	}
+	var requestBody RequestBody
+
+	if err := c.BodyParser(&requestBody); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid request body",
+		})
+	}
+
+	// Find the center by ID and ensure it's a center
+	var center models.CapacityAndCount
+	if err := initializers.DB.Where("id = ? AND is_center = ?", centerID, true).First(&center).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"message": "Center not found or not a valid center",
+		})
+	}
+
+	// Update the capacity
+	center.Capacity = requestBody.Capacity
+	if err := initializers.DB.Save(&center).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to update capacity",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Capacity updated successfully",
+		// "center":   center.CollegeID,
+		"capacity": center.Capacity,
 	})
 }

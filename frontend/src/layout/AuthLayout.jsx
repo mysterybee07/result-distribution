@@ -15,7 +15,7 @@ import { Separator } from "@/components/ui/separator"
 import { AppSidebar } from "../components/AppSidebar";
 import { Toaster } from '@/components/ui/toaster';
 import { Outlet } from 'react-router-dom';
-import Footer from "../components/Footer";
+// import Footer from "../components/Footer";
 import { useLocation, Link } from "react-router-dom";
 
 const AdminLayout = () => {
@@ -49,9 +49,9 @@ const AdminLayout = () => {
     return (
         <>
             <SidebarProvider>
-                <AppSidebar />
+                <AppSidebar/>
                 <SidebarInset>
-                    <header className="flex sticky top-0 bg-dark h-12 shrink-0 items-center gap-2 border-b px-4">
+                    <header className="flex sticky top-0 bg-gray-200 z-50 h-12 shrink-0 items-center gap-2 border-b px-4 mb-8">
                         <SidebarTrigger className="-ml-1" />
                         <Separator orientation="vertical" className="mr-2 h-4" />
                         <Breadcrumb>
@@ -75,11 +75,11 @@ const AdminLayout = () => {
                         </Breadcrumb>
                     </header>
                     <div className="flex flex-1 flex-col gap-1 py-1 px-8">
-                        {/* <div className="flex-grow"> */}
+                        <div className="flex-grow">
                             <Toaster />
                             <Outlet />
-                        {/* </div> */}
-                        <Footer />
+                        </div>
+                        {/* <Footer /> */}
                     </div>
                 </SidebarInset>
             </SidebarProvider>

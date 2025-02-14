@@ -161,6 +161,17 @@ func GetFilteredCourses(c *fiber.Ctx) error {
 		"courses": courses,
 	})
 }
+func GetAllCourses(c *fiber.Ctx) error {
+
+	var allCourses []models.Course
+	if err := initializers.DB.Find(&allCourses).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching courses"})
+	}
+
+	return c.JSON(fiber.Map{
+		"courses": allCourses,
+	})
+}
 
 func GetCourseById(c *fiber.Ctx) error {
 	id := c.Params("id")

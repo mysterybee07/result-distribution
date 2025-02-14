@@ -11,5 +11,11 @@
   "license": "ISC",
   "devDependencies": {
     "tailwindcss": "^3.4.3"
+  },
+  "dependencies": {
+    "@react-google-maps/api": "^2.20.5",
+    "@tanstack/react-table": "^8.20.6",
+    "leaflet": "^1.9.4",
+    "react-leaflet": "^5.0.0"
   }
 }

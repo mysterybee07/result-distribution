@@ -124,6 +124,8 @@ package routes
 import (
 	"github.com/gofiber/fiber/v2"
 	adminController "github.com/mysterybee07/result-distribution-system/controllers/admin"
+
+	// controllers "github.com/mysterybee07/result-distribution-system/controllers/admin"
 	authController "github.com/mysterybee07/result-distribution-system/controllers/auth"
 	errorController "github.com/mysterybee07/result-distribution-system/controllers/error"
 	examController "github.com/mysterybee07/result-distribution-system/controllers/exam"
@@ -154,7 +156,7 @@ func SetupRoutes(app *fiber.App) {
 
 	// Profile Routes
 	profile := app.Group("/profile")
-	profile.Get("/", middleware.AuthRequired, userController.GetUserProfile)
+	profile.Get("", middleware.AuthRequired, userController.GetUserProfile)
 
 	// Student Routes
 	student := app.Group("/students")
@@ -199,8 +201,9 @@ func SetupRoutes(app *fiber.App) {
 	// Course Routes
 	course := app.Group("/courses")
 	// course := app.Group("/courses", middleware.AuthRequired, middleware.SuperadminRequired)
-	// course.Get("/", adminController.Course)
+	course.Get("", adminController.GetAllCourses)
 	// course.Post("/create", adminController.CreateCourses)
+	// TODO: get all courses
 	course.Post("/create", adminController.CreateCourses)
 	course.Put("/update/:id", adminController.UpdateCourse)
 	course.Get("/filter", adminController.GetFilteredCourses)
@@ -245,15 +248,20 @@ func SetupRoutes(app *fiber.App) {
 	notice.Post("/publish", noticeController.PublishNotice)
 
 	exam := app.Group("/exam")
+	exam.Get("/routines", adminController.ListExamsRoutine)
+	exam.Get("/schedules", adminController.ListExamSchedules)
+	exam.Get("/schedules/by-batch-program", adminController.GetFilteredExamSchedules)
 	exam.Get("/assign-centers", examController.AssignCentersHandler)
 	exam.Post("/update-center-and-capacity", adminController.AssignCenterAndCapacity)
+	exam.Put("/update-capacity/:id", adminController.UpdateCapacity)
 	exam.Post("/schedule/create", adminController.CreateExamRoutine)
-	exam.Post("/schedule/publish", adminController.PublishExamRoutine)
+	exam.Post("/schedule/publish/:id", adminController.PublishExamRoutine)
 
 	college := app.Group("/college")
 	college.Get("", adminController.GetColleges)
 	college.Post("/upload-college", adminController.UploadColleges)
-	college.Get("/centers", adminController.GetCenterColleges)
+	college.Get("/centers-by-program-and-batch", adminController.GetCenterCollegesByProgramAndBatch)
+	// college.Get("/all-centers", adminController.GetAllCenterColleges)
 	college.Put("/update-college/:id", adminController.UpdateCollege)
 	college.Delete("/delete-college/:id", adminController.DeleteCollege)
 }
