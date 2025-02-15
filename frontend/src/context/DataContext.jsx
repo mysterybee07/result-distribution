@@ -43,6 +43,17 @@ export const DataProvider = ({ children, isAuthenticated }) => {
         enabled: isAuthenticated, // Query runs only if user is authenticated
     });
 
+    // fetch colleges
+    const fetchColleges = async () => {
+        const response = await api.get("/college");
+        return response.data.colleges;
+    };
+
+    const { data: college = [], isLoading, error } = useQuery({
+        queryKey: ["colleges"],
+        queryFn: fetchColleges,
+    });
+
     return (
         <DataContext.Provider
             value={{
@@ -58,6 +69,7 @@ export const DataProvider = ({ children, isAuthenticated }) => {
                 students,
                 loadingStudents,
                 errorStudents,
+                college,
             }}>
             {children}
         </DataContext.Provider>

@@ -286,19 +286,43 @@ func GetStudentById(c *fiber.Ctx) error {
 }
 
 func GetFilteredStudents(c *fiber.Ctx) error {
-	batchID := c.Query("batch_id")
-	programID := c.Query("program_id")
-	semesterID := c.Query("semester_id")
+	fmt.Println("GetFilteredStudents")
 
+	batchIDStr := c.Query("batch_id")
+	programIDStr := c.Query("program_id")
+
+	// Validate query params
+	if batchIDStr == "" || programIDStr == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "batch_id and program_id are required",
+		})
+	}
+
+	batchID, err := strconv.Atoi(batchIDStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid batch_id",
+		})
+	}
+
+	programID, err := strconv.Atoi(programIDStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid program_id",
+		})
+	}
+
+	// Fetch students
 	var students []models.Student
 	if err := initializers.DB.Preload("Batch").Preload("Program").Preload("Semester").
-		Where("batch_id = ? AND program_id = ? AND current_semester = ?", batchID, programID, semesterID).
+		Where("batch_id = ? AND program_id = ?", batchID, programID).
 		Find(&students).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Error fetching students",
 		})
 	}
 
+	// Ensure an empty array is returned if no students are found
 	return c.JSON(fiber.Map{
 		"students": students,
 	})

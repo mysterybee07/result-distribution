@@ -22,7 +22,7 @@ const fetchCourse = async ({ queryKey }) => {
 
 const fetchFilteredStudents = async ({ queryKey }) => {
     const [, batch_id, program_id, semester_id] = queryKey;
-    const response = await api.get(`/students/filter?batch_id=${batch_id}&program_id=${program_id}&semester_id=${semester_id}`);
+    const response = await api.get(`/students/filter?batch_id=${batch_id}&program_id=${program_id}`);
     console.log("🚀 ~ fetchFilteredStudents ~ response:", response)
     return response.data.students;
 };

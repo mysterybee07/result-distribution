@@ -22,6 +22,8 @@ const AdminLayout = () => {
     const location = useLocation(); // Get the current location
     const { pathname } = location;
 
+    const isMobile = window.innerWidth < 1150;
+
     // Helper to split the path and exclude the `/admin` prefix
     const generateBreadcrumbs = () => {
         const segments = pathname
@@ -49,9 +51,10 @@ const AdminLayout = () => {
     return (
         <>
             <SidebarProvider>
-                <AppSidebar/>
+                {!isMobile && <AppSidebar/>}
+                
                 <SidebarInset>
-                    <header className="flex sticky top-0 bg-gray-200 z-50 h-12 shrink-0 items-center gap-2 border-b px-4 mb-8">
+                    <header className="flex w-full sticky top-0 bg-gray-200 z-10 h-12 shrink-0 items-center gap-2 border-b p-4 mb-8">
                         <SidebarTrigger className="-ml-1" />
                         <Separator orientation="vertical" className="mr-2 h-4" />
                         <Breadcrumb>
