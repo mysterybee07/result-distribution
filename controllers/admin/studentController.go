@@ -258,7 +258,7 @@ func GetStudents(c *fiber.Ctx) error {
 	var students []models.Student
 
 	// Use Preload to include Batch and Program associations
-	result := initializers.DB.Preload("Batch").Preload("Program").Find(&students)
+	result := initializers.DB.Preload("Batch").Preload("Program").Preload("College").Find(&students)
 	if result.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Could not retrieve students",
@@ -274,9 +274,9 @@ func GetStudents(c *fiber.Ctx) error {
 func GetStudentById(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var student models.Student
-	if err := initializers.DB.Preload("Batch").Preload("Program").Preload("Semester").First(&student, id).Error; err != nil {
+	if err := initializers.DB.Preload("Batch").Preload("Program").Preload("College").First(&student, id).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Student not found",
+			"error": "error fetching student with id",
 		})
 	}
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
@@ -285,23 +285,35 @@ func GetStudentById(c *fiber.Ctx) error {
 	})
 }
 
-func GetFilteredStudents(c *fiber.Ctx) error {
-	batchID := c.Query("batch_id")
+func FilteredStudents(c *fiber.Ctx) error {
+	fmt.Println("Filtered students")
 	programID := c.Query("program_id")
-	semesterID := c.Query("semester_id")
+	batchID := c.Query("batch_id")
+
+	fmt.Println("Query params are : ", programID, batchID)
 
 	var students []models.Student
-	if err := initializers.DB.Preload("Batch").Preload("Program").Preload("Semester").
-		Where("batch_id = ? AND program_id = ? AND current_semester = ?", batchID, programID, semesterID).
-		Find(&students).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Error fetching students",
-		})
+	if err := initializers.DB.Where("program_id = ? AND batch_id = ?", programID, batchID).Find(&students).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching students"})
 	}
 
 	return c.JSON(fiber.Map{
 		"students": students,
 	})
+}
+
+func FilterStudentsByProgram(c *fiber.Ctx) error {
+	programID := c.Params("id")
+	fmt.Println("Program id = ", programID)
+
+	var students []models.Student
+	if err := initializers.DB.Where("program_id = ?", programID).Find(&students).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to retrieve students",
+		})
+	}
+
+	return c.JSON(students)
 }
 
 func DeleteStudent(c *fiber.Ctx) error {
