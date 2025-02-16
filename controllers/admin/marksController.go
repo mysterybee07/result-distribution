@@ -320,3 +320,14 @@ func GetMarksBySymbolNumber(c *fiber.Ctx) error {
 		"status":     status,
 	})
 }
+
+// "batch_id": 1,
+//             "program_id": 1,
+//             "semester_id": 1,
+//             "course_id": 1,
+//             "student_id": 203,
+//             "semester_marks": 45,
+//             "assistant_marks": 11,
+//             "practical_marks": 11,
+//             "total_marks": 67,
+//             "status": "pass",

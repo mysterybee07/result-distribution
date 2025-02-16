@@ -41,6 +41,7 @@ export default function DashboardAsideCard() {
         loadingBatches,
         errorBatches,
     } = useData();
+        console.log("🚀 ~ DashboardAsideCard ~ programs:", programs)
 
     if (loadingPrograms && loadingBatches) return <div>Loading...</div>;
 
@@ -67,6 +68,7 @@ export default function DashboardAsideCard() {
                                 <TableRow>
                                     <TableHead className="w-[50px] text-center">S.N</TableHead>
                                     <TableHead className="w-[150px] text-center">Programs</TableHead>
+                                    <TableHead className="w-[150px] text-center">No. of Semesters</TableHead>
                                     <TableHead className="w-[50px] text-center">Action</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -75,6 +77,7 @@ export default function DashboardAsideCard() {
                                     <TableRow key={program.ID}>
                                         <TableCell className="font-medium text-center">{index + 1}</TableCell>
                                         <TableCell className="font-medium text-center">{program.program_name}</TableCell>
+                                        <TableCell className="font-medium text-center">8</TableCell>
                                         <TableCell className="font-medium text-center">
                                             {/* <Button size="sm" variant="outline" onClick={<ProgramForm />} >
                                                 Edit
@@ -87,7 +90,10 @@ export default function DashboardAsideCard() {
                         </Table>
                     </CardContent>
                     <CardFooter>
-                        <ProgramForm />
+                        <div className="flex flex-col gap-4 w-full">
+                            <ProgramForm />
+                            <SemesterForm />
+                        </div>
                     </CardFooter>
                 </Card>
             </TabsContent>
@@ -124,10 +130,7 @@ export default function DashboardAsideCard() {
                         </Table>
                     </CardContent>
                     <CardFooter>
-                        <div className="flex flex-col gap-4 w-full">
-                            <BatchForm />
-                            <SemesterForm />
-                        </div>
+                        <BatchForm />
                     </CardFooter>
                 </Card>
             </TabsContent>

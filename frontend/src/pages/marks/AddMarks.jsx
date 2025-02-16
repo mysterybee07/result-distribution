@@ -38,7 +38,7 @@ const AddMarks = () => {
         courseID: '',
         studentMarks: [
             {
-                studentID: '',
+                symbol_number: '',
                 semesterMarks: '',
                 assistantMarks: '',
                 practicalMarks: ''
@@ -103,7 +103,7 @@ const AddMarks = () => {
     //         studentMarks: [
     //             ...prev.studentMarks,
     //             {
-    //                 studentID: '',
+    //                 symbol_number: '',
     //                 semesterMarks: '',
     //                 assistantMarks: '',
     //                 practicalMarks: ''
@@ -131,7 +131,7 @@ const AddMarks = () => {
         if (students.length > 0) {
             // Map students to the required format
             const mappedStudents = students.map(student => ({
-                studentID: student.symbol_number,
+                symbol_number: student.symbol_number,
                 semesterMarks: '',
                 assistantMarks: '',
                 practicalMarks: ''
@@ -152,7 +152,7 @@ const AddMarks = () => {
             studentMarks: [
                 ...prev.studentMarks,
                 {
-                    studentID: '',
+                    symbol_number: '',
                     semesterMarks: '',
                     assistantMarks: '',
                     practicalMarks: ''
@@ -170,7 +170,7 @@ const AddMarks = () => {
             skipEmptyLines: true,
             complete: (result) => {
                 const parsedData = result.data.map(row => ({
-                    studentID: row.studentID,
+                    symbol_number: row.symbol_number,
                     semesterMarks: row.semesterMarks,
                     assistantMarks: row.assistantMarks,
                     practicalMarks: row.practicalMarks
@@ -189,7 +189,7 @@ const AddMarks = () => {
             semester_id: parseInt(formData.semesterID),
             course_id: parseInt(formData.courseID),
             marks: formData.studentMarks.map(mark => ({
-                student_id: parseInt(mark.studentID),
+                symbol_number: mark.symbol_number,
                 semester_marks: parseInt(mark.semesterMarks),
                 assistant_marks: parseInt(mark.assistantMarks),
                 practical_marks: parseInt(mark.practicalMarks)
@@ -306,12 +306,12 @@ const AddMarks = () => {
                                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
                                             <div className="lg:col-span-2">
                                                 <label className="text-left block text-sm font-semibold text-gray-700">
-                                                    Student ID
+                                                    Student Symbol Number
                                                 </label>
                                                 <input
                                                     type="text"
-                                                    name="studentID"
-                                                    value={student.studentID}
+                                                    name="symbol_number"
+                                                    value={student.symbol_number}
                                                     onChange={(e) => handleInputChange(e, index)}
                                                     className="p-2 mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                                     required
