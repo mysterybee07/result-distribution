@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/go-playground/validator"
 	"github.com/gofiber/fiber/v2"
@@ -91,6 +92,19 @@ func CreateMarks(c *fiber.Ctx) error {
 	// Create marks for each student
 	var marks []models.Mark
 	for _, mark := range payload.Marks {
+		// Find student ID using symbol number
+		var student models.Student
+		if err := initializers.DB.Where("symbol_number = ? AND batch_id = ?", mark.SymbolNumber, payload.BatchID).First(&student).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"error": fmt.Sprintf("Student with symbol number %s not found", mark.SymbolNumber),
+				})
+			}
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Database error while fetching student",
+			})
+		}
+
 		// Check that obtained marks do not exceed total marks
 		if mark.SemesterMarks > course.SemesterTotalMarks ||
 			(course.PracticalTotalMarks != nil && mark.PracticalMarks > *course.PracticalTotalMarks) ||
@@ -105,7 +119,7 @@ func CreateMarks(c *fiber.Ctx) error {
 			ProgramID:      payload.ProgramID,
 			SemesterID:     payload.SemesterID,
 			CourseID:       payload.CourseID,
-			StudentID:      mark.StudentID,
+			StudentID:      student.ID,
 			SemesterMarks:  mark.SemesterMarks,
 			AssistantMarks: mark.AssistantMarks,
 			PracticalMarks: mark.PracticalMarks,
@@ -195,7 +209,7 @@ func UpdateMarks(c *fiber.Ctx) error {
 
 		// Find the existing mark record
 		var mark models.Mark
-		if err := initializers.DB.Where("student_id = ? AND course_id = ?", markEntry.StudentID, input.CourseID).First(&mark).Error; err != nil {
+		if err := initializers.DB.Where("student_id = ? AND course_id = ?", markEntry.SymbolNumber, input.CourseID).First(&mark).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Could not find the mark record",
 			})

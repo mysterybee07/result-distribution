@@ -75,7 +75,7 @@ func ValidateMarksInput(input *models.MarksPayload, isUpdate bool) error {
 	for _, markEntry := range input.Marks {
 		var existingMark models.Mark
 		err := initializers.DB.Where("batch_id = ? AND program_id = ? AND semester_id = ? AND course_id = ? AND student_id = ?",
-			input.BatchID, input.ProgramID, input.SemesterID, input.CourseID, markEntry.StudentID).First(&existingMark).Error
+			input.BatchID, input.ProgramID, input.SemesterID, input.CourseID, markEntry.SymbolNumber).First(&existingMark).Error
 
 		if isUpdate {
 			// For updates, ensure that the mark entry exists
