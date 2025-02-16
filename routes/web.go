@@ -72,7 +72,7 @@ func SetupRoutes(app *fiber.App) {
 	// Semester Routes
 	semester := app.Group("/semester")
 	// semester := app.Group("/semesters", middleware.AuthRequired, middleware.SuperadminRequired)
-	semester.Get("/", adminController.Semester)
+	semester.Get("", adminController.Semester)
 	// semester.Post("/", adminController.CreateSemester)
 	semester.Post("/create", adminController.CreateSemester)
 	semester.Put("/update/:id", adminController.UpdateSemester)
