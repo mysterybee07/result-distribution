@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMutation, useQuery } from "@tanstack/react-query";
 import api from "../../api";
 import { Select, SelectLabel, SelectGroup, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useData } from '../../context/DataContext';
 
 
-const createMarks = async () => {
-    const { data } = await api.get("/marks/create");
+const createMarks = async (marksData) => {
+    const { data } = await api.post("/marks/create", marksData);
     return data;
 };
 
@@ -18,11 +18,10 @@ const fetchCourse = async ({ queryKey }) => {
     const response = await api.get(`/courses/filter?program_id=${program_id}&semester_id=${semester_id}`);
     console.log("🚀 ~ fetchCourse ~ response:", response.data.courses);
     return response.data.courses;
-};
-
+}
 const fetchFilteredStudents = async ({ queryKey }) => {
-    const [, batch_id, program_id, semester_id] = queryKey;
-    const response = await api.get(`/students/filter?batch_id=${batch_id}&program_id=${program_id}`);
+    const [, batch_id, program_id] = queryKey;
+    const response = await api.get(`/students/filtered?batch_id=${batch_id}&program_id=${program_id}`);
     console.log("🚀 ~ fetchFilteredStudents ~ response:", response)
     return response.data.students;
 };
@@ -67,16 +66,9 @@ const AddMarks = () => {
     });
     // console.log("🚀 ~ AddMarks ~ courses:", courses)
 
-    // query to fetch students
-    const { data: students = [] } = useQuery({
-        queryKey: ["students", formData.batchID, formData.programID, formData.semesterID],
-        queryFn: fetchFilteredStudents,
-        enabled: !!formData.batchID && !!formData.programID && !!formData.semesterID
-    });
-    console.log("🚀 ~ AddMarks ~ students:", students)
 
     const mutation = useMutation({
-        mutationFn: createMarks,
+        mutationFn: (marksData) => createMarks(marksData),
         onSuccess: (data) => {
             console.log("Success:", data);
         },
@@ -105,6 +97,55 @@ const AddMarks = () => {
         }
     };
 
+    // const addStudent = () => {
+    //     setFormData(prev => ({
+    //         ...prev,
+    //         studentMarks: [
+    //             ...prev.studentMarks,
+    //             {
+    //                 studentID: '',
+    //                 semesterMarks: '',
+    //                 assistantMarks: '',
+    //                 practicalMarks: ''
+    //             }
+    //         ]
+    //     }));
+    // };
+
+    const removeStudent = (index) => {
+        setFormData(prev => ({
+            ...prev,
+            studentMarks: prev.studentMarks.filter((_, i) => i !== index)
+        }));
+    };
+
+    // Use useEffect to handle the students data update
+    const { data: students = [] } = useQuery({
+        queryKey: ["students", formData.batchID, formData.programID],
+        queryFn: fetchFilteredStudents,
+        enabled: !!formData.batchID && !!formData.programID
+    });
+
+    // Add this useEffect to handle student data changes
+    useEffect(() => {
+        if (students.length > 0) {
+            // Map students to the required format
+            const mappedStudents = students.map(student => ({
+                studentID: student.symbol_number,
+                semesterMarks: '',
+                assistantMarks: '',
+                practicalMarks: ''
+            }));
+
+            // Update formData with mapped students
+            setFormData(prev => ({
+                ...prev,
+                studentMarks: mappedStudents
+            }));
+        }
+    }, [students]); // Only run when students data changes
+
+    // Keep addStudent function for manual additions if needed
     const addStudent = () => {
         setFormData(prev => ({
             ...prev,
@@ -120,25 +161,38 @@ const AddMarks = () => {
         }));
     };
 
-    const removeStudent = (index) => {
-        setFormData(prev => ({
-            ...prev,
-            studentMarks: prev.studentMarks.filter((_, i) => i !== index)
-        }));
+    const handleFileUpload = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (result) => {
+                const parsedData = result.data.map(row => ({
+                    studentID: row.studentID,
+                    semesterMarks: row.semesterMarks,
+                    assistantMarks: row.assistantMarks,
+                    practicalMarks: row.practicalMarks
+                }));
+                setFormData(prev => ({ ...prev, studentMarks: parsedData }));
+            }
+        });
     };
+
 
     const handleSubmit = (e) => {
         e.preventDefault();
         const marksData = {
-            batchID: parseInt(formData.batchID),
-            programID: parseInt(formData.programID),
-            semesterID: parseInt(formData.semesterID),
-            courseID: parseInt(formData.courseID),
+            batch_id: parseInt(formData.batchID),
+            program_id: parseInt(formData.programID),
+            semester_id: parseInt(formData.semesterID),
+            course_id: parseInt(formData.courseID),
             marks: formData.studentMarks.map(mark => ({
-                studentID: parseInt(mark.studentID),
-                semesterMarks: parseInt(mark.semesterMarks),
-                assistantMarks: parseInt(mark.assistantMarks),
-                practicalMarks: parseInt(mark.practicalMarks)
+                student_id: parseInt(mark.studentID),
+                semester_marks: parseInt(mark.semesterMarks),
+                assistant_marks: parseInt(mark.assistantMarks),
+                practical_marks: parseInt(mark.practicalMarks)
             }))
         };
         mutation.mutate(marksData);
@@ -246,6 +300,7 @@ const AddMarks = () => {
                                     </button>
                                 </div>
 
+                                <input type="file" accept=".csv" onChange={handleFileUpload} />
                                 {formData.studentMarks.map((student, index) => (
                                     <div key={index} className="border rounded-lg p-4 bg-gray-50">
                                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">

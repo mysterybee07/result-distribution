@@ -30,6 +30,7 @@ import api from '../api';
 const formSchema = z.object({
     batch_id: z.number(),
     program_id: z.number(),
+    file: z.any(),
 });
 
 const BulkStudentForm = ({ isDrawerOpen, setIsDrawerOpen }) => {
@@ -43,14 +44,17 @@ const BulkStudentForm = ({ isDrawerOpen, setIsDrawerOpen }) => {
     if (errorPrograms) return <div>Error loading programs: {errorPrograms.message}</div>;
     if (errorBatches) return <div>Error loading batches: {errorBatches.message}</div>;
     const [students, setStudents] = useState([]);
+    const [file, setFile] = useState(null);
 
     const handleFileChange = (event) => {
         const file = event.target.files[0];
+        setFile(file);
+        setValue('file', file); // Set the file in the form state
 
         Papa.parse(file, {
             header: true,
             complete: (results) => {
-                setStudents(results.data); // Save parsed data
+                setStudents(results.data);
             },
         });
     };
@@ -61,14 +65,19 @@ const BulkStudentForm = ({ isDrawerOpen, setIsDrawerOpen }) => {
         defaultValues: {
             batch_id: '',
             program_id: '',
+            file: null
         },
     });
     const { register, formState: { errors }, setValue, watch } = form;
 
     // mutation for creating student
     const { mutate: createStudent } = useMutation({
-        mutationFn: async (student) => {
-            const response = await api.post('/students/create', student);
+        mutationFn: async (formData) => {
+            const response = await api.post('/students/create', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
             return response.data;
         },
         onSuccess: (data) => {
@@ -83,41 +92,38 @@ const BulkStudentForm = ({ isDrawerOpen, setIsDrawerOpen }) => {
 
     // define the submit handler
     const onSubmit = (data) => {
-        console.log("Submitting student data:", data);
-        const student = {
-            batch_id: data.batch_id,
-            program_id: data.program_id,
-            students: students.map(student => ({
-                fullname: student.fullname,
-                symbol_number: student.symbol_number,
-                registration_number: student.registration_number,
-                college_id: student.college_id,
-            })),
+        console.log("Current file state:", file);
+        console.log("Form data received:", data);
+
+        const formData = new FormData();
+        formData.append("batch_id", String(data.batch_id));
+        formData.append("program_id", String(data.program_id));
+
+        if (data.file && data.file instanceof File) {
+            formData.append("file", data.file);
         }
-        createStudent(student);
+
+        // Debugging FormData
+        console.log("FormData entries:");
+        for (const [key, value] of formData.entries()) {
+            console.log(key, value);
+        }
+
+        createStudent(formData);
     };
+
     return (
-        // <div className='flex items-center justify-center'>
         <Card className="w-1/2 shadow-lg hover:shadow-2xl py-8 text-start">
-            {/* <CardHeader>
-                    <CardTitle>Add Student in Bulk</CardTitle>
-                    <CardDescription>
-                        <a href="/student_test.xlsx" download>
-                            <Button variant="link">
-                                Download Sample File
-                            </Button>
-                        </a>
-                    </CardDescription>
-                </CardHeader> */}
             <CardContent>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} encType='multipart/form-data' method='post'>
                         <Select
                             value={watch('batch_id')}
                             onValueChange={(value) => {
                                 console.log("Selected batch ID:", Number(value)); // Debugging line
                                 setValue('batch_id', Number(value));
-                            }}                            >
+                            }}
+                        >
                             <FormLabel>Select batch: </FormLabel>
                             <SelectTrigger>
                                 <SelectValue placeholder="Select batch" />
@@ -173,8 +179,7 @@ const BulkStudentForm = ({ isDrawerOpen, setIsDrawerOpen }) => {
                 </Form>
             </CardContent>
         </Card>
-        // </div>
     )
 }
 
-export default BulkStudentForm
+export default BulkStudentForm;

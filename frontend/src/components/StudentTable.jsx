@@ -9,7 +9,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import React, { useMemo, useState } from 'react';
-import { useQuery } from "@tanstack/react-query";
+import { QueryClient, useQuery } from "@tanstack/react-query";
 import api from "../api";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { Button } from '@/components/ui/button'
@@ -47,6 +47,19 @@ export default function StudentTable() {
         const response = await api.get("/students");
         return response.data.students;
     };
+
+    const deleteStudent = async (id) => {
+        if (!window.confirm("Are you sure you want to delete this student?")) return;
+        
+        try {
+            await api.delete(`/students/delete?id=${id}`);
+            await QueryClient.invalidateQueries("students"); // Refresh list
+        } catch (error) {
+            console.error("Failed to delete student:", error);
+            alert("Error deleting student. Please try again.");
+        }
+    };
+    
 
     // Fetch students using useQuery
     const { data: students = [], isLoading, error } = useQuery({
@@ -241,9 +254,10 @@ export default function StudentTable() {
                                     onClick={() => navigate(`/admin/students/edit/${student.ID}`)}
                                 />
                                 <FaTrash
-                                    onClick={() => navigate(`/admin/students/${student.ID}`)}
-                                    className="text-red-600"
+                                    onClick={() => deleteStudent(student.ID)}
+                                    className="text-red-600 cursor-pointer"
                                 />
+
                             </TableCell>
                         </TableRow>
                     ))}

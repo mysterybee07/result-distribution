@@ -30,6 +30,7 @@ import api from "../api"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { useData } from "../context/DataContext"
+import SemesterForm from "../forms/SemesterForm"
 
 export default function DashboardAsideCard() {
     const {
@@ -47,10 +48,10 @@ export default function DashboardAsideCard() {
 
     return (
         <Tabs defaultValue="program" className="w-[400px]">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="program">Programs</TabsTrigger>
                 <TabsTrigger value="batches">Batches</TabsTrigger>
-                <TabsTrigger value="semester">Semester</TabsTrigger>
+                {/* <TabsTrigger value="semester">Semester</TabsTrigger> */}
             </TabsList>
             <TabsContent value="program">
                 <Card>
@@ -123,12 +124,15 @@ export default function DashboardAsideCard() {
                         </Table>
                     </CardContent>
                     <CardFooter>
-                        <BatchForm />
+                        <div className="flex flex-col gap-4 w-full">
+                            <BatchForm />
+                            <SemesterForm />
+                        </div>
                     </CardFooter>
                 </Card>
             </TabsContent>
 
-            <TabsContent value="semester">
+            {/* <TabsContent value="semester">
                 <Card>
                     <CardHeader>
                         <CardTitle>Semesters</CardTitle>
@@ -142,7 +146,6 @@ export default function DashboardAsideCard() {
                                 <TableRow>
                                     <TableHead className="w-[50px] text-center">S.N</TableHead>
                                     <TableHead className="w-[150px] text-center">Semesters</TableHead>
-                                    {/* <TableHead className="w-[150px] text-center">Students</TableHead> */}
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -150,17 +153,16 @@ export default function DashboardAsideCard() {
                                     <TableRow key={batch.batch}>
                                         <TableCell className="font-medium text-center">{index + 1}</TableCell>
                                         <TableCell className="font-medium text-center">{batch.batch}</TableCell>
-                                        {/* <TableCell className="font-medium text-center">{batch.student}</TableCell> */}
                                     </TableRow>
                                 ))}
                             </TableBody>
                         </Table>
                     </CardContent>
                     <CardFooter>
-                        <BatchForm />
+                        <SemesterForm />
                     </CardFooter>
                 </Card>
-            </TabsContent>
+            </TabsContent> */}
         </Tabs>
     )
 }
