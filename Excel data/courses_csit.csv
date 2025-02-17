@@ -1,0 +1,21 @@
+id,created_at,updated_at,deleted_at,course_code,name,semester_pass_marks,practical_pass_marks,assistant_pass_marks,semester_total_marks,practical_total_marks,assistant_total_marks,program_id,semester_id,is_compulsory
+,,,,CSC109,Introduction to Information Technology ,24,10,5,60,20,20,1,1,0
+,,,,CSC110,C Programming,24,10,5,60,20,20,1,1,0
+,,,,CSC111,Digital Logic,24,10,5,60,20,20,1,1,0
+,,,,MTH112,Mathematics I,24,10,5,60,20,20,1,1,0
+,,,,PHY113,Physics ,24,10,5,60,20,20,1,1,0
+,,,,CSC160,Discrete Strucutre,24,10,5,60,20,20,1,2,0
+,,,,CSC161,Object Orienterd Programming,24,10,5,60,20,20,1,2,0
+,,,,CSC162,Microprocessor,24,10,5,60,20,20,1,2,0
+,,,,MTH163,Mathematics II,24,10,5,60,20,20,1,2,0
+,,,,STA164,Statistics I,24,10,5,60,20,20,1,2,0
+,,,,CSC206,Data Structure and Algorithms,24,10,5,60,20,20,1,3,0
+,,,,CSC207,Numerical Method,24,10,5,60,20,20,1,3,0
+,,,,CSC208,Computer Architecture,24,10,5,60,20,20,1,3,0
+,,,,CSC209,Computer Graphics,24,10,5,60,20,20,1,3,0
+,,,,STA210,Statistics II,24,10,5,60,20,20,1,3,0
+,,,,CSC257,Theory of Computation,24,10,5,60,20,20,1,4,0
+,,,,CSC258,Computer Networks,24,10,5,60,20,20,1,4,0
+,,,,CSC259,Operating Systems,24,10,5,60,20,20,1,4,0
+,,,,CSC260,Database Management System,24,10,5,60,20,20,1,4,0
+,,,,CSC261,Artificial Intelligence,24,10,5,60,20,20,1,4,0
