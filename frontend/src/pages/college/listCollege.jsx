@@ -17,13 +17,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
@@ -177,7 +170,7 @@ export default function ListCollege() {
           </Button>
         </div>
       </div>
-      <MapComponent college={college}/>
+      <MapComponent colleges={college}/>
 
       <div className="rounded-md border">
 

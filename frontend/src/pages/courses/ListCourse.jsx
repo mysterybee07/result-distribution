@@ -24,48 +24,60 @@ import {
 import { Button } from '../../components/ui/button';
 import { FaEdit } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+
+// Fetch courses function 
+const fetchAllCourse = async () => {
+  const response = await api.get(`/courses`);
+  console.log("🚀 ~ fetchAllCourse ~ response:", response)
+  return response.data.courses;
+};
+
+const fetchCourse = async ({ queryKey }) => {
+  const [, program_id, semester_id] = queryKey;
+  if (!program_id || !semester_id) return [];
+
+  const response = await api.get(`/courses/filter?program_id=${program_id}&semester_id=${semester_id}`);
+  return response.data.courses;
+};
+
 const ListCourse = () => {
   const navigate = useNavigate();
   const { programs } = useData();
-  // console.log("🚀 ~ ListCourse ~ semester:", semester)
-  const [selectedProgram, setSelectedProgram] = useState("");
-  const [selectedSemester, setSelectedSemester] = useState("");
+
+  // State variables
+  const [selectedProgram, setSelectedProgram] = useState("all");
+  const [selectedSemester, setSelectedSemester] = useState("all");
   const [search, setSearch] = useState(false);
-  console.log("🚀 ~ ListCourse ~ selectedProgram:", selectedProgram)
-  const {
-    data: semesters,
-    isLoading: loadingSemesters,
-    error: errorSemesters,
-  } = useQuery({
-    queryKey: ["semesters", selectedProgram], // Add `selectedProgram` to the query key
+
+  // Fetch semesters based on selected program
+  const { data: semesters = [], isLoading: loadingSemesters, error: errorSemesters } = useQuery({
+    queryKey: ["semesters", selectedProgram],
     queryFn: async () => {
       const response = await api.get(`/semester/by-program/${selectedProgram}`);
       return response.data.semesters;
     },
-    enabled: !!selectedProgram, // Run the query only if `selectedProgram` is truthy
+    enabled: !!selectedProgram,
   });
-  console.log("🚀 ~ ListCourse ~ semesters:", semesters)
-  const fetchCourse = async ({ queryKey }) => {
-    const [, program_id, semester_id] = queryKey; // Destructure from queryKey
-    if (!program_id || !semester_id) {
-      return []; // Return an empty array if required params are missing
-    }
-    const response = await api.get(`/courses/filter?program_id=${program_id}&semester_id=${semester_id}`);
-    console.log("🚀 ~ fetchCourse ~ response:", response.data.courses);
-    return response.data.courses;
-  };
 
-  // Using useQuery with proper dependencies
-  const { data: courses = [], isLoading, error } = useQuery({
-    queryKey: ["courses", selectedProgram, selectedSemester], // Include program and semester in the queryKey
+  // Fetch courses based on selected program & semester
+  const { data: allCourses = [], isLoading, error } = useQuery({
+    queryKey: ["allCourses"],
+    queryFn: fetchAllCourse,
+  });
+  console.log("🚀 ~ ListCourse ~ allCourses:", allCourses)
+
+  const { data: courses = [] } = useQuery({
+    queryKey: ["courses", selectedProgram, selectedSemester],
     queryFn: fetchCourse,
-    enabled: search // Run only when both values are truthy
+    enabled: search,
   });
 
-  console.log(courses);
+  // Determine which list to show
+  const displayedCourses = search ? courses : allCourses;
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
+  // Show loading or error messages
+  if (isLoading) return <div>Loading courses...</div>;
+  if (error) return <div>Error: {error?.message || "Something went wrong"}</div>;
   return (
     <>
       <div className='flex justify-start space-x-4'>
@@ -79,13 +91,14 @@ const ListCourse = () => {
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Program</SelectLabel>
+              <SelectItem value="all">All Program</SelectItem>
               {Array.isArray(programs) && programs.map((program, index) => (
                 <SelectItem key={index} value={program.ID}>{program.program_name}</SelectItem>
               ))}
             </SelectGroup>
           </SelectContent>
         </Select>
-        
+
         <Select
           value={selectedSemester}
           onValueChange={(value) => setSelectedSemester(value)}
@@ -96,6 +109,7 @@ const ListCourse = () => {
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Semester</SelectLabel>
+              <SelectItem value="all">All Semester</SelectItem>
               {Array.isArray(semesters) && semesters.map((semester, index) => (
                 <SelectItem key={index} value={semester.ID}>{semester.semester_name}</SelectItem>
               ))}
@@ -108,6 +122,9 @@ const ListCourse = () => {
             if (!selectedProgram || !selectedSemester) {
               alert("Please select both a program and a semester.");
               return;
+            } else if (selectedProgram === "all" || selectedSemester === "all") {
+              setSearch(false);
+              return;
             }
             setSearch(true);
             // No need to call fetchCourse directly; react-query handles it
@@ -119,7 +136,7 @@ const ListCourse = () => {
 
       </div>
       <div className='mt-4'>
-        {courses.length === 0 ?
+        {displayedCourses.length === 0 ?
           <div>
             No data found.
             <p>Try selecting a program and semester.</p>
@@ -148,8 +165,8 @@ const ListCourse = () => {
               </TableHeader>
               <TableBody>
                 {/* Map through courses */}
-                {Array.isArray(courses) &&
-                  courses.map((course, index) => (
+                {Array.isArray(displayedCourses) &&
+                  displayedCourses.map((course, index) => (
                     <TableRow key={index}>
                       <TableCell>{course.course_code}</TableCell>
                       <TableCell>{course.name}</TableCell>
@@ -179,3 +196,4 @@ const ListCourse = () => {
 }
 
 export default ListCourse
+
