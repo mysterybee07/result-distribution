@@ -115,7 +115,7 @@ const data = {
         },
         {
           title: "Add Notice",
-          url: "/admin/notice",
+          url: "/admin/notice/create",
         },
       ],
     },

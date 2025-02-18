@@ -32,20 +32,21 @@ import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 
 
 import { useState } from "react"
+import { useData } from "../context/DataContext"
 
 const formSchema = z
     .object({
         symbol_number: z.string().min(5, { message: "Symbol number must be at least 5 characters." }),
         registration_number: z.string().min(5, { message: "Registration number must be at least 5 characters." }),
-        batch_id: z.string(),
-        programIDStr: z.string(),
+        batch_id: z.number(),
+        programIDStr: z.number(),
         email: z
             .string()
             .email({ message: "Please enter a valid email address." })
             .min(5, { message: "Email must be at least 5 characters." }),
         password: z
             .string()
-            .min(8, { message: "Password must be at least 6 characters." }),
+            .min(4, { message: "Password must be at least 4 characters." }),
         confirm_password: z.string(),
         // image: z.string(),
         image: z
@@ -73,11 +74,12 @@ export function RegisterForm() {
             image: ""
         },
     })
-    const { control, setValue, setError, formState: { errors }, register } = form;
+    const { control, setValue, setError, formState: { errors }, register, watch } = form;
 
     // 2. Define a submit handler.
     const onSubmit = async (values) => {
-        // Do something with the form values.
+        console.log("🚀 ~ onSubmit ~ values:", values);
+
         const { email, password, symbol_number, registration_number, batch_id, programIDStr, image } = values;
 
         const formData = new FormData();
@@ -87,41 +89,37 @@ export function RegisterForm() {
         formData.append('program_id', programIDStr);
         formData.append('email', email);
         formData.append('password', password);
-        const fileInput = document.querySelector('input[type="file"]');
-        if (fileInput && fileInput.files.length > 0) {
-            formData.append('image_url', fileInput.files[0]); // use 'image' as the key
+
+        if (image instanceof File) {
+            formData.append('image_url', image); // Properly append file
         } else {
-            console.error('No image file selected.');
+            console.error('No valid image file selected.');
         }
 
-        console.log("🚀 ~ onSubmit ~ formData:", formData)
-
-        // ✅ This will be type-safe and validated.
         try {
             const response = await fetch('http://127.0.0.1:3000/user/register', {
                 method: 'POST',
-                // headers: {
-                //     'Content-Type': 'application/json',
-                // },
                 body: formData,
             });
 
+            const responseData = await response.json();
+
             if (!response.ok) {
-                const errorData = await response.json();
-                console.log("🚀 ~ onSubmit ~ errorData:", errorData.message)
-                if (errorData.message.includes("Symbol Number")) {
-                    setError("symbol_number", { message: errorData.message });
-                } else if (errorData.message.includes("Registration Number")) {
-                    setError("registration_number", { message: errorData.message });
-                } // Set error from backend
+                console.log("🚀 ~ onSubmit ~ errorData:", responseData);
+                if (responseData.message.includes("Symbol Number")) {
+                    setError("symbol_number", { message: responseData.message });
+                } else if (responseData.message.includes("Registration Number")) {
+                    setError("registration_number", { message: responseData.message });
+                }
             } else {
                 alert("Student registered successfully!");
+                form.reset(); // Reset form after successful submission
             }
         } catch (error) {
-            console.error("Error registering student:", err);
+            console.error("Error registering student:", error);
         }
+    };
 
-    }
 
     // 3. password visibility
     const [showPassword, setShowPassword] = useState(false);
@@ -133,6 +131,9 @@ export function RegisterForm() {
     const toggleConfirmPasswordVisibility = () => {
         setShowConfirmPassword(!showConfirmPassword);
     }
+    // fetch program and batch data
+    const { programs, errorPrograms, batches, errorBatches, college } = useData();
+
 
     return (
         <Form {...form}>
@@ -151,8 +152,10 @@ export function RegisterForm() {
                                     type="file"
                                     accept="image/*"
                                     onChange={(e) => {
-                                        // Capture the file and set it in the form
-                                        field.onChange(e.target.files[0]);
+                                        const file = e.target.files[0];
+                                        if (file) {
+                                            setValue("image", file); // Store file in React Hook Form
+                                        }
                                     }}
                                 />
                             </FormControl>
@@ -160,6 +163,7 @@ export function RegisterForm() {
                         </FormItem>
                     )}
                 />
+
 
                 <FormField
                     control={control}
@@ -240,7 +244,7 @@ export function RegisterForm() {
                             <FormItem className="text-start">
                                 <FormLabel className="text-start">Symbol number</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Enter your symbol number" {...field} {...register('symbol_number')} />
+                                    <Input placeholder="Enter your symbol number" {...field} />
                                 </FormControl>
                                 {errors.symbol_number && <p role="alert" className="text-red-500">{errors.symbol_number.message}</p>}
                                 <FormMessage />
@@ -263,7 +267,8 @@ export function RegisterForm() {
                 </div>
                 <div className="flex flex-row items-center gap-4">
                     <Select
-                        onValueChange={(value) => setValue('batch_id', value)} // Update form value when batch changes
+                        value={watch('batch_id')}
+                        onValueChange={(value) => setValue('batch_id', Number(value))} // Update form value when batch changes
                     >
                         <FormLabel className="text-start">Select your batch: </FormLabel>
                         <SelectTrigger className="w-[180px]">
@@ -272,11 +277,9 @@ export function RegisterForm() {
                         <SelectContent>
                             <SelectGroup>
                                 <SelectLabel>Batch</SelectLabel>
-                                <SelectItem value="1">2024</SelectItem>
-                                <SelectItem value="2">2023</SelectItem>
-                                <SelectItem value="3">2022</SelectItem>
-                                <SelectItem value="4">2021</SelectItem>
-                                <SelectItem value="5">2020</SelectItem>
+                                {Array.isArray(batches) && batches.map((batch, index) => (
+                                    <SelectItem key={index} value={batch.ID}>{batch.batch}</SelectItem>
+                                ))}
                             </SelectGroup>
                         </SelectContent>
                     </Select>
@@ -284,7 +287,8 @@ export function RegisterForm() {
 
                 <div className="flex flex-row items-center gap-4">
                     <Select
-                        onValueChange={(value) => setValue('programIDStr', value)} // Update form value when program changes
+                        value={watch('programIDStr')}
+                        onValueChange={(value) => setValue('programIDStr', Number(value))} // Update form value when program changes
                     >
                         <FormLabel className="text-start">Select your program: </FormLabel>
                         <SelectTrigger className="w-[180px]">
@@ -293,10 +297,9 @@ export function RegisterForm() {
                         <SelectContent>
                             <SelectGroup>
                                 <SelectLabel>Program</SelectLabel>
-                                <SelectItem value="1">CSIT</SelectItem>
-                                <SelectItem value="2">BBA</SelectItem>
-                                <SelectItem value="3">BIM</SelectItem>
-                                <SelectItem value="4">BBS</SelectItem>
+                                {Array.isArray(programs) && programs.map((program, index) => (
+                                    <SelectItem key={index} value={program.ID}>{program.program_name}</SelectItem>
+                                ))}
                             </SelectGroup>
                         </SelectContent>
                     </Select>

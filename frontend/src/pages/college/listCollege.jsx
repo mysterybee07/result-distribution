@@ -78,7 +78,7 @@ export default function ListCollege() {
           type="checkbox"
           checked={selectedColleges.includes(row.original.college_name)}
           onChange={() => handleCheckboxChange(row.original.college_name)}
-          disabled={row.original.is_center} // Disable if is_center is true
+          // disabled={row.original.is_center} // Disable if is_center is true
         />
       ),
     },
