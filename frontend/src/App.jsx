@@ -2,9 +2,7 @@ import './App.css';
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Exam from './pages/Exam';
 import Profile from './pages/Profile';
-import Result from './pages/Result';
 // import Footer from './components/Footer';
 import Navbar from './components/Navbar';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -33,11 +31,11 @@ import ListRoutine from './pages/exam/ListRoutine';
 import AddMarks from './pages/marks/AddMarks';
 import StudentDashboard from './pages/StudentDashboard';
 import NoticesPage from './pages/Notice';
-import path from 'path';
 import Homepage from './pages/Homepage';
 import CoursesPage from './pages/Courses';
 import NoticeDetailPage from './pages/NoticeDetail';
 import ExamPage from './pages/Exam';
+import ResultsPage from './pages/Result';
 
 const ProtectedRoute = ({ element }) => {
   const { isAuthenticated } = useAuth();
@@ -77,7 +75,7 @@ const userRoutes = [
   { path: "/register", element: <Register /> },
   { path: "/exam", element: <ProtectedRoute element={<ExamPage />} /> },
   { path: "/profile", element: <ProtectedRoute element={<Profile />} /> },
-  { path: "/result", element: <ProtectedRoute element={<Result />} /> },
+  { path: "/result", element: <ProtectedRoute element={<ResultsPage />} /> },
   { path: "/courses", element: <ProtectedRoute element={<CoursesPage />} /> },
   { path: "/notices", element: <ProtectedRoute element={<NoticesPage />} /> },
   { path: "/notice/:id", element: <ProtectedRoute element={<NoticeDetailPage />} /> },
