@@ -90,12 +90,30 @@ const NoticesPage = () => {
           <ul className="divide-y divide-gray-200">
             {currentNotices?.length > 0 ? (
               currentNotices?.map((notice) => (
-                <li key={notice.ID} className="cursor-pointer hover:bg-gray-100 transition">
+                <li key={notice.ID} className="cursor-pointer hover:bg-gray-100 transition py-2 ">
                   <Link to={`/notice/${notice.ID}`} className="block px-6 py-4">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h3 className="text-lg font-medium text-gray-900">{notice.Title}</h3>
-                        <p className="mt-2 text-sm text-gray-600">{notice.Description}</p>
+                        <div className='flex gap-4'>
+                          <h3 className="text-lg text-left font-medium text-gray-900">{notice.Title}</h3>
+                          <div className="flex justify-center flex-wrap items-center gap-2">
+                            <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm font-semibold">
+                              {notice?.Batch || "N/A"}
+                            </span>
+                            <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm font-semibold">
+                              {notice?.Program || "N/A"}
+                            </span>
+                            <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm font-semibold">
+                              Semester: {notice?.Semester || "N/A"}
+                            </span>
+                          </div>
+                        </div>
+                        <p className="mt-2 text-left text-sm text-gray-600">
+                          {notice?.Description?.length > 300
+                            ? `${notice.Description.slice(0, 300)}...`
+                            : notice.Description}
+                        </p>
+
                       </div>
                       <div className="flex flex-col text-right">
                         <span className="text-sm text-gray-500">{formatDate(notice.Created_at)}</span>
@@ -103,11 +121,11 @@ const NoticesPage = () => {
                     </div>
                   </Link>
                 </li>
-            ))
+              ))
             ) : (
-            <li className="px-6 py-4 text-center text-gray-500">
-              No notices found matching your criteria
-            </li>
+              <li className="px-6 py-4 text-center text-gray-500">
+                No notices found matching your criteria
+              </li>
             )}
           </ul>
         </div>

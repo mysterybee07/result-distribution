@@ -79,7 +79,7 @@ const userRoutes = [
   { path: "/result", element: <ProtectedRoute element={<Result />} /> },
   { path: "/courses", element: <ProtectedRoute element={<CoursesPage />} /> },
   { path: "/notices", element: <ProtectedRoute element={<NoticesPage />} /> },
-  { path: "/notices/:id", element: <ProtectedRoute element={<NoticeDetailPage />} /> },
+  { path: "/notice/:id", element: <ProtectedRoute element={<NoticeDetailPage />} /> },
 ];
 
 // Admin Routes
