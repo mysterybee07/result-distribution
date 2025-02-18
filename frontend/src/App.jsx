@@ -37,6 +37,7 @@ import path from 'path';
 import Homepage from './pages/Homepage';
 import CoursesPage from './pages/Courses';
 import NoticeDetailPage from './pages/NoticeDetail';
+import ExamPage from './pages/Exam';
 
 const ProtectedRoute = ({ element }) => {
   const { isAuthenticated } = useAuth();
@@ -74,7 +75,7 @@ const userRoutes = [
   { path: "/student-dashboard", element: <ProtectedRoute element={<StudentDashboard />} /> },
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
-  { path: "/exam", element: <ProtectedRoute element={<Exam />} /> },
+  { path: "/exam", element: <ProtectedRoute element={<ExamPage />} /> },
   { path: "/profile", element: <ProtectedRoute element={<Profile />} /> },
   { path: "/result", element: <ProtectedRoute element={<Result />} /> },
   { path: "/courses", element: <ProtectedRoute element={<CoursesPage />} /> },

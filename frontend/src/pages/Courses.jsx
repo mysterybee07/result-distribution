@@ -210,7 +210,7 @@ const CoursesPage = () => {
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">{course.name}</h3>
                       </div>
                       <p className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        {course.credits} Credits
+                        {course.credits ?? 4} Credits
                       </p>
                     </div>
 
