@@ -5,6 +5,8 @@ import { useCourses } from '../hooks/useCourses';
 import { useNotices } from '../hooks/useNotice';
 import { useExamSchedules } from '../hooks/useExamSchedules';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import api from '../api';
 
 // Mock data - in a real app, you'd fetch this from your API
 const studentData = {
@@ -20,7 +22,16 @@ const studentData = {
 };
 
 const StudentDashboard = () => {
-  const [student, setStudent] = useState(studentData);
+  const [student, setStudent] = useState(studentData);// Debugging log
+
+  const { profileData, isLoading: profileLoading } = useAuth();
+  console.log("🚀 ~ StudentDashboard ~ profileData:", profileData)
+
+  useEffect(() => {
+    if (profileData) {
+      setStudent(profileData.Students);
+    }
+  }, [profileData]);
 
   const navigate = useNavigate();
 
@@ -56,7 +67,7 @@ const StudentDashboard = () => {
     batchId: storedFilters.semesterId
   });
   const { data: examSchedule, isLoading: examScheduleLoading, error: examScheduleError } = useExamSchedules(storedFilters);
-  console.log("🚀 ~ StudentDashboard ~ examSchedule:", examSchedule)
+  // console.log("🚀 ~ StudentDashboard ~ examSchedule:", examSchedule)
 
   // Helper function to format dates
   const formatDate = (dateString) => {
@@ -88,33 +99,33 @@ const StudentDashboard = () => {
           {/* Student Profile */}
           <div className="bg-white shadow rounded-lg p-6 col-span-1">
             <div className="flex items-start">
-              <img
+              {/* <img
                 src={student.profile.avatarUrl}
                 alt={student.profile.name}
                 className="w-20 h-20 rounded-full border-4 border-blue-100"
-              />
-              <div className="ml-4">
-                <h2 className="text-xl font-semibold text-gray-900">{student.profile.name}</h2>
-                <p className="text-sm text-gray-500">{student.profile.email}</p>
+              /> */}
+              <div className="">
+                <h2 className="text-left text-xl font-semibold text-gray-900">{student.fullname}</h2>
+                <p className="text-sm text-gray-500">{student?.Users?.email ?? "user@gmail.com"}</p>
               </div>
             </div>
 
             <div className="mt-6 space-y-4">
               <div className="flex justify-between border-b pb-2">
                 <span className="text-sm font-medium text-gray-500">Symbol Number</span>
-                <span className="text-sm text-gray-900">{student.profile.symbolNumber}</span>
+                <span className="text-sm text-gray-900">{student?.symbol_number}</span>
               </div>
               <div className="flex justify-between border-b pb-2">
                 <span className="text-sm font-medium text-gray-500">Registration Number</span>
-                <span className="text-sm text-gray-900">{student.profile.registrationNumber}</span>
+                <span className="text-sm text-gray-900">{student?.registration_number}</span>
               </div>
               <div className="flex justify-between border-b pb-2">
                 <span className="text-sm font-medium text-gray-500">Program</span>
-                <span className="text-sm text-gray-900">{student.profile.program}</span>
+                <span className="text-sm text-gray-900">{student?.Program?.program_name}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm font-medium text-gray-500">Current Semester</span>
-                <span className="text-sm text-gray-900">{student.profile.currentSemester}</span>
+                <span className="text-sm text-gray-900">{student?.Semester?.semester_name}</span>
               </div>
             </div>
           </div>
@@ -207,7 +218,7 @@ const StudentDashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {examSchedule.map((exam) => {
+                  {examSchedule?.map((exam) => {
                     const courseInfo = filteredCourses.find(c => c.code === exam.course);
                     return (
                       <tr key={exam.id} className="hover:bg-gray-50">

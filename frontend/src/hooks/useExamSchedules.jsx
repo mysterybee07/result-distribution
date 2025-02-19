@@ -2,9 +2,6 @@ import { useQuery } from '@tanstack/react-query';
 import api from '../api';
 
 export const useExamSchedules = ({ batchId, programId, semesterId }) => {
-  console.log("🚀 ~ useExamSchedules ~ semesterId:", semesterId)
-  console.log("🚀 ~ useExamSchedules ~ programId:", programId)
-  console.log("🚀 ~ useExamSchedules ~ batchId:", batchId)
   return useQuery({
     queryKey: ['examSchedules', { batchId, programId, semesterId }],
     queryFn: async ({ queryKey }) => {

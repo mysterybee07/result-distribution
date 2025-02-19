@@ -16,20 +16,31 @@ const fetchUserData = async () => {
     return response.json();
 };
 
-const fetchStudentData = async (userId) => {
-    const response = await api.get(`/students/${userId}`);
-    if (!response.ok) {
-        throw new Error('Failed to fetch student data');
+const fetchProfileData = async () => {
+    console.log("🔄 fetchProfileData is executing..."); // Debugging log
+
+    try {
+        const response = await api.get(`/profile`);
+        console.log("✅ API Response:", response); // Log full response
+
+        return response.data; // Axios responses store data in `response.data`
+    } catch (error) {
+        console.error("❌ Error fetching profile data:", error);
+        throw new Error('Failed to fetch student data'); // Ensure error is thrown
     }
-    return response.json();
 };
+
+
 
 export const AuthProvider = ({ children }) => {
     const authState = localStorage.getItem('isAuthenticated') === 'true';
     const queryClient = useQueryClient();
     const [isAuthenticated, setIsAuthenticated] = useState(authState);
     const [role, setRole] = useState('');
+    console.log("🚀 ~ AuthProvider ~ role:", role)
     const [userData, setUserData] = useState(null);
+    const [profileData, setProfileData] = useState(null);
+    console.log("🚀 ~ AuthProvider ~ profileData:", profileData)
 
     // Fetch user data with TanStack Query
     const { data: userResponse, isLoading } = useQuery({
@@ -49,18 +60,30 @@ export const AuthProvider = ({ children }) => {
         },
     });
 
-    // Fetch student data only if the role is 'user'
-    // const { data: studentData, isLoading: studentLoading } = useQuery({
-    //     queryKey: ['studentData', userData?.id],
-    //     queryFn: () => fetchStudentData(userData.id),
-    //     enabled: role === 'user' && !!userData?.id,
-    //     onSuccess: (data) => {
-    //         localStorage.setItem('student_data', JSON.stringify(data)); // Set student data to localStorage on success
-    //     },
-    // });
+    // In AuthProvider:
+    const { data: profile, isLoading: profileLoading } = useQuery({
+        queryKey: ['profileData'],
+        queryFn: fetchProfileData,
+        enabled: isAuthenticated, // Only fetch when authenticated
+        onSuccess: (data) => {
+            console.log("✅ Query onSuccess triggered");
+            console.log("📦 Received data:", data);
+            setProfileData(data);
+            console.log("🔄 After setProfileData:", data);
+            localStorage.setItem('student_data', JSON.stringify(data));
+        },
+        onError: (error) => {
+            console.error("❌ Query failed:", error);
+        }
+    });
 
-    // console.log("🚀 ~ AuthProvider ~ studentData:", studentData);
-
+    // Effect to sync profile data with state
+    useEffect(() => {
+        if (profile) {
+            setProfileData(profile);
+            localStorage.setItem('student_data', JSON.stringify(profile.Students));
+        }
+    }, [profile]);
 
     // Login mutation
     const loginMutation = useMutation({
@@ -103,8 +126,8 @@ export const AuthProvider = ({ children }) => {
                 role,
                 userData,
                 loading: isLoading,
-                // studentData,
-                // studentLoading,
+                profileData,
+                profileLoading,
             }}
         >
             {children}
