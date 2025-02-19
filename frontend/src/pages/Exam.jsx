@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api';
+import { useExamSchedules } from '../hooks/useExamSchedules';
 
 // Fix for the Leaflet icon issue in React
 delete L.Icon.Default.prototype._getIconUrl;
@@ -14,13 +15,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-const fetchExamSchedules = async ({ queryKey }) => {
-  const [, { batchID, programID, semesterID }] = queryKey;
-  const { data } = await api.get("/exam/schedules/by-batch-program", {
-    params: { batch_id: batchID, program_id: programID, semester_id: semesterID },
-  });
-  return data.examSchedules; // Assuming response contains { examSchedules: [...] }
-};
+
 const ExamPage = () => {
   // Define default values for batchID, programID, and semesterID
   const defaultBatchID = 1;
@@ -29,18 +24,13 @@ const ExamPage = () => {
   // For a random location in Kathmandu
   const examCenter = { lat: 27.7172, lng: 85.3240, name: "Kathmandu University Examination Center" };
 
-  // Mock exam schedule data - replace with your actual API call
-  const { data: examSchedule = [], isLoading } = useQuery({
-    queryKey: ['examSchedule', { batchID: defaultBatchID, programID: defaultProgramID, semesterID: defaultSemesterID }], queryFn: fetchExamSchedules,
-    // For demo purposes, using mock data
-    // initialData: [
-    //   { id: 1, courseCode: 'CS101', courseName: 'Introduction to Programming', date: '2025-03-02T10:00:00', duration: 180 },
-    //   { id: 2, courseCode: 'CS201', courseName: 'Data Structures', date: '2025-03-05T13:00:00', duration: 180 },
-    //   { id: 3, courseCode: 'MATH201', courseName: 'Calculus II', date: '2025-03-08T10:00:00', duration: 180 },
-    //   { id: 4, courseCode: 'CS301', courseName: 'Operating Systems', date: '2025-03-12T13:00:00', duration: 240 },
-    //   { id: 5, courseCode: 'CS401', courseName: 'Database Management Systems', date: '2025-03-15T10:00:00', duration: 180 },
-    // ]
+  const [filters, setFilters] = useState({
+    batchID: 1,
+    programID: 1,
+    semesterID: 1,
   });
+  
+  const { data: examSchedule, isLoading, error } = useExamSchedules(filters);
   console.log("🚀 ~ ExamPage ~ examSchedule:", examSchedule)
 
   // Function to add an exam to Google Calendar

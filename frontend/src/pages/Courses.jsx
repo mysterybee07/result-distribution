@@ -3,20 +3,7 @@ import { BookOpen, ArrowLeft, Search, Filter, ChevronLeft, ChevronRight, BookMar
 import { useQuery } from '@tanstack/react-query';
 import { useData } from '../context/DataContext';
 import api from '../api';
-
-// Fetch courses function 
-const fetchAllCourse = async () => {
-  const response = await api.get(`/courses`);
-  return response.data.courses;
-};
-
-const fetchCourse = async ({ queryKey }) => {
-  const [, program_id, semester_id] = queryKey;
-  if (!program_id || !semester_id) return [];
-
-  const response = await api.get(`/courses/filter?program_id=${program_id}&semester_id=${semester_id}`);
-  return response.data.courses;
-};
+import { useCourses } from '../hooks/useCourses';
 
 const CoursesPage = () => {
   // State variables
@@ -29,7 +16,7 @@ const CoursesPage = () => {
 
   // Use data hook to get programs
   const { programs } = useData();
-  console.log("🚀 ~ CoursesPage ~ programs:", programs)
+  console.log("🚀 ~ CoursesPage ~ programs:", programs);
 
   // Fetch semesters based on selected program
   const {
@@ -43,30 +30,22 @@ const CoursesPage = () => {
     },
     enabled: selectedProgram !== "all",
   });
-  console.log("🚀 ~ CoursesPage ~ semesters:", semesters)
+  console.log("🚀 ~ CoursesPage ~ semesters:", semesters);
 
-
-  // Fetch all courses initially
+  // Use our custom hook to fetch courses
   const {
-    data: allCourses = [],
-    isLoading: loadingAllCourses
-  } = useQuery({
-    queryKey: ["allCourses"],
-    queryFn: fetchAllCourse,
-  });
-
-  // Fetch courses based on selected program & semester when search is triggered
-  const {
-    data: filteredApiCourses = [],
-    isLoading: loadingFilteredCourses
-  } = useQuery({
-    queryKey: ["courses", selectedProgram, selectedSemester],
-    queryFn: fetchCourse,
-    enabled: search,
+    allCourses,
+    filteredCourses,
+    loadingAllCourses,
+    loadingFilteredCourses,
+  } = useCourses({
+    programId: selectedProgram !== "all" ? selectedProgram : null,
+    semesterId: selectedSemester !== "all" ? selectedSemester : null,
+    enableFiltering: search && selectedProgram !== "all" && selectedSemester !== "all"
   });
 
   // Determine which courses to display
-  const displayCourses = search ? filteredApiCourses : allCourses;
+  const displayCourses = search ? filteredCourses : allCourses;
 
   // Client-side filtering for search term
   const searchFilteredCourses = displayCourses.filter(course =>
@@ -98,8 +77,8 @@ const CoursesPage = () => {
   const currentCourses = searchFilteredCourses.slice(indexOfFirstCourse, indexOfLastCourse);
   const totalPages = Math.ceil(searchFilteredCourses.length / coursesPerPage);
 
-  // Loading state
-  const isLoading = loadingAllCourses || (search && loadingFilteredCourses);
+  // Combined loading state (defined only once)
+  const isLoading = loadingAllCourses || (search && loadingFilteredCourses) || loadingSemesters;
 
   return (
     <div className="bg-gray-50 min-h-screen">
