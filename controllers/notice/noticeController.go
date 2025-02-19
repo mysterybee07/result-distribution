@@ -110,7 +110,11 @@ func GetAllNotices(c *fiber.Ctx) error {
 	var allNotices []models.Notice
 
 	// Retrieve all notices from the database with associated names
-	if err := initializers.DB.Preload("Program").Preload("Batch").Preload("Semester").Find(&allNotices).Error; err != nil {
+	if err := initializers.DB.Preload("Program").
+		Preload("Batch").
+		Preload("Semester").
+		Order("created_at DESC"). // Correctly placed before Find()
+		Find(&allNotices).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Error retrieving notices",
 			"error":   err.Error(),
