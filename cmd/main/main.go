@@ -30,6 +30,7 @@ func main() {
 	app := fiber.New(fiber.Config{
 		// Views: engine,
 	})
+	app.Static("/uploads", "./uploads")
 
 	// Initialize session store
 	// store := session.New()

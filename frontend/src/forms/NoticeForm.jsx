@@ -130,7 +130,80 @@ export default function CreateNoticeForm({ mode = 'create', notice = {} }) {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8" encType="multipart/form-data">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 text-left" encType="multipart/form-data">
+
+                {/* Program and Semester */}
+                <div className='flex gap-8 '>
+                    <div className="flex flex-1 flex-col gap-2">
+                        <FormLabel>Select Batch: </FormLabel>
+                        <Select
+                            value={watch('batch_id')}
+                            onValueChange={(value) => {
+                                setValue('batch_id', Number(value));
+                            }}
+                        >
+                            <SelectTrigger className="p-3">
+                                <SelectValue placeholder="Select Batch" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectGroup>
+                                    <SelectLabel>Batches</SelectLabel>
+                                    {batches?.map((batch) => (
+                                        <SelectItem key={batch.ID} value={batch.ID}>
+                                            {batch.batch}
+                                        </SelectItem>
+                                    ))}
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="flex flex-1 flex-col gap-2">
+                        <FormLabel>Select program: </FormLabel>
+                        <Select
+                            value={watch('program_id')}
+                            onValueChange={(value) => setValue('program_id', Number(value))}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select program" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectGroup>
+                                    <SelectLabel>Program</SelectLabel>
+                                    {programs?.map((program) => (
+                                        <SelectItem key={program.ID} value={program.ID}>
+                                            {program.program_name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="flex flex-1 flex-col gap-2">
+                        <FormLabel>Select Semester: </FormLabel>
+                        <Select
+                            value={watch('semester_id')}
+                            onValueChange={(value) => {
+                                setValue('semester_id', Number(value));
+                            }}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select Semester" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectGroup>
+                                    <SelectLabel>Semesters</SelectLabel>
+                                    {semesters?.map((semester) => (
+                                        <SelectItem key={semester.ID} value={semester.ID}>
+                                            {semester.semester_name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                </div>
                 <FormField
                     control={form.control}
                     name="title"
@@ -157,71 +230,7 @@ export default function CreateNoticeForm({ mode = 'create', notice = {} }) {
                         </FormItem>
                     )}
                 />
-                {/* Program and Semester */}
-                <div className='flex gap-2 flex-col'>
-                    <Select
-                        value={watch('program_id')}
-                        onValueChange={(value) => setValue('program_id', Number(value))}
-                    >
-                        <FormLabel>Select program: </FormLabel>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select program" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectGroup>
-                                <SelectLabel>Program</SelectLabel>
-                                {programs?.map((program) => (
-                                    <SelectItem key={program.ID} value={program.ID}>
-                                        {program.program_name}
-                                    </SelectItem>
-                                ))}
-                            </SelectGroup>
-                        </SelectContent>
-                    </Select>
 
-                    <Select
-                        value={watch('semester_id')}
-                        onValueChange={(value) => {
-                            setValue('semester_id', Number(value));
-                        }}
-                    >
-                        <FormLabel>Select Semester: </FormLabel>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select Semester" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectGroup>
-                                <SelectLabel>Semesters</SelectLabel>
-                                {semesters?.map((semester) => (
-                                    <SelectItem key={semester.ID} value={semester.ID}>
-                                        {semester.semester_name}
-                                    </SelectItem>
-                                ))}
-                            </SelectGroup>
-                        </SelectContent>
-                    </Select>
-                </div>
-                <Select
-                    value={watch('batch_id')}
-                    onValueChange={(value) => {
-                        setValue('batch_id', Number(value));
-                    }}
-                >
-                    <FormLabel>Select Batch: </FormLabel>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Select Batch" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectGroup>
-                            <SelectLabel>Batches</SelectLabel>
-                            {batches?.map((batch) => (
-                                <SelectItem key={batch.ID} value={batch.ID}>
-                                    {batch.batch}
-                                </SelectItem>
-                            ))}
-                        </SelectGroup>
-                    </SelectContent>
-                </Select>
                 <FormField
                     control={form.control}
                     name="file_path"

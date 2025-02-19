@@ -45,8 +45,8 @@ const ListCourse = () => {
   const { programs } = useData();
 
   // State variables
-  const [selectedProgram, setSelectedProgram] = useState("");
-  const [selectedSemester, setSelectedSemester] = useState("");
+  const [selectedProgram, setSelectedProgram] = useState("all");
+  const [selectedSemester, setSelectedSemester] = useState("all");
   const [search, setSearch] = useState(false);
 
   // Fetch semesters based on selected program
@@ -91,6 +91,7 @@ const ListCourse = () => {
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Program</SelectLabel>
+              <SelectItem value="all">All Program</SelectItem>
               {Array.isArray(programs) && programs.map((program, index) => (
                 <SelectItem key={index} value={program.ID}>{program.program_name}</SelectItem>
               ))}
@@ -108,6 +109,7 @@ const ListCourse = () => {
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Semester</SelectLabel>
+              <SelectItem value="all">All Semester</SelectItem>
               {Array.isArray(semesters) && semesters.map((semester, index) => (
                 <SelectItem key={index} value={semester.ID}>{semester.semester_name}</SelectItem>
               ))}
@@ -119,6 +121,9 @@ const ListCourse = () => {
             // Ensure selectedProgram and selectedSemester are updated first
             if (!selectedProgram || !selectedSemester) {
               alert("Please select both a program and a semester.");
+              return;
+            } else if (selectedProgram === "all" || selectedSemester === "all") {
+              setSearch(false);
               return;
             }
             setSearch(true);

@@ -17,13 +17,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
@@ -85,7 +78,7 @@ export default function ListCollege() {
           type="checkbox"
           checked={selectedColleges.includes(row.original.college_name)}
           onChange={() => handleCheckboxChange(row.original.college_name)}
-          disabled={row.original.is_center} // Disable if is_center is true
+          // disabled={row.original.is_center} // Disable if is_center is true
         />
       ),
     },

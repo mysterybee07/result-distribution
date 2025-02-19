@@ -30,10 +30,10 @@ type MarksPayload struct {
 	SemesterID uint `json:"semester_id" validate:"required"`
 	CourseID   uint `json:"course_id" validate:"required"`
 	Marks      []struct {
-		StudentID      uint `json:"student_id" validate:"required"`
-		SemesterMarks  int  `json:"semester_marks" validate:"required"`
-		AssistantMarks int  `json:"assistant_marks"`
-		PracticalMarks int  `json:"practical_marks"`
+		SymbolNumber   string `json:"symbol_number" validate:"required"`
+		SemesterMarks  int    `json:"semester_marks" validate:"required"`
+		AssistantMarks int    `json:"assistant_marks"`
+		PracticalMarks int    `json:"practical_marks"`
 	} `json:"marks" validate:"required,dive"`
 }
 

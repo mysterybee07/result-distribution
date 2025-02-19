@@ -36,6 +36,7 @@ const formSchema = z.object({
     batch_id: z.number(),
     program_id: z.number(),
     current_semester: z.number(),
+    college_id: z.number(),
 });
 
 const StudentForm = () => {
@@ -51,15 +52,19 @@ const StudentForm = () => {
         },
         enabled: Boolean(id), // Only run the query if there's a valid ID (for create mode, it won't fetch)
     });
-    const { student } = singleStudent || {}; // Destructure the student data
-    const initialData = student; // Set initial data if student data is available
-    console.log("🚀 ~ StudentForm ~ initialData:", initialData)
+    const { student } = singleStudent || {}; 
+    const initialData = student; 
+    // console.log("🚀 ~ StudentForm ~ initialData:", initialData)
+
+    // if (loadingSingleStudent) return <div>Loading...</div>;
+
+    
     const isEditMode = !!initialData; // Check if the form is in edit mode
     const navigate = useNavigate();
     // fetching batch and program data
-    const { programs, loadingPrograms, errorPrograms, batches, loadingBatches, errorBatches } = useData();
+    const { programs, errorPrograms, batches, errorBatches, college } = useData();
+    console.log("🚀 ~ StudentForm ~ college:", college)
 
-    if (loadingPrograms || loadingBatches) return <div>Loading...</div>;
 
     if (errorPrograms) return <div>Error loading programs: {errorPrograms.message}</div>;
     if (errorBatches) return <div>Error loading batches: {errorBatches.message}</div>;
@@ -71,12 +76,13 @@ const StudentForm = () => {
             symbol_number: '',
             registration_number: '',
             fullname: '',
+            college_id: '',
             batch_id: '',
             program_id: '',
             current_semester: '',
         },
     });
-    const { register, handleSubmit, formState: { errors }, setValue, watch, reset } = form;
+    const { formState: { errors }, setValue, watch, reset } = form;
 
     useEffect(() => {
         if (initialData) {
@@ -112,6 +118,7 @@ const StudentForm = () => {
         const student = {
             batch_id: data.batch_id,
             program_id: data.program_id,
+            college_id: data.college_id,
             students: [
                 {
                     fullname: data.fullname,
@@ -125,15 +132,17 @@ const StudentForm = () => {
         createStudent(student);
     };
 
+    
+
     return (
-        <div className='flex items-center justify-center mt-16'>
-            <Card className="w-full shadow-lg hover:shadow-2xl py-8 text-start">
-                <CardContent>
+        <div className='flex'>
+            <div className="w-full py-8 text-start">
+                <div className="space-y-2">
                     <h1 className="text-xl font-bold mb-4">
                         {isEditMode ? 'Edit Student' : 'Create Student'}
                     </h1>
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)}>
+                        <form className='space-y-4' onSubmit={form.handleSubmit(onSubmit)}>
                             <FormField
                                 control={form.control}
                                 name="fullname"
@@ -147,6 +156,26 @@ const StudentForm = () => {
                                     </FormItem>
                                 )}
                             />
+
+                            <Select
+                                value={watch('college_id')}
+                                onValueChange={(value) => {
+                                    console.log("Selected batch ID:", Number(value)); // Debugging line
+                                    setValue('college_id', Number(value));
+                                }}                            >
+                                <FormLabel>Select College: </FormLabel>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select College" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        <SelectLabel>College</SelectLabel>
+                                        {Array.isArray(college) && college.map((item, index) => (
+                                            <SelectItem key={index} value={item.id}>{item.college_name}</SelectItem>
+                                        ))}
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
 
                             <FormField
                                 control={form.control}
@@ -182,9 +211,9 @@ const StudentForm = () => {
                                     console.log("Selected batch ID:", Number(value)); // Debugging line
                                     setValue('batch_id', Number(value));
                                 }}                            >
-                                <FormLabel>Select your batch: </FormLabel>
+                                <FormLabel>Select batch: </FormLabel>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select your batch" />
+                                    <SelectValue placeholder="Select batch" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectGroup>
@@ -200,9 +229,9 @@ const StudentForm = () => {
                                 value={watch('program_id')}
                                 onValueChange={(value) => setValue('program_id', Number(value))}
                             >
-                                <FormLabel>Select your program: </FormLabel>
+                                <FormLabel>Select program: </FormLabel>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select your program" />
+                                    <SelectValue placeholder="Select program" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectGroup>
@@ -222,9 +251,9 @@ const StudentForm = () => {
                                 // value={watch('current_semester')}
                                 onValueChange={(value) => setValue('current_semester', Number(value))}
                             >
-                                <FormLabel>Select your semester: </FormLabel>
+                                <FormLabel>Select semester: </FormLabel>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select your semester" />
+                                    <SelectValue placeholder="Select semester" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectGroup>
@@ -242,8 +271,8 @@ const StudentForm = () => {
                             </Button>
                         </form>
                     </Form>
-                </CardContent>
-            </Card>
+                </div>
+            </div>
         </div>
     )
 }

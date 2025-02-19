@@ -5,8 +5,7 @@ import React from 'react'
 const Layout = ({ children }) => {
     return (
         <>
-            <Navigation />
-            <main className='mt-8 container'>{children}</main>
+            <main className='my-8 container'>{children}</main>
             {/* <Footer /> */}
         </>
     )

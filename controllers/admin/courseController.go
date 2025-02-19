@@ -152,6 +152,8 @@ func GetFilteredCourses(c *fiber.Ctx) error {
 	programID := c.Query("program_id")
 	semesterID := c.Query("semester_id")
 
+	fmt.Println("Query Params are: ", programID, semesterID)
+
 	var courses []models.Course
 	if err := initializers.DB.Where("program_id = ? AND semester_id = ?", programID, semesterID).Find(&courses).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching courses"})
@@ -161,6 +163,7 @@ func GetFilteredCourses(c *fiber.Ctx) error {
 		"courses": courses,
 	})
 }
+
 func GetAllCourses(c *fiber.Ctx) error {
 
 	var allCourses []models.Course
