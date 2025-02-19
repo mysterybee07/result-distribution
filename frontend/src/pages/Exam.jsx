@@ -25,23 +25,25 @@ const ExamPage = () => {
   const examCenter = { lat: 27.7172, lng: 85.3240, name: "Kathmandu University Examination Center" };
 
   const [filters, setFilters] = useState({
-    batchID: 1,
-    programID: 1,
-    semesterID: 1,
+    batchId: 1,
+    programId: 1,
+    semesterId: 1,
   });
   
   const { data: examSchedule, isLoading, error } = useExamSchedules(filters);
-  console.log("🚀 ~ ExamPage ~ examSchedule:", examSchedule)
+  // console.log("🚀 ~ ExamPage ~ examSchedule:", examSchedule)
 
   // Function to add an exam to Google Calendar
   const addToGoogleCalendar = (exam) => {
-    const startDate = new Date(exam.date);
-    const endDate = new Date(startDate.getTime() + exam.duration * 60000);
+    console.log("🚀 ~ addToGoogleCalendar ~ exam:", exam)
+    const startDate = new Date(exam.exam_date);
+    console.log("🚀 ~ addToGoogleCalendar ~ startDate:", startDate)
+    // const endDate = new Date(startDate.getTime() + exam.duration * 60000);
 
     const startTimeFormatted = startDate.toISOString().replace(/-|:|\.\d+/g, '');
-    const endTimeFormatted = endDate.toISOString().replace(/-|:|\.\d+/g, '');
+    // const endTimeFormatted = endDate.toISOString().replace(/-|:|\.\d+/g, '');
 
-    const googleCalendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`${exam.courseCode} Exam: ${exam.courseName}`)}&dates=${startTimeFormatted}/${endTimeFormatted}&details=${encodeURIComponent(`${exam.courseCode} Final Examination at ${examCenter.name}`)}&location=${encodeURIComponent(`${examCenter.name} (${examCenter.lat}, ${examCenter.lng})`)}&sf=true&output=xml`;
+    const googleCalendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`${exam.courseCode} Exam: ${exam.courseName}`)}&dates=${startTimeFormatted}&details=${encodeURIComponent(`${exam.courseCode} Final Examination at ${examCenter.name}`)}&location=${encodeURIComponent(`${examCenter.name} (${examCenter.lat}, ${examCenter.lng})`)}&sf=true&output=xml`;
 
     window.open(googleCalendarUrl, '_blank');
   };
@@ -55,8 +57,10 @@ const ExamPage = () => {
     ];
 
     examSchedule.forEach(exam => {
-      const startDate = new Date(exam.date);
-      const endDate = new Date(startDate.getTime() + exam.duration * 60000);
+      const startDate = new Date(exam.exam_date);
+      console.log("🚀 ~ downloadExamScheduleICS ~ startDate:", startDate)
+      const endDate = new Date(startDate.getTime() + 3 * 60000);
+      console.log("🚀 ~ downloadExamScheduleICS ~ endDate:", endDate)
 
       const startTimeFormatted = startDate.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
       const endTimeFormatted = endDate.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
