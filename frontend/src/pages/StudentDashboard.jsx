@@ -7,45 +7,35 @@ import { useExamSchedules } from '../hooks/useExamSchedules';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api';
-
-// Mock data - in a real app, you'd fetch this from your API
-const studentData = {
-  profile: {
-    name: "John Doe",
-    symbolNumber: "SYM12345",
-    registrationNumber: "REG67890",
-    currentSemester: 4,
-    program: "Bachelor of Computer Science",
-    email: "john.doe@example.com",
-    avatarUrl: "/api/placeholder/150/150"
-  },
-};
+import StudentGPAChart from '../components/LineChart';
 
 const StudentDashboard = () => {
-  const [student, setStudent] = useState(studentData);// Debugging log
+  const [student, setStudent] = useState('');// Debugging log
+  const [marks, setMarks] = useState([]);
+  console.log("🚀 ~ StudentDashboard marks ~ student:", student)
 
   const { profileData, isLoading: profileLoading } = useAuth();
-  console.log("🚀 ~ StudentDashboard ~ profileData:", profileData)
 
   useEffect(() => {
     if (profileData) {
       setStudent(profileData.Students);
+      setMarks(profileData.Marks);
     }
   }, [profileData]);
 
   const navigate = useNavigate();
 
   // storing data in local storage
-  localStorage.setItem("selectedFilters", JSON.stringify({
-    batchId: 1,
-    programId: 1,
-    semesterId: 1
-  }));
+  // localStorage.setItem("selectedFilters", JSON.stringify({
+  //   batchId: 1,
+  //   programId: 1,
+  //   semesterId: 1
+  // }));
 
   const storedFilters = JSON.parse(localStorage.getItem("selectedFilters")) || {
-    batchId: 1,
-    programId: 1,
-    semesterId: 1
+    batchId: student?.batch_id,
+    programId: student?.program_id,
+    semesterId: student?.current_semester
   };
 
   const {
@@ -125,7 +115,7 @@ const StudentDashboard = () => {
               </div>
               <div className="flex justify-between">
                 <span className="text-sm font-medium text-gray-500">Current Semester</span>
-                <span className="text-sm text-gray-900">{student?.Semester?.semester_name}</span>
+                <span className="text-sm text-gray-900">{student?.current_semester}</span>
               </div>
             </div>
           </div>
@@ -155,31 +145,7 @@ const StudentDashboard = () => {
 
           {/* Progress Graph */}
           <div className="bg-white shadow rounded-lg p-6 col-span-1 lg:col-span-2">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Academic Progress</h2>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={student.semesterResults}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="semester" />
-                  <YAxis domain={[0, 4]} />
-                  <Tooltip />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="gpa"
-                    stroke="#4F46E5"
-                    activeDot={{ r: 8 }}
-                    strokeWidth={2}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="mt-4 text-center">
-              <p className="text-sm text-gray-500">Current CGPA: <span className="font-semibold text-blue-600">3.65</span></p>
-            </div>
+            <StudentGPAChart marks={marks} />
           </div>
 
           {/* Current Courses */}
@@ -202,7 +168,7 @@ const StudentDashboard = () => {
           </div>
 
           {/* Upcoming Exams */}
-          <div className="bg-white shadow rounded-lg p-6 col-span-1 lg:col-span-2">
+          <div className="bg-white shadow rounded-lg p-6 col-span-1 lg:col-span-3">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">Upcoming Examinations</h2>
               <Calendar size={18} className="text-gray-400" />
