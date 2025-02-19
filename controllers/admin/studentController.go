@@ -297,6 +297,7 @@ func FilteredStudents(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching students"})
 	}
 
+	// Ensure an empty array is returned if no students are found
 	return c.JSON(fiber.Map{
 		"students": students,
 	})
