@@ -1,0 +1,5 @@
+symbol_number,registration_number,fullname,batch_id,college_id,program_id,current_semester,status
+SYM806,REG470,Casey Wilson,1,57,1,1,Active
+SYM765,REG458,Jamie Johnson,1,9,1,1,Active
+SYM421,REG783,Charlie Brown,1,60,2,1,Active
+SYM776,REG167,Taylor Jones,1,46,2,1,Active

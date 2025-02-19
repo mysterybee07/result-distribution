@@ -1,0 +1,7 @@
+symbol_number,registration_number,fullname,batch_id,college_id,program_id,current_semester,status
+SYM441,REG250,Alex Smith,2,41,2,4,Active
+SYM969,REG112,Alex Garcia,1,30,1,4,Active
+SYM190,REG313,Taylor Smith,2,21,2,4,Active
+SYM495,REG178,Jamie Anderson,2,45,2,4,Active
+SYM113,REG670,Drew Smith,1,20,1,4,Active
+SYM702,REG168,Morgan Williams,2,55,1,4,Active

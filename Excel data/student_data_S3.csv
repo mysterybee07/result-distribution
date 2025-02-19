@@ -1,0 +1,6 @@
+symbol_number,registration_number,fullname,batch_id,college_id,program_id,current_semester,status
+SYM401,REG702,Alex Brown,1,32,1,3,Active
+SYM695,REG181,Taylor Johnson,1,5,1,3,Active
+SYM580,REG965,Charlie Wilson,1,35,1,3,Active
+SYM397,REG450,Alex Garcia,1,21,1,3,Active
+SYM331,REG747,Jamie Smith,1,48,1,3,Active

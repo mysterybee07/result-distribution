@@ -1,0 +1,6 @@
+symbol_number,registration_number,fullname,batch_id,college_id,program_id,current_semester,status
+SYM233,REG708,Morgan Garcia,1,28,1,2,Active
+SYM857,REG666,Charlie Johnson,1,19,1,2,Active
+SYM252,REG999,Skyler Davis,1,63,1,2,Active
+SYM540,REG518,Skyler Wilson,1,1,1,2,Active
+SYM211,REG148,Alex Brown,1,24,1,2,Active
