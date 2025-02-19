@@ -23,8 +23,8 @@ import { useAuth } from "../context/AuthContext";
 const formSchema = z.object({
     identifier: z.string()
         .min(5, { message: "Email must be at least 5 characters." }),
-    password: z.string().min(6, {
-        message: "Password must be at least 6 characters.",
+    password: z.string().min(4, {
+        message: "Password must be at least 4 characters.",
     }),
 });
 
@@ -58,7 +58,7 @@ export function LoginForm() {
             if (user.role === "admin") {
                 navigate("/dashboard"); // Navigate to admin dashboard
             } else {
-                navigate("/"); // Navigate to home or another route for non-admins
+                navigate("/student-dashboard"); // Navigate to home or another route for non-admins
             }
         },
         onError: (error) => {

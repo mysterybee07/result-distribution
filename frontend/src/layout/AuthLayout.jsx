@@ -51,10 +51,10 @@ const AdminLayout = () => {
     return (
         <>
             <SidebarProvider>
-                {!isMobile && <AppSidebar/>}
-                
+                <AppSidebar />
+
                 <SidebarInset>
-                    <header className="flex w-full sticky top-0 bg-gray-200 z-10 h-12 shrink-0 items-center gap-2 border-b p-4 mb-8">
+                    <header className="flex w-full sticky top-0 bg-gray-200 h-12 shrink-0 items-center gap-2 border-b p-4 mb-8">
                         <SidebarTrigger className="-ml-1" />
                         <Separator orientation="vertical" className="mr-2 h-4" />
                         <Breadcrumb>
@@ -86,11 +86,6 @@ const AdminLayout = () => {
                     </div>
                 </SidebarInset>
             </SidebarProvider>
-
-            {/* <AdminNavbar /> */}
-
-
-
         </>
     );
 };

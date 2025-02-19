@@ -1,22 +1,17 @@
 import './App.css';
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
-import Homepage from './pages/Homepage';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Exam from './pages/Exam';
 import Profile from './pages/Profile';
-import Result from './pages/Result';
 // import Footer from './components/Footer';
 import Navbar from './components/Navbar';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Dashboard from './pages/admin/Dashboard';
-import AdminNavbar from './components/AdminNavbar';
 import { Toaster } from '@/components/ui/toaster';
 import { Navigate } from 'react-router-dom';
 import Student from './pages/admin/Student';
 import StudentForm from './forms/StudentForm';
-import { LoginForm } from './forms/LoginForm';
 import { DataProvider } from './context/DataContext';
 import BulkStudentForm from './forms/BulkStudentForm';
 import CreateCourse from './pages/courses/CreateCourse';
@@ -30,12 +25,17 @@ import { Demo } from './pages/Demo';
 import AdminLayout from './layout/AuthLayout';
 import CreateCenter from './pages/college/createCenter';
 import ListCenter from './pages/college/listCenter';
-import AssignCenter from './pages/exam/ExamSchedule';
 import ExamSchedule from './pages/exam/ExamSchedule';
 import ListExams from './pages/exam/ListExams';
 import ListRoutine from './pages/exam/ListRoutine';
-import ListMarks from './pages/marks/AddMarks';
 import AddMarks from './pages/marks/AddMarks';
+import StudentDashboard from './pages/StudentDashboard';
+import NoticesPage from './pages/Notice';
+import Homepage from './pages/Homepage';
+import CoursesPage from './pages/Courses';
+import NoticeDetailPage from './pages/NoticeDetail';
+import ExamPage from './pages/Exam';
+import ResultsPage from './pages/Result';
 
 const ProtectedRoute = ({ element }) => {
   const { isAuthenticated } = useAuth();
@@ -57,7 +57,7 @@ const Layout = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      <div className="flex-grow">
+      <div className="flex-grow my-12 container">
         <Toaster />
         <Outlet />
       </div>
@@ -70,11 +70,15 @@ const Layout = () => {
 // User Routes
 const userRoutes = [
   { path: "/", element: <Homepage /> },
+  { path: "/student-dashboard", element: <ProtectedRoute element={<StudentDashboard />} /> },
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
-  { path: "/exam", element: <ProtectedRoute element={<Exam />} /> },
+  { path: "/exam", element: <ProtectedRoute element={<ExamPage />} /> },
   { path: "/profile", element: <ProtectedRoute element={<Profile />} /> },
-  { path: "/result", element: <ProtectedRoute element={<Result />} /> },
+  { path: "/result", element: <ProtectedRoute element={<ResultsPage />} /> },
+  { path: "/courses", element: <ProtectedRoute element={<CoursesPage />} /> },
+  { path: "/notices", element: <ProtectedRoute element={<NoticesPage />} /> },
+  { path: "/notice/:id", element: <ProtectedRoute element={<NoticeDetailPage />} /> },
 ];
 
 // Admin Routes

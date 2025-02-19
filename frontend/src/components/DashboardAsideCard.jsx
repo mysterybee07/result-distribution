@@ -16,19 +16,13 @@ import {
 import {
     Table,
     TableBody,
-    TableCaption,
     TableCell,
-    TableFooter,
     TableHead,
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
 import ProgramForm from "../forms/ProgramForm"
 import BatchForm from "../forms/BatchForm"
-import { useQuery } from "@tanstack/react-query"
-import api from "../api"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
 import { useData } from "../context/DataContext"
 import SemesterForm from "../forms/SemesterForm"
 

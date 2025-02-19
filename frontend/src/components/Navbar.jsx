@@ -40,6 +40,36 @@ const Navbar = () => {
                             Home
                         </NavLink>
                         <NavLink
+                            to="/student-dashboard"
+                            className={({ isActive }) =>
+                                isActive
+                                    ? "font-medium flex items-center text-sm transition-colors underline text-blue-600" // Active link styling
+                                    : "font-medium flex items-center text-sm transition-colors hover:underline"
+                            } prefetch={false}
+                        >
+                            Dashboard
+                        </NavLink>
+                        <NavLink
+                            to="/notices"
+                            className={({ isActive }) =>
+                                isActive
+                                    ? "font-medium flex items-center text-sm transition-colors underline text-blue-600" // Active link styling
+                                    : "font-medium flex items-center text-sm transition-colors hover:underline"
+                            } prefetch={false}
+                        >
+                            Notices
+                        </NavLink>
+                        <NavLink
+                            to="/courses"
+                            className={({ isActive }) =>
+                                isActive
+                                    ? "font-medium flex items-center text-sm transition-colors underline text-blue-600" // Active link styling
+                                    : "font-medium flex items-center text-sm transition-colors hover:underline"
+                            } prefetch={false}
+                        >
+                            Courses
+                        </NavLink>
+                        <NavLink
                             to="/exam"
                             className={({ isActive }) =>
                                 isActive
