@@ -36,6 +36,7 @@ import CoursesPage from './pages/Courses';
 import NoticeDetailPage from './pages/NoticeDetail';
 import ExamPage from './pages/Exam';
 import ResultsPage from './pages/Result';
+import PublishMarks from './pages/marks/PublishMarks';
 
 const ProtectedRoute = ({ element }) => {
   const { isAuthenticated } = useAuth();
@@ -45,7 +46,6 @@ const ProtectedRoute = ({ element }) => {
 const AdminRoute = ({ element }) => {
   const { isAuthenticated, role, loading } = useAuth();
   if (loading) return <p>Loading...</p>;
-  // console.log("🚀 ~ AdminRoute ~ role:", role)
 
   if (!isAuthenticated) return <Navigate to="/login" />;
   if (role !== "admin") return <Navigate to="/" />;
@@ -109,6 +109,7 @@ const adminRoutes = [
   { path: "/admin/exam/create", element: <ExamSchedule /> },
   // Marks
   { path: "/admin/marks/create", element: <AddMarks /> },
+  { path: "/admin/marks/publish", element: <PublishMarks /> },
 ];
 
 

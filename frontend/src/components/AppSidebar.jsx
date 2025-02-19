@@ -124,12 +124,12 @@ const data = {
       url: "/admin/marks",
       items: [
         {
-          title: "All Marks",
-          url: "/admin/marks",
-        },
-        {
           title: "Add Marks",
           url: "/admin/marks/create",
+        },
+        {
+          title: "Publish Marks",
+          url: "/admin/marks/publish",
         },
       ],
     },
