@@ -74,6 +74,20 @@ const data = {
       ],
     },
     {
+      title: "Notice",
+      url: "/admin/notice",
+      items: [
+        {
+          title: "View Notice",
+          url: "/admin/notice",
+        },
+        {
+          title: "Add Notice",
+          url: "/admin/notice/create",
+        },
+      ],
+    },
+    {
       title: "Result",
       url: "/admin/result",
       items: [
@@ -105,20 +119,7 @@ const data = {
         },
       ],
     },
-    {
-      title: "Notice",
-      url: "/admin/notice",
-      items: [
-        {
-          title: "View Notice",
-          url: "/admin/notice",
-        },
-        {
-          title: "Add Notice",
-          url: "/admin/notice/create",
-        },
-      ],
-    },
+    
     {
       title: "Marks",
       url: "/admin/marks",
