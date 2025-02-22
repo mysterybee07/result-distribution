@@ -43,12 +43,13 @@ const ProtectedRoute = ({ element }) => {
   return isAuthenticated ? element : <Navigate to="/login" />;
 };
 
-const AdminRoute = ({ element }) => {
-  const { isAuthenticated, role, loading } = useAuth();
+const AdminRoute =  ({ element }) => {
+  const { isAuthenticated, role, loading } =  useAuth();
+  console.log("🚀 ~ AdminRoute ~ role:", role)
   if (loading) return <p>Loading...</p>;
 
   if (!isAuthenticated) return <Navigate to="/login" />;
-  if (role !== "admin") return <Navigate to="/" />;
+  // if (role !== "admin") return <Navigate to="/" />;
 
   return element;
 };

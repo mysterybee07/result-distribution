@@ -33,17 +33,18 @@ import { useToast } from "@/hooks/use-toast";
 const formSchema = z.object({
     course_code: z.string().min(2, { message: 'Course code must be at least 2 characters long' }),
     name: z.string().min(2, { message: 'Course name must be at least 2 characters long' }),
-    semester_pass_marks: z.string().min(1, { message: 'Semester pass marks must be at least 0' }),
-    practical_pass_marks: z.string().min(1, { message: 'Practical pass marks must be at least 0' }),
-    assistant_pass_marks: z.string().min(1, { message: 'Assistant pass marks must be at least 0' }),
-    semester_total_marks: z.string().min(1, { message: 'Semester total marks must be at least 0' }).max(100, { message: 'Semester total marks must be at most 100' }),
-    practical_total_marks: z.string().min(1, { message: 'Practical total marks must be at least 0' }),
-    assistant_total_marks: z.string().min(1, { message: 'Assistant total marks must be at least 0' }),
+    semester_pass_marks: z.string().transform(val => Number(val)),
+    practical_pass_marks: z.string().transform(val => Number(val)),
+    assistant_pass_marks: z.string().transform(val => Number(val)),
+    semester_total_marks: z.string().transform(val => Number(val)),
+    practical_total_marks: z.string().transform(val => Number(val)),
+    assistant_total_marks: z.string().transform(val => Number(val)),
     program_id: z.number().min(1, { message: "Program is required." }),
     semester_id: z.number().min(1, { message: "Semester is required." }),
 })
 
-const CourseForm = () => {
+const CourseForm = ({ data }) => {
+    console.log("🚀 ~ CourseForm ~ data:", data)
     const navigate = useNavigate();
     const { toast } = useToast();
     // fetching data from context
@@ -60,18 +61,40 @@ const CourseForm = () => {
         defaultValues: {
             course_code: '',
             name: '',
-            semester_pass_marks: '',
-            practical_pass_marks: '',
-            assistant_pass_marks: '',
-            semester_total_marks: '',
-            practical_total_marks: '',
-            assistant_total_marks: '',
-            program_id: '',
-            semester_id: '',
+            semester_pass_marks: 0,
+            practical_pass_marks: 0,
+            assistant_pass_marks: 0,
+            semester_total_marks: 0,
+            practical_total_marks: 0,
+            assistant_total_marks: 0,
+            program_id: 0,
+            semester_id: 0,
             is_compulsory: true,
         }
     });
     const { register, handleSubmit, formState: { errors }, setValue, watch, reset } = form;
+
+    // populating the form
+    useEffect(() => {
+        if (data) {
+            reset({
+                course_code: data.course_code || '',
+                name: data.name || '',
+                // Convert numbers to strings for the form fields
+                semester_pass_marks: String(data.semester_pass_marks || 0),
+                practical_pass_marks: String(data.practical_pass_marks || 0),
+                assistant_pass_marks: String(data.assistant_pass_marks || 0),
+                semester_total_marks: String(data.semester_total_marks || 0),
+                practical_total_marks: String(data.practical_total_marks || 0),
+                assistant_total_marks: String(data.assistant_total_marks || 0),
+                program_id: data.program_id ? Number(data.program_id) : '',
+                semester_id: data.semester_id ? Number(data.semester_id) : '',
+                is_compulsory: data.is_compulsory ?? true,
+            });
+        }
+    }, [data, reset]);
+
+
     // Watch for changes in 'program_id'
     const programId = watch('program_id');
     console.log("🚀 ~ CourseForm ~ programId:", programId)
@@ -119,30 +142,66 @@ const CourseForm = () => {
             console.error(`Error: ---creating student error---:`, error);
         },
     });
-    const onSubmit = async (data) => {
-        // If no courses are added, use the current form data as a course.
-        const updatedCourses = courses.length > 0
-            ? courses
-            : [data];
+    // handle course update
+    const { mutate: updateCourse } = useMutation({
+        mutationFn: async (course) => {
+            const response = await api.put(`/courses/update/${data?.ID}`, course);
+            return response.data;
+        },
+        onSuccess: (data) => {
+            navigate('/admin/courses');
+            toast({
+                description: JSON.stringify(data.message),
+                variant: "success",
+            })
+        },
+        onError: (error) => {
+            console.error(`Error updating course:`, error);
+            toast({
+                description: "Error updating course",
+                variant: "destructive",
+            })
+        },
+    });
+    const onSubmit = async (formData) => {
+        if (data?.ID) {
+            // Update existing course
+            const updatePayload = {
+                course_code: formData.course_code,
+                name: formData.name,
+                semester_pass_marks: Number(formData.semester_pass_marks),
+                practical_pass_marks: Number(formData.practical_pass_marks),
+                assistant_pass_marks: Number(formData.assistant_pass_marks),
+                semester_total_marks: Number(formData.semester_total_marks),
+                practical_total_marks: Number(formData.practical_total_marks),
+                assistant_total_marks: Number(formData.assistant_total_marks),
+                program_id: Number(formData.program_id),
+                semester_id: Number(formData.semester_id),
+                is_compulsory: formData.is_compulsory,
+            };
+            await updateCourse(updatePayload);
+        } else {
+            // Create new course(s)
+            const updatedCourses = courses.length > 0 ? courses : [formData];
 
-        const coursePayload = {
-            program_id: Number(data.program_id), // Ensure these are numbers
-            semester_id: Number(data.semester_id),
-            courses: updatedCourses.map(course => ({
-                course_code: course.course_code,
-                name: course.name,
-                semester_pass_marks: Number(course.semester_pass_marks),
-                practical_pass_marks: Number(course.practical_pass_marks),
-                assistant_pass_marks: Number(course.assistant_pass_marks),
-                semester_total_marks: Number(course.semester_total_marks),
-                practical_total_marks: Number(course.practical_total_marks),
-                assistant_total_marks: Number(course.assistant_total_marks),
-                // is_compulsory: true,
-                is_compulsory: course.is_compulsory, // Ensure boolean conversion if necessary
-            })),
-        };
+            const createPayload = {
+                program_id: Number(formData.program_id),
+                semester_id: Number(formData.semester_id),
+                courses: updatedCourses.map(course => ({
+                    course_code: course.course_code,
+                    name: course.name,
+                    semester_pass_marks: Number(course.semester_pass_marks),
+                    practical_pass_marks: Number(course.practical_pass_marks),
+                    assistant_pass_marks: Number(course.assistant_pass_marks),
+                    semester_total_marks: Number(course.semester_total_marks),
+                    practical_total_marks: Number(course.practical_total_marks),
+                    assistant_total_marks: Number(course.assistant_total_marks),
+                    is_compulsory: course.is_compulsory,
+                })),
+            };
 
-        await createCourse(coursePayload);
+            await createCourse(createPayload);
+        }
     };
 
 
@@ -150,8 +209,7 @@ const CourseForm = () => {
         <Card className='w-full shadow-lg hover:shadow-2xl py-8 text-start'>
             <CardHeader>
                 <CardTitle className='self-center text-lg font-semibold'>
-                    Course Add Form
-                </CardTitle>
+                    {data?.ID ? 'Edit Course' : 'Add Course'}                </CardTitle>
             </CardHeader>
             <CardContent>
                 <Form {...form}>
