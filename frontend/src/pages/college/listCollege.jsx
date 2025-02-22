@@ -102,14 +102,14 @@ export default function ListCollege() {
         const data = row.original;
         return (
           <div className="flex items-center gap-4">
-            <FaEdit
+            {/* <FaEdit
               className="text-blue-600 cursor-pointer"
               onClick={() => navigate(`/admin/students/edit/${data.id}`)}
             />
             <FaTrash
               className="text-red-600 cursor-pointer"
               onClick={() => navigate(`/admin/students/${data.id}`)}
-            />
+            /> */}
             <UpdateCenter center={data.is_center} capacity={data.capacity} id={data.id} />
           </div>
         );
@@ -172,7 +172,7 @@ export default function ListCollege() {
       </div>
       <MapComponent colleges={college}/>
 
-      <div className="rounded-md border">
+      <div className="rounded-md border mt-8">
 
         <Table>
           <TableHeader>
@@ -209,7 +209,7 @@ export default function ListCollege() {
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-between py-4">
+      <div className="flex items-center justify-between py-4 mt-4">
         <span className="text-sm">
           {table.getRowModel().rows.length} of {college.length} row(s)
         </span>

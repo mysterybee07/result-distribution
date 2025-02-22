@@ -36,7 +36,7 @@ const CreateCollege = () => {
       console.error('Error uploading file:', err.response?.data || err.message);
       alert(err.response?.data?.message || 'Failed to upload file. Please try again.');
     },
-    
+
   });
 
   const handleSubmit = async (event) => {
@@ -56,47 +56,45 @@ const CreateCollege = () => {
   };
 
   return (
-    <div>
-      <form onSubmit={handleSubmit} encType="multipart/form-data" method="post">
+    <div className="w-full h-screen flex justify-center">
+      <form onSubmit={handleSubmit} encType="multipart/form-data" method="post" className="w-full max-w-4xl p-4">
         <div
           {...getRootProps()}
-          style={{
-            border: "2px dashed #ccc",
-            borderRadius: "8px",
-            padding: "20px",
-            textAlign: "center",
-            backgroundColor: isDragActive ? "#e0f7fa" : "#f9f9f9",
-            cursor: "pointer",
-            transition: "background-color 0.2s",
-          }}
+          className={`border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-colors w-full h-128 ${isDragActive ? "bg-teal-100" : "bg-gray-100"
+            }`}
         >
           <input {...getInputProps()} />
           {isDragActive ? (
-            <p style={{ color: "#00796b" }}>Drop the files here...</p>
+            <p className="text-teal-700">Drop the files here...</p>
           ) : (
-            <p style={{ color: "#666" }}>Drag and drop files here, or click to select files</p>
+            <p className="text-gray-600">Drag and drop files here, or click to select files</p>
           )}
         </div>
 
         {uploadedFiles.length > 0 && (
-          <div style={{ marginTop: "20px" }}>
-            <h3>Uploaded Files:</h3>
-            <ul>
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold">Uploaded Files:</h3>
+            <ul className="list-disc list-inside">
               {uploadedFiles.map((file, index) => (
-                <li key={index}>
+                <li key={index} className="mt-2">
                   <strong>Name:</strong> {file.name} <br />
                   <strong>Size:</strong> {(file.size / 1024).toFixed(2)} KB <br />
                   <strong>Type:</strong> {file.type} <br />
-                  <strong>Last Modified:</strong> {file.lastModified}
+                  <strong>Last Modified:</strong> {new Date(file.lastModified).toLocaleDateString()}
                 </li>
               ))}
             </ul>
           </div>
         )}
 
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Uploading...' : 'Submit'}
-        </Button>
+        <button
+          type="submit"
+          disabled={isLoading}
+          className={`mt-4 w-full py-2 px-4 rounded-md text-white font-semibold ${isLoading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+            } transition-colors`}
+        >
+          {isLoading ? "Uploading..." : "Submit"}
+        </button>
       </form>
     </div>
   );
