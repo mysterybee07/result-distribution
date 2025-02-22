@@ -87,20 +87,20 @@ const data = {
         },
       ],
     },
-    {
-      title: "Result",
-      url: "/admin/result",
-      items: [
-        {
-          title: "View Result",
-          url: "/admin/result",
-        },
-        {
-          title: "Add Result",
-          url: "/admin/result",
-        },
-      ],
-    },
+    // {
+    //   title: "Result",
+    //   url: "/admin/result",
+    //   items: [
+    //     {
+    //       title: "View Result",
+    //       url: "/admin/result",
+    //     },
+    //     {
+    //       title: "Add Result",
+    //       url: "/admin/result",
+    //     },
+    //   ],
+    // },
     {
       title: "Exam",
       url: "/admin/exam",
@@ -117,13 +117,6 @@ const data = {
           title: "Exam Schedule",
           url: "/admin/exam/create",
         },
-      ],
-    },
-    
-    {
-      title: "Marks",
-      url: "/admin/marks",
-      items: [
         {
           title: "Add Marks",
           url: "/admin/marks/create",
@@ -134,6 +127,21 @@ const data = {
         },
       ],
     },
+    
+    // {
+    //   title: "Marks",
+    //   url: "/admin/marks",
+    //   items: [
+    //     {
+    //       title: "Add Marks",
+    //       url: "/admin/marks/create",
+    //     },
+    //     {
+    //       title: "Publish Marks",
+    //       url: "/admin/marks/publish",
+    //     },
+    //   ],
+    // },
   ],
 }
 
