@@ -37,6 +37,7 @@ import NoticeDetailPage from './pages/NoticeDetail';
 import ExamPage from './pages/Exam';
 import ResultsPage from './pages/Result';
 import PublishMarks from './pages/marks/PublishMarks';
+import AllNotice from './pages/notice/AllNotice';
 
 const ProtectedRoute = ({ element }) => {
   const { isAuthenticated } = useAuth();
@@ -101,7 +102,7 @@ const adminRoutes = [
   { path: "/admin/center", element: <ListCenter /> },
   { path: "/admin/center/create", element: <CreateCenter /> },
   // Notice
-  { path: "/admin/notice", element: <Dashboard /> },
+  { path: "/admin/notice", element: <AllNotice /> },
   { path: "/admin/notice/create", element: <CreateNotice /> },
   { path: "/admin/notice/edit/:id", element: <EditNotice /> },
   // Exam
@@ -112,8 +113,6 @@ const adminRoutes = [
   { path: "/admin/marks/create", element: <AddMarks /> },
   { path: "/admin/marks/publish", element: <PublishMarks /> },
 ];
-
-
 
 const queryClient = new QueryClient();
 
