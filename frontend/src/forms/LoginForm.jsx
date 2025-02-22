@@ -89,7 +89,7 @@ export function LoginForm() {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="w-full text-left space-y-8">
                 <FormField
                     control={form.control}
                     name="identifier"
@@ -125,7 +125,7 @@ export function LoginForm() {
                         </FormItem>
                     )}
                 />
-                <div className="flex justify-between items-center">
+                {/* <div className="flex justify-between items-center">
                     <label
                         htmlFor="remember_me"
                         className="text-sm font-medium leading-none"
@@ -134,7 +134,7 @@ export function LoginForm() {
                         Remember me
                     </label>
                     <Button type="submit" variant="link">Forgot password?</Button>
-                </div>
+                </div> */}
                 <Button type="submit" size="lg" className="w-full">Login</Button>
             </form>
         </Form>

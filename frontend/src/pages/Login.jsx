@@ -14,28 +14,22 @@ import { useNavigate } from 'react-router-dom'
 const Login = () => {
   const navigate = useNavigate();
   return (
-    <div className='flex flex-col items-center justify-center mt-8'>
-      <div className='mb-6'>
-        <img src="../../public/logo.png" alt="nature" className="mt-8 w-16 h-16 object-cover mx-auto rounded-lg" />
-        <p className='text-xl font-semibold'>Sign in to Result-e</p>
+    <div className='flex flex-col justify-center items-center mt-8 bg-gray-100'>
+      <div className='flex flex-col flex-1 mb-6 gap-2'>
+        <img
+          src="../../public/logo.webp"
+          alt="Result-e logo"
+          className="mt-8 w-32 h-32 object-cover mx-auto rounded-lg"
+        />
+        <p className='text-xl font-semibold text-center'>Sign in to Result-e</p>
       </div>
-      <Card className="w-1/3 shadow-lg hover:shadow-2xl py-6">
-        {/* <CardHeader>
-          <CardTitle>Login</CardTitle>
-          <CardDescription>Login to our site using identifier and password.</CardDescription>
-        </CardHeader> */}
-        <CardContent>
+      <div className="flex-1 w-full h-screen flex justify-center items-center">
+        <div className="w-full max-w-md mx-auto p-8 bg-white">
           <LoginForm />
-        </CardContent>
-        <CardFooter>
-          <p className='text-sm'>Don't have an account?
-            <Button variant='link' onClick={() => navigate("/register")}>
-              <p className='text-blue-600'>Sign up.</p>
-            </Button>
-          </p>
-        </CardFooter>
-      </Card>
+        </div>
+      </div>
     </div>
+
   )
 }
 

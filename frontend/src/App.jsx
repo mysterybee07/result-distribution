@@ -56,7 +56,7 @@ const AdminRoute =  ({ element }) => {
 
 const Layout = () => {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-gray-100">
       <Navbar />
       <div className="flex-grow my-12 container">
         <Toaster />
