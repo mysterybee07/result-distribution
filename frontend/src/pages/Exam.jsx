@@ -56,7 +56,7 @@ const ExamPage = () => {
       'PRODID:-//University//Exam Schedule//EN'
     ];
 
-    examSchedule.forEach(exam => {
+    examSchedule?.forEach(exam => {
       const startDate = new Date(exam.exam_date);
       console.log("🚀 ~ downloadExamScheduleICS ~ startDate:", startDate)
       const endDate = new Date(startDate.getTime() + 3 * 60000);
@@ -144,9 +144,9 @@ const ExamPage = () => {
             </div>
           ) : (
             <div className="bg-white shadow overflow-hidden sm:rounded-md">
-              {examSchedule.length > 0 ? (
+              {examSchedule?.length > 0 ? (
                 <ul role="list" className=" text-left divide-y divide-gray-200">
-                  {examSchedule.map((exam) => (
+                  {examSchedule?.map((exam) => (
                     <li key={exam.id}>
                       <div className="px-4 py-4 sm:px-6">
                         <div className="flex items-center justify-between">

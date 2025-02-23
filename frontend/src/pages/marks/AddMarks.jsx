@@ -300,7 +300,7 @@ const AddMarks = () => {
                                     </button>
                                 </div>
 
-                                <input type="file" accept=".csv" onChange={handleFileUpload} />
+                                {/* <input type="file" accept=".csv" onChange={handleFileUpload} /> */}
                                 {formData.studentMarks.map((student, index) => (
                                     <div key={index} className="border rounded-lg p-4 bg-gray-50">
                                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">

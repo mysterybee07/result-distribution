@@ -43,46 +43,46 @@ const NoticeDetailPage = () => {
                     </button>
                 </div>
 
-                <h2 className="text-3xl font-bold text-gray-800 mb-4">{notice?.title || "No Title"}</h2>
+                <h2 className="text-3xl font-bold text-gray-800 mb-4">{notice?.Title || "No Title"}</h2>
 
 
                 <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
                     <p className="text-gray-700">
                         <span className="font-semibold">Published At:</span>{" "}
-                        {notice?.Created_at ? new Date(notice.CreatedAt).toLocaleString() : "N/A"}
+                        {notice?.Created_at ? new Date(notice.Created_at).toLocaleString() : "N/A"}
                     </p>
                     <div className="flex justify-center flex-wrap items-center gap-2">
                         <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm font-semibold">
-                            Batch: {notice?.batch_id || "N/A"}
+                            Batch: {notice?.Batch || "N/A"}
                         </span>
                         <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm font-semibold">
-                            Program: {notice?.program_id || "N/A"}
+                            Program: {notice?.Program || "N/A"}
                         </span>
                         <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm font-semibold">
-                            Semester: {notice?.semester_id || "N/A"}
+                            Semester: {notice?.Semester || "N/A"}
                         </span>
                     </div>
 
                     <div className="space-y-4">
                         <p className="text-gray-700 font-semibold">Description:</p>
                         <p className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                            {notice?.description || "No Description Available"}
+                            {notice?.Description || "No Description Available"}
                         </p>
 
-                        {notice?.file_path && (
+                        {notice?.FilePath && (
                             <div className="mt-6">
                                 <p className="text-gray-700 font-semibold mb-2">Attached File:</p>
 
-                                {notice.file_path.endsWith(".pdf") ? (
+                                {notice.FilePath.endsWith(".pdf") ? (
                                     <div className="border border-gray-300 p-4 rounded-lg shadow-sm bg-gray-50">
                                         <iframe
-                                            src={`http://127.0.0.1:3000/${notice.file_path}`}
+                                            src={`http://127.0.0.1:3000/${notice.FilePath}`}
                                             className="w-full h-[500px]"
                                             title="PDF Attachment"
                                         />
                                         <div className="mt-2 text-center">
                                             <a
-                                                href={`http://127.0.0.1:3000/${notice.file_path}`}
+                                                href={`http://127.0.0.1:3000/${notice.FilePath}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="text-blue-500 hover:underline font-semibold"
@@ -93,7 +93,7 @@ const NoticeDetailPage = () => {
                                     </div>
                                 ) : (
                                     <img
-                                        src={`http://127.0.0.1:3000/${notice.file_path}`}
+                                        src={`http://127.0.0.1:3000/${notice.FilePath}`}
                                         alt="Notice Attachment"
                                         className="w-full h-auto rounded-lg border border-gray-300 shadow-sm"
                                     />

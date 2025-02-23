@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
     const authState = localStorage.getItem('isAuthenticated') === 'true';
     const queryClient = useQueryClient();
     const [isAuthenticated, setIsAuthenticated] = useState(authState);
-    const [role, setRole] = useState('');
+    const [role, setRole] = useState(localStorage.getItem('user')?.role || '');
     console.log("🚀 ~ AuthProvider ~ role:", role)
     const [userData, setUserData] = useState(null);
     const [profileData, setProfileData] = useState(null);
@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }) => {
         onSuccess: (data) => {
             setUserData(data.data);
             setIsAuthenticated(true);
-            setRole(data.data.role);
+            // setRole(data.data.role);
             localStorage.setItem('user', JSON.stringify(data.data));
             localStorage.setItem('isAuthenticated', 'true');
         },
@@ -59,6 +59,7 @@ export const AuthProvider = ({ children }) => {
             localStorage.setItem('isAuthenticated', 'false');
         },
     });
+    console.log("🚀 ~ AuthProvider ~ userResponse:", userResponse)
 
     // In AuthProvider:
     const { data: profile, isLoading: profileLoading } = useQuery({
@@ -81,6 +82,7 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         if (profile) {
             setProfileData(profile);
+            setRole(profile.Users.role);
             localStorage.setItem('student_data', JSON.stringify(profile.Students));
         }
     }, [profile]);
