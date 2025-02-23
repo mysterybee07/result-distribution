@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
     Card,
     CardContent,
@@ -22,6 +22,12 @@ const Dashboard = () => {
 
     const [selectedProgram, setSelectedProgram] = useState();
     const [selectedBatch, setSelectedBatch] = useState();
+    const [counts, setCounts] = useState({
+        students: 0,
+        programs: 0,
+        batches: 0,
+        courses: 0,
+    });
     // console.log("🚀 ~ Dashboard ~ filterParams:", filterParams)
 
     // // Modify this function to set the program ID when a program is selected
@@ -40,6 +46,7 @@ const Dashboard = () => {
         console.log(response.data.notices);
         return Array.isArray(response.data.notices) ? response.data.notices : []; // Ensure it's always an array
     };
+    
 
     // Using useQuery to fetch notices based on programId
     const { data, isLoading, isError, error } = useQuery({
@@ -47,6 +54,20 @@ const Dashboard = () => {
         queryFn: fetchNotices,
         enabled: true,  // This ensures the query runs immediately
     });
+
+    const fetchCount = async () => {
+        try {
+            const response = await api.get("/counts");
+            console.log(response.data);
+            setCounts(response.data);
+        } catch (error) {
+            console.error("Error fetching counts:", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchCount();
+    }, []);
 
     if (isLoading) {
         return <p>Loading...</p>;
@@ -63,25 +84,25 @@ const Dashboard = () => {
                 <div className='p-4 grid grid-cols-1 gap-16 md:grid-cols-4'>
                     <Card className="-mt-8 bg-red-200 border-none"> {/* Keep negative margin for overflow */}
                         <CardHeader>
-                            <CardTitle>100+</CardTitle>
+                            <CardTitle>{counts.studentsCount}+</CardTitle>
                             <CardDescription>Students</CardDescription>
                         </CardHeader>
                     </Card>
                     <Card className="-mt-8 bg-yellow-400 border-none">
                         <CardHeader>
-                            <CardTitle>100+</CardTitle>
-                            <CardDescription>Users</CardDescription>
+                            <CardTitle>{counts.programsCount}+</CardTitle>
+                            <CardDescription>Programs</CardDescription>
                         </CardHeader>
                     </Card>
                     <Card className="-mt-8 bg-blue-200 border-none">
                         <CardHeader>
-                            <CardTitle>5+</CardTitle>
+                            <CardTitle>{counts.coursesCount}+</CardTitle>
                             <CardDescription>Courses</CardDescription>
                         </CardHeader>
                     </Card>
                     <Card className="-mt-8 bg-green-200 border-none">
                         <CardHeader>
-                            <CardTitle>20+</CardTitle>
+                            <CardTitle>{counts.batchesCount}+</CardTitle>
                             <CardDescription>Batches</CardDescription>
                         </CardHeader>
                     </Card>
