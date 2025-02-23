@@ -38,6 +38,7 @@ import ExamPage from './pages/Exam';
 import ResultsPage from './pages/Result';
 import PublishMarks from './pages/marks/PublishMarks';
 import AllNotice from './pages/notice/AllNotice';
+import AssignCenters from './pages/college/assignCenter';
 
 const ProtectedRoute = ({ element }) => {
   const { isAuthenticated } = useAuth();
@@ -101,6 +102,7 @@ const adminRoutes = [
   { path: "/admin/college/create", element: <CreateCollege /> },
   { path: "/admin/center", element: <ListCenter /> },
   { path: "/admin/center/create", element: <CreateCenter /> },
+  { path: "/admin/college/center", element: <AssignCenters /> },
   // Notice
   { path: "/admin/notice", element: <AllNotice /> },
   { path: "/admin/notice/create", element: <CreateNotice /> },

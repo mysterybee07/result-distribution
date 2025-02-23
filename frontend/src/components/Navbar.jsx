@@ -28,17 +28,22 @@ const Navbar = () => {
                         <span className="ml-2 text-lg font-semibold">Result-e</span>
                     </Link>
                     <nav className="hidden md:flex gap-16">
-                        <NavLink
-                            to="/"
-                            className={({ isActive }) =>
-                                isActive
-                                    ? "font-medium flex items-center text-sm transition-colors underline text-blue-600" // Active link styling
-                                    : "font-medium flex items-center text-sm transition-colors hover:underline"
-                            }
-                            prefetch={false}
-                        >
-                            Home
-                        </NavLink>
+                        {
+                            !isAuthenticated && (
+                                <NavLink
+                                    to="/"
+                                    className={({ isActive }) =>
+                                        isActive
+                                            ? "font-medium flex items-center text-sm transition-colors underline text-blue-600" // Active link styling
+                                            : "font-medium flex items-center text-sm transition-colors hover:underline"
+                                    }
+                                    prefetch={false}
+                                >
+                                    Home
+                                </NavLink>
+                            )
+                        }
+
                         <NavLink
                             to="/student-dashboard"
                             className={({ isActive }) =>
