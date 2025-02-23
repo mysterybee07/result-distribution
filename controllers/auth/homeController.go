@@ -306,3 +306,25 @@ func ForgotPassword(c *fiber.Ctx) error {
 	}
 	return nil
 }
+
+func GetCount(c *fiber.Ctx) error {
+	var studentsCount int64
+	var programsCount int64
+	var batchCount int64
+	var courseCount int64
+
+	initializers.DB.Model(&models.Student{}).Count(&studentsCount)
+
+	initializers.DB.Model(&models.Program{}).Count(&programsCount)
+
+	initializers.DB.Model(&models.Batch{}).Count(&batchCount)
+
+	initializers.DB.Model(&models.Course{}).Count(&courseCount)
+
+	return c.JSON(fiber.Map{
+		"studentsCount": studentsCount,
+		"programsCount": programsCount,
+		"batchesCount":  batchCount,
+		"coursesCount":  courseCount,
+	})
+}
