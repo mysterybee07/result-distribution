@@ -156,11 +156,11 @@ func CalculateFitness(population [][]models.Course, startDate time.Time) []int {
 		for _, course := range schedule {
 			if course.IsCompulsory {
 				if currentDate.Weekday() == time.Saturday {
-					currentDate = currentDate.AddDate(0, 0, 1) // Skip Saturday
+					currentDate = currentDate.AddDate(0, 0, 1) 
 				}
 				score++
 			}
-			currentDate = currentDate.AddDate(0, 0, rand.Intn(3)+1) // Add random gap
+			currentDate = currentDate.AddDate(0, 0, rand.Intn(3)+1) 
 		}
 		fitnessScores[i] = score
 	}
