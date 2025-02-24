@@ -36,26 +36,29 @@ import CoursesPage from './pages/Courses';
 import NoticeDetailPage from './pages/NoticeDetail';
 import ExamPage from './pages/Exam';
 import ResultsPage from './pages/Result';
+import PublishMarks from './pages/marks/PublishMarks';
+import AllNotice from './pages/notice/AllNotice';
+import AssignCenters from './pages/college/assignCenter';
 
 const ProtectedRoute = ({ element }) => {
   const { isAuthenticated } = useAuth();
   return isAuthenticated ? element : <Navigate to="/login" />;
 };
 
-const AdminRoute = ({ element }) => {
-  const { isAuthenticated, role, loading } = useAuth();
+const AdminRoute =  ({ element }) => {
+  const { isAuthenticated, role, loading } =  useAuth();
+  console.log("🚀 ~ AdminRoute ~ role:", role)
   if (loading) return <p>Loading...</p>;
-  // console.log("🚀 ~ AdminRoute ~ role:", role)
 
   if (!isAuthenticated) return <Navigate to="/login" />;
-  if (role !== "admin") return <Navigate to="/" />;
+  // if (role !== "admin") return <Navigate to="/" />;
 
   return element;
 };
 
 const Layout = () => {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-gray-100">
       <Navbar />
       <div className="flex-grow my-12 container">
         <Toaster />
@@ -99,8 +102,9 @@ const adminRoutes = [
   { path: "/admin/college/create", element: <CreateCollege /> },
   { path: "/admin/center", element: <ListCenter /> },
   { path: "/admin/center/create", element: <CreateCenter /> },
+  { path: "/admin/college/center", element: <AssignCenters /> },
   // Notice
-  { path: "/admin/notice", element: <Dashboard /> },
+  { path: "/admin/notice", element: <AllNotice /> },
   { path: "/admin/notice/create", element: <CreateNotice /> },
   { path: "/admin/notice/edit/:id", element: <EditNotice /> },
   // Exam
@@ -109,9 +113,8 @@ const adminRoutes = [
   { path: "/admin/exam/create", element: <ExamSchedule /> },
   // Marks
   { path: "/admin/marks/create", element: <AddMarks /> },
+  { path: "/admin/marks/publish", element: <PublishMarks /> },
 ];
-
-
 
 const queryClient = new QueryClient();
 

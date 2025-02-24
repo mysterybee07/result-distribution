@@ -53,6 +53,10 @@ const data = {
           title: "Add College",
           url: "/admin/college/create",
         },
+        {
+          title: "Assign Center ",
+          url: "/admin/college/center",
+        },
         // {
         //   title: "List Center",
         //   url: "/admin/center",
@@ -74,19 +78,33 @@ const data = {
       ],
     },
     {
-      title: "Result",
-      url: "/admin/result",
+      title: "Notice",
+      url: "/admin/notice",
       items: [
         {
-          title: "View Result",
-          url: "/admin/result",
+          title: "View Notice",
+          url: "/admin/notice",
         },
         {
-          title: "Add Result",
-          url: "/admin/result",
+          title: "Add Notice",
+          url: "/admin/notice/create",
         },
       ],
     },
+    // {
+    //   title: "Result",
+    //   url: "/admin/result",
+    //   items: [
+    //     {
+    //       title: "View Result",
+    //       url: "/admin/result",
+    //     },
+    //     {
+    //       title: "Add Result",
+    //       url: "/admin/result",
+    //     },
+    //   ],
+    // },
     {
       title: "Exam",
       url: "/admin/exam",
@@ -103,36 +121,31 @@ const data = {
           title: "Exam Schedule",
           url: "/admin/exam/create",
         },
-      ],
-    },
-    {
-      title: "Notice",
-      url: "/admin/notice",
-      items: [
-        {
-          title: "View Notice",
-          url: "/admin/notice",
-        },
-        {
-          title: "Add Notice",
-          url: "/admin/notice/create",
-        },
-      ],
-    },
-    {
-      title: "Marks",
-      url: "/admin/marks",
-      items: [
-        {
-          title: "All Marks",
-          url: "/admin/marks",
-        },
         {
           title: "Add Marks",
           url: "/admin/marks/create",
         },
+        {
+          title: "Publish Marks",
+          url: "/admin/marks/publish",
+        },
       ],
     },
+    
+    // {
+    //   title: "Marks",
+    //   url: "/admin/marks",
+    //   items: [
+    //     {
+    //       title: "Add Marks",
+    //       url: "/admin/marks/create",
+    //     },
+    //     {
+    //       title: "Publish Marks",
+    //       url: "/admin/marks/publish",
+    //     },
+    //   ],
+    // },
   ],
 }
 

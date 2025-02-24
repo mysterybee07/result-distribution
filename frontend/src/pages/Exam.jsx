@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api';
+import { useExamSchedules } from '../hooks/useExamSchedules';
 
 // Fix for the Leaflet icon issue in React
 delete L.Icon.Default.prototype._getIconUrl;
@@ -14,13 +15,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-const fetchExamSchedules = async ({ queryKey }) => {
-  const [, { batchID, programID, semesterID }] = queryKey;
-  const { data } = await api.get("/exam/schedules/by-batch-program", {
-    params: { batch_id: batchID, program_id: programID, semester_id: semesterID },
-  });
-  return data.examSchedules; // Assuming response contains { examSchedules: [...] }
-};
+
 const ExamPage = () => {
   // Define default values for batchID, programID, and semesterID
   const defaultBatchID = 1;
@@ -29,29 +24,26 @@ const ExamPage = () => {
   // For a random location in Kathmandu
   const examCenter = { lat: 27.7172, lng: 85.3240, name: "Kathmandu University Examination Center" };
 
-  // Mock exam schedule data - replace with your actual API call
-  const { data: examSchedule = [], isLoading } = useQuery({
-    queryKey: ['examSchedule', { batchID: defaultBatchID, programID: defaultProgramID, semesterID: defaultSemesterID }], queryFn: fetchExamSchedules,
-    // For demo purposes, using mock data
-    // initialData: [
-    //   { id: 1, courseCode: 'CS101', courseName: 'Introduction to Programming', date: '2025-03-02T10:00:00', duration: 180 },
-    //   { id: 2, courseCode: 'CS201', courseName: 'Data Structures', date: '2025-03-05T13:00:00', duration: 180 },
-    //   { id: 3, courseCode: 'MATH201', courseName: 'Calculus II', date: '2025-03-08T10:00:00', duration: 180 },
-    //   { id: 4, courseCode: 'CS301', courseName: 'Operating Systems', date: '2025-03-12T13:00:00', duration: 240 },
-    //   { id: 5, courseCode: 'CS401', courseName: 'Database Management Systems', date: '2025-03-15T10:00:00', duration: 180 },
-    // ]
+  const [filters, setFilters] = useState({
+    batchId: 1,
+    programId: 1,
+    semesterId: 1,
   });
-  console.log("🚀 ~ ExamPage ~ examSchedule:", examSchedule)
+  
+  const { data: examSchedule, isLoading, error } = useExamSchedules(filters);
+  // console.log("🚀 ~ ExamPage ~ examSchedule:", examSchedule)
 
   // Function to add an exam to Google Calendar
   const addToGoogleCalendar = (exam) => {
-    const startDate = new Date(exam.date);
-    const endDate = new Date(startDate.getTime() + exam.duration * 60000);
+    console.log("🚀 ~ addToGoogleCalendar ~ exam:", exam)
+    const startDate = new Date(exam.exam_date);
+    console.log("🚀 ~ addToGoogleCalendar ~ startDate:", startDate)
+    // const endDate = new Date(startDate.getTime() + exam.duration * 60000);
 
     const startTimeFormatted = startDate.toISOString().replace(/-|:|\.\d+/g, '');
-    const endTimeFormatted = endDate.toISOString().replace(/-|:|\.\d+/g, '');
+    // const endTimeFormatted = endDate.toISOString().replace(/-|:|\.\d+/g, '');
 
-    const googleCalendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`${exam.courseCode} Exam: ${exam.courseName}`)}&dates=${startTimeFormatted}/${endTimeFormatted}&details=${encodeURIComponent(`${exam.courseCode} Final Examination at ${examCenter.name}`)}&location=${encodeURIComponent(`${examCenter.name} (${examCenter.lat}, ${examCenter.lng})`)}&sf=true&output=xml`;
+    const googleCalendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`${exam.courseCode} Exam: ${exam.courseName}`)}&dates=${startTimeFormatted}&details=${encodeURIComponent(`${exam.courseCode} Final Examination at ${examCenter.name}`)}&location=${encodeURIComponent(`${examCenter.name} (${examCenter.lat}, ${examCenter.lng})`)}&sf=true&output=xml`;
 
     window.open(googleCalendarUrl, '_blank');
   };
@@ -64,9 +56,11 @@ const ExamPage = () => {
       'PRODID:-//University//Exam Schedule//EN'
     ];
 
-    examSchedule.forEach(exam => {
-      const startDate = new Date(exam.date);
-      const endDate = new Date(startDate.getTime() + exam.duration * 60000);
+    examSchedule?.forEach(exam => {
+      const startDate = new Date(exam.exam_date);
+      console.log("🚀 ~ downloadExamScheduleICS ~ startDate:", startDate)
+      const endDate = new Date(startDate.getTime() + 3 * 60000);
+      console.log("🚀 ~ downloadExamScheduleICS ~ endDate:", endDate)
 
       const startTimeFormatted = startDate.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
       const endTimeFormatted = endDate.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
@@ -150,9 +144,9 @@ const ExamPage = () => {
             </div>
           ) : (
             <div className="bg-white shadow overflow-hidden sm:rounded-md">
-              {examSchedule.length > 0 ? (
+              {examSchedule?.length > 0 ? (
                 <ul role="list" className=" text-left divide-y divide-gray-200">
-                  {examSchedule.map((exam) => (
+                  {examSchedule?.map((exam) => (
                     <li key={exam.id}>
                       <div className="px-4 py-4 sm:px-6">
                         <div className="flex items-center justify-between">

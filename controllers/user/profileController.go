@@ -33,7 +33,10 @@ func GetUserProfile(c *fiber.Ctx) error {
 
 	// Fetch student information
 	var student models.Student
-	if err := initializers.DB.Where("symbol_number = ?", user.SymbolNumber).Preload("Batch").Preload("Program").First(&student).Error; err != nil {
+	if err := initializers.DB.Where("symbol_number = ?", user.SymbolNumber).
+		Preload("Batch").
+		Preload("Program").
+		First(&student).Error; err != nil {
 		log.Printf("Student not found for user with email %s: %v\n", user.Email, err)
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Student not found"})
 	}
@@ -41,51 +44,72 @@ func GetUserProfile(c *fiber.Ctx) error {
 	// Determine the previous semester
 	previousSemester := student.CurrentSemester - 1
 
-	// Fetch marks for the student that belong to the previous semester in the results table
 	var marks []models.Mark
-	if err := initializers.DB.Joins("JOIN results ON results.batch_id = ? AND results.program_id = ? AND results.semester_id = ? AND results.status = 'Published'", student.BatchID, student.ProgramID, previousSemester).
-		Where("marks.student_id = ?", student.ID).
-		Preload("Course").
-		Find(&marks).Error; err != nil {
-		log.Printf("Failed to find marks for student with ID %d: %v\n", student.ID, err)
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Marks not found"})
-	}
+	var passStatus string = "pass"
+	totalMarksObtained := 0
+	totalFullMarks := 0
 
-	// Determine the pass status
-	passStatus := "pass"
-	for _, mark := range marks {
-		if mark.Status != "pass" {
-			passStatus = "fail"
+	// Loop through previous semesters until marks are found
+	for previousSemester > 0 {
+		// Fetch marks for the previous semester from the results table
+		if err := initializers.DB.
+			Joins("JOIN results ON results.batch_id = ? AND results.program_id = ? AND results.semester_id = ? AND results.status = 'Published'", student.BatchID, student.ProgramID, previousSemester).
+			Where("marks.student_id = ?", student.ID).
+			Preload("Course").
+			Find(&marks).Error; err != nil {
+			log.Printf("Failed to find marks for student with ID %d in semester %d: %v\n", student.ID, previousSemester, err)
+		}
+
+		// If marks are found, process them
+		if len(marks) > 0 {
+			// Determine pass status
+			for _, mark := range marks {
+				if mark.Status != "pass" {
+					passStatus = "fail"
+					break
+				}
+			}
+
+			// Calculate total obtained marks
+			for _, mark := range marks {
+				totalMarksObtained += mark.TotalMarks
+			}
+
+			// Calculate total full marks
+			for _, mark := range marks {
+				if mark.Course.SemesterTotalMarks != 0 {
+					totalFullMarks += mark.Course.SemesterTotalMarks
+				}
+				if mark.Course.AssistantTotalMarks != nil {
+					totalFullMarks += *mark.Course.AssistantTotalMarks
+				}
+				if mark.Course.PracticalTotalMarks != nil {
+					totalFullMarks += *mark.Course.PracticalTotalMarks
+				}
+			}
 			break
 		}
-	}
-	// Calculate totalMarksObtained marks
-	totalMarksObtained := 0
-	for _, mark := range marks {
-		totalMarksObtained += mark.TotalMarks
-	}
-	// TotalFull Marks
-	totalFullMarks := 0
-	for _, fullmark := range marks {
-		if fullmark.Course.SemesterTotalMarks != 0 {
-			totalFullMarks += fullmark.Course.SemesterTotalMarks
-		}
-		if fullmark.Course.AssistantTotalMarks != nil {
-			totalFullMarks += *fullmark.Course.AssistantTotalMarks
-		}
-		if fullmark.Course.PracticalTotalMarks != nil {
-			totalFullMarks += *fullmark.Course.PracticalTotalMarks
-		}
+
+		// Move to an earlier semester
+		previousSemester--
 	}
 
-	// Return user profile
+	// If no marks were found, return a response without marks data
+	if len(marks) == 0 {
+		return c.JSON(fiber.Map{
+			"Users":    user,
+			"Students": student,
+			"message":  "No marks found for previous semesters",
+		})
+	}
+
+	// Return user profile with marks data
 	return c.JSON(fiber.Map{
-		"Users":    user,
-		"Students": student,
-		"Marks":    marks,
-		// "Courses":            courses,
+		"Users":              user,
+		"Students":           student,
+		"Marks":              marks,
 		"PassStatus":         passStatus,
-		"totalMarksObtained": totalMarksObtained,
-		"totalFullMarks":     totalFullMarks,
+		"TotalMarksObtained": totalMarksObtained,
+		"TotalFullMarks":     totalFullMarks,
 	})
 }

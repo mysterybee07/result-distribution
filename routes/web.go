@@ -144,4 +144,7 @@ func SetupRoutes(app *fiber.App) {
 	// college.Get("/all-centers", adminController.GetAllCenterColleges)
 	college.Put("/update-college/:id", adminController.UpdateCollege)
 	college.Delete("/delete-college/:id", adminController.DeleteCollege)
+
+	// Counts
+	app.Get("/counts", authController.GetCount)
 }

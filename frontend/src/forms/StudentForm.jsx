@@ -52,13 +52,13 @@ const StudentForm = () => {
         },
         enabled: Boolean(id), // Only run the query if there's a valid ID (for create mode, it won't fetch)
     });
-    const { student } = singleStudent || {}; 
-    const initialData = student; 
-    // console.log("🚀 ~ StudentForm ~ initialData:", initialData)
+    const { student } = singleStudent || {};
+    const initialData = student;
+    console.log("🚀 ~ StudentForm ~ initialData:", initialData)
 
     // if (loadingSingleStudent) return <div>Loading...</div>;
 
-    
+
     const isEditMode = !!initialData; // Check if the form is in edit mode
     const navigate = useNavigate();
     // fetching batch and program data
@@ -132,7 +132,7 @@ const StudentForm = () => {
         createStudent(student);
     };
 
-    
+
 
     return (
         <div className='flex'>
@@ -142,118 +142,140 @@ const StudentForm = () => {
                         {isEditMode ? 'Edit Student' : 'Create Student'}
                     </h1>
                     <Form {...form}>
-                        <form className='space-y-4' onSubmit={form.handleSubmit(onSubmit)}>
+                        <form className="space-y-6 p-6 max-w-2xl mx-auto bg-white rounded-lg shadow-md" onSubmit={form.handleSubmit(onSubmit)}>
+                            {/* Full Name */}
                             <FormField
                                 control={form.control}
                                 name="fullname"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Full Name</FormLabel>
+                                        <FormLabel className="text-lg font-medium">Full Name</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Full Name" {...field} />
+                                            <Input
+                                                placeholder="Full Name"
+                                                {...field}
+                                                className="mt-1 p-2 border border-gray-300 rounded-md w-full"
+                                            />
                                         </FormControl>
-                                        <FormMessage>{errors.fullname?.message}</FormMessage>
+                                        <FormMessage className="text-red-500">{errors.fullname?.message}</FormMessage>
                                     </FormItem>
                                 )}
                             />
 
+                            {/* College Selection */}
                             <Select
                                 value={watch('college_id')}
                                 onValueChange={(value) => {
-                                    console.log("Selected batch ID:", Number(value)); // Debugging line
+                                    console.log("Selected college ID:", Number(value));
                                     setValue('college_id', Number(value));
-                                }}                            >
-                                <FormLabel>Select College: </FormLabel>
-                                <SelectTrigger>
+                                }}
+                            >
+                                <FormLabel className="text-lg font-medium">Select College</FormLabel>
+                                <SelectTrigger className="mt-1 p-2 border border-gray-300 rounded-md w-full">
                                     <SelectValue placeholder="Select College" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectGroup>
                                         <SelectLabel>College</SelectLabel>
                                         {Array.isArray(college) && college.map((item, index) => (
-                                            <SelectItem key={index} value={item.id}>{item.college_name}</SelectItem>
+                                            <SelectItem key={index} value={item.id}>
+                                                {item.college_name}
+                                            </SelectItem>
                                         ))}
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>
 
+                            {/* Symbol Number */}
                             <FormField
                                 control={form.control}
                                 name="symbol_number"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Symbol Number</FormLabel>
+                                        <FormLabel className="text-lg font-medium">Symbol Number</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Symbol number" {...field} />
+                                            <Input
+                                                placeholder="Symbol Number"
+                                                {...field}
+                                                className="mt-1 p-2 border border-gray-300 rounded-md w-full"
+                                            />
                                         </FormControl>
-                                        <FormMessage>{errors.symbol_number?.message}</FormMessage>
+                                        <FormMessage className="text-red-500">{errors.symbol_number?.message}</FormMessage>
                                     </FormItem>
                                 )}
                             />
 
+                            {/* Registration Number */}
                             <FormField
                                 control={form.control}
                                 name="registration_number"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Register Number</FormLabel>
+                                        <FormLabel className="text-lg font-medium">Register Number</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Register number" {...field} />
+                                            <Input
+                                                placeholder="Register Number"
+                                                {...field}
+                                                className="mt-1 p-2 border border-gray-300 rounded-md w-full"
+                                            />
                                         </FormControl>
-                                        <FormMessage>{errors.registration_number?.message}</FormMessage>
+                                        <FormMessage className="text-red-500">{errors.registration_number?.message}</FormMessage>
                                     </FormItem>
                                 )}
                             />
 
+                            {/* Batch Selection */}
                             <Select
                                 value={watch('batch_id')}
                                 onValueChange={(value) => {
-                                    console.log("Selected batch ID:", Number(value)); // Debugging line
+                                    console.log("Selected batch ID:", Number(value));
                                     setValue('batch_id', Number(value));
-                                }}                            >
-                                <FormLabel>Select batch: </FormLabel>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select batch" />
+                                }}
+                            >
+                                <FormLabel className="text-lg font-medium">Select Batch</FormLabel>
+                                <SelectTrigger className="mt-1 p-2 border border-gray-300 rounded-md w-full">
+                                    <SelectValue placeholder="Select Batch" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectGroup>
                                         <SelectLabel>Batch</SelectLabel>
                                         {Array.isArray(batches) && batches.map((batch, index) => (
-                                            <SelectItem key={index} value={batch.ID}>{batch.batch}</SelectItem>
+                                            <SelectItem key={index} value={batch.ID}>
+                                                {batch.batch}
+                                            </SelectItem>
                                         ))}
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>
 
+                            {/* Program Selection */}
                             <Select
                                 value={watch('program_id')}
                                 onValueChange={(value) => setValue('program_id', Number(value))}
                             >
-                                <FormLabel>Select program: </FormLabel>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select program" />
+                                <FormLabel className="text-lg font-medium">Select Program</FormLabel>
+                                <SelectTrigger className="mt-1 p-2 border border-gray-300 rounded-md w-full">
+                                    <SelectValue placeholder="Select Program" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectGroup>
                                         <SelectLabel>Program</SelectLabel>
                                         {Array.isArray(programs) && programs.map((program, index) => (
-                                            <SelectItem key={index} value={program.ID}>{program.program_name}</SelectItem>
+                                            <SelectItem key={index} value={program.ID}>
+                                                {program.program_name}
+                                            </SelectItem>
                                         ))}
-                                        {/* <SelectItem value="1">CSIT</SelectItem>
-                                        <SelectItem value="2">BBA</SelectItem>
-                                        <SelectItem value="3">BIM</SelectItem>
-                                        <SelectItem value="4">BBS</SelectItem> */}
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>
 
+                            {/* Semester Selection */}
                             <Select
-                                // value={watch('current_semester')}
                                 onValueChange={(value) => setValue('current_semester', Number(value))}
                             >
-                                <FormLabel>Select semester: </FormLabel>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select semester" />
+                                <FormLabel className="text-lg font-medium">Select Semester</FormLabel>
+                                <SelectTrigger className="mt-1 p-2 border border-gray-300 rounded-md w-full">
+                                    <SelectValue placeholder="Select Semester" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectGroup>
@@ -266,11 +288,16 @@ const StudentForm = () => {
                                 </SelectContent>
                             </Select>
 
-                            <Button type="submit" className="self-end mt-4">
+                            {/* Submit Button */}
+                            <Button
+                                type="submit"
+                                className="mt-6 w-full py-3 px-6 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition-colors"
+                            >
                                 {isEditMode ? 'Update Student' : 'Create Student'}
                             </Button>
                         </form>
                     </Form>
+
                 </div>
             </div>
         </div>

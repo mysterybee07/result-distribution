@@ -24,21 +24,26 @@ const Navbar = () => {
                 <div className="flex justify-between h-14 items-center">
                     <Link href="#" className="flex items-center" prefetch={false}>
                         {/* <MountainIcon className="h-6 w-6" /> */}
-                        <img src='../../public/logo.png' alt='logo' className='w-8 h-8 cursor-pointer rounded-full' />
+                        <img src='../../public/logo.webp' alt='logo' className='w-8 h-8 cursor-pointer rounded-full' />
                         <span className="ml-2 text-lg font-semibold">Result-e</span>
                     </Link>
                     <nav className="hidden md:flex gap-16">
-                        <NavLink
-                            to="/"
-                            className={({ isActive }) =>
-                                isActive
-                                    ? "font-medium flex items-center text-sm transition-colors underline text-blue-600" // Active link styling
-                                    : "font-medium flex items-center text-sm transition-colors hover:underline"
-                            }
-                            prefetch={false}
-                        >
-                            Home
-                        </NavLink>
+                        {
+                            !isAuthenticated && (
+                                <NavLink
+                                    to="/"
+                                    className={({ isActive }) =>
+                                        isActive
+                                            ? "font-medium flex items-center text-sm transition-colors underline text-blue-600" // Active link styling
+                                            : "font-medium flex items-center text-sm transition-colors hover:underline"
+                                    }
+                                    prefetch={false}
+                                >
+                                    Home
+                                </NavLink>
+                            )
+                        }
+
                         <NavLink
                             to="/student-dashboard"
                             className={({ isActive }) =>

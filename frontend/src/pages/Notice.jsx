@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, ArrowLeft, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import api from '../api';
 import { Link } from 'react-router-dom';
+import { useNotices } from '../hooks/useNotice';
 
 const NoticesPage = () => {
   const [notices, setNotices] = useState([]);
@@ -13,22 +12,20 @@ const NoticesPage = () => {
   let selectedProgram = null;
   let selectedBatch = null;
 
-  const fetchNotices = async () => {
-    const apiUrl =
-      selectedProgram && selectedBatch ? `/notice/by-program-and-batch?program_id=${selectedProgram}&batch_id=${selectedBatch}`
-        : '/notice'; // Conditional URL based on programId
-    const response = await api.get(apiUrl);
-    return Array.isArray(response.data.notices) ? response.data.notices : []; // Ensure it's always an array
-  };
-
-  // Using useQuery to fetch notices based on programId
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['notices'],  // Include programId in the query key
-    queryFn: fetchNotices,
-    enabled: true,  // This ensures the query runs immediately
+  const { 
+    data, 
+    isLoading, 
+    isError, 
+    error 
+  } = useNotices({
+    programId: selectedProgram,
+    batchId: selectedBatch
   });
+
   useEffect(() => {
-    setNotices(data);
+    if (data) {
+      setNotices(data);
+    }
   }, [data]);
 
   // Helper function to format dates

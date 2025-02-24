@@ -131,11 +131,15 @@ func PublishResults(c *fiber.Ctx) error {
 			}
 		}
 
-		// Validate that all compulsory courses are marked and exactly one optional course is marked
-		if !allCompulsoryMarked || optionalMarkedCount != 1 {
-			log.Printf("All compulsory courses or exactly one optional course are not marked for student %d in semester %d\n", student.ID, req.SemesterID)
+		// Check if there are any optional courses for the semester
+		hasOptionalCourses := len(optionalCourses) > 0
+
+		// Validate that all compulsory courses are marked
+		// and that exactly one optional course is marked only if optional courses exist
+		if !allCompulsoryMarked || (hasOptionalCourses && optionalMarkedCount != 1) {
+			log.Printf("Validation failed for student %d in semester %d: all compulsory courses or exactly one optional course not marked\n", student.ID, req.SemesterID)
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "All compulsory courses and exactly one optional course are required to be marked for each student",
+				"error": "All compulsory courses must be marked, and exactly one optional course should be marked if optional courses exist for the semester",
 			})
 		}
 	}

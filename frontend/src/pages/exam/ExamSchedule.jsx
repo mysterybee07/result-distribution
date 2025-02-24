@@ -6,30 +6,49 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import api from "../../api";
 import { useData } from "../../context/DataContext";
-
-const createExamRoutine = async (examData) => {
-    try {
-        // Make a POST request with axios
-        const response = await api.post("/exam/schedule/create", examData);
-
-        // Check for a successful response
-        return response.data;
-    } catch (error) {
-        console.log("🚀 ~ createExamRoutine ~ error:", error)
-        // Handle any errors
-        throw new Error(error.response.data.error || "Failed to create exam routine");
-    }
-};
-
-const useCreateExamRoutine = () => {
-    return useMutation({ mutationFn: createExamRoutine });
-};
+import { useToast } from "@/hooks/use-toast";
 
 const ExamSchedule = () => {
+    const { toast } = useToast(); // Now we can use the hook here
+
+    const createExamRoutine = async (examData) => {
+        try {
+            // Make a POST request with axios
+            const response = await api.post("/exam/schedule/create", examData);
+            return response.data; // Return the response data for useMutation
+        } catch (error) {
+            console.log("🚀 ~ createExamRoutine ~ error:", error);
+            throw new Error(error.response?.data?.error || "Failed to create exam routine");
+        }
+    };
+    const useCreateExamRoutine = () => {
+        return useMutation({
+            mutationFn: createExamRoutine,
+            onSuccess: (data) => {
+                // Show success toast when submission is successful
+                toast({
+                    title: "Center Updated",
+                    description: data.message,
+                    status: "success",
+                    position: "top-right",
+                    duration: 5000,
+                });
+            },
+            onError: (error) => {
+                // Show error toast if there's an issue
+                toast({
+                    title: "Error",
+                    description: error.message,
+                    status: "error",
+                    position: "top-right",
+                    duration: 5000,
+                });
+            },
+        });
+    };
     const { mutate, data, isLoading, error } = useCreateExamRoutine();
     const { programs, batches } = useData();
-    console.log("🚀 ~ ExamSchedule ~ programs:", programs)
-
+    
     const [examData, setExamData] = useState({
         batchId: "",
         programId: "",
@@ -37,29 +56,24 @@ const ExamSchedule = () => {
         startDate: "",
         endDate: "",
     });
-    console.log("🚀 ~ ExamSchedule ~ examData:", examData)
 
-    const {
-        data: semesters,
-    } = useQuery({
-        queryKey: ["semesters", examData.programId], // Add `selectedProgram` to the query key
+    const { data: semesters } = useQuery({
+        queryKey: ["semesters", examData.programId],
         queryFn: async () => {
             const response = await api.get(`/semester/by-program/${examData.programId}`);
             return response?.data?.semesters;
         },
         enabled: !!examData.programId,
     });
-        // console.log("🚀 ~ ExamSchedule ~ semesters:", semesters)
+
     const handleChange = (e) => {
         setExamData({ ...examData, [e.target.name]: e.target.value });
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-
-        // Format startDate and endDate properly
-        const startDate = `${examData.startDate}T00:00:00Z`
-        const endDate = `${examData.endDate}T00:00:00Z`
+        const startDate = `${examData.startDate}T00:00:00Z`;
+        const endDate = `${examData.endDate}T00:00:00Z`;
 
         mutate({
             batch_id: Number(examData.batchId),
@@ -70,19 +84,16 @@ const ExamSchedule = () => {
         });
     };
 
-
     return (
-        <div className="flex justify-center items-center min-h-screen">
-            <Card className="w-full max-w-lg shadow-lg">
+        <div className="flex justify-center text-left">
+            <Card className="w-3/4">
                 <CardHeader>
-                    <CardTitle className="text-xl font-bold">Create Exam Routine</CardTitle>
+                    <CardTitle className="text-xl font-bold text-center">Create Exam Routine</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <form onSubmit={handleSubmit} className="space-y-4">
-
-
+                    <form onSubmit={handleSubmit} className="space-y-8">
                         <div className="space-y-2">
-                            <Label htmlFor="batchId">Batch ID</Label>
+                            <Label htmlFor="batchId" className="font-bold">Batch ID</Label>
                             <select
                                 id="batchId"
                                 name="batchId"
@@ -99,7 +110,7 @@ const ExamSchedule = () => {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="programId">Program ID</Label>
+                            <Label htmlFor="programId" className="font-bold">Program ID</Label>
                             <select
                                 id="programId"
                                 name="programId"
@@ -116,7 +127,7 @@ const ExamSchedule = () => {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="semesterId">Semester ID</Label>
+                            <Label htmlFor="semesterId" className="font-bold">Semester ID</Label>
                             <select
                                 id="semesterId"
                                 name="semesterId"
@@ -132,10 +143,9 @@ const ExamSchedule = () => {
                             </select>
                         </div>
 
-
                         {/* Start Date & Time */}
                         <div className="space-y-2">
-                            <Label htmlFor="startDate">Start Date</Label>
+                            <Label htmlFor="startDate" className="font-bold">Start Date</Label>
                             <Input
                                 id="startDate"
                                 type="date"
@@ -148,7 +158,7 @@ const ExamSchedule = () => {
 
                         {/* End Date & Time */}
                         <div className="space-y-2">
-                            <Label htmlFor="endDate">End Date</Label>
+                            <Label htmlFor="endDate" className="font-bold">End Date</Label>
                             <Input
                                 id="endDate"
                                 type="date"
@@ -169,8 +179,6 @@ const ExamSchedule = () => {
                     {data && (
                         <div className="mt-4 p-4 bg-gray-50 rounded-md">
                             <p className="font-semibold">{data.message}</p>
-                            <p className="text-sm text-gray-600">File Name: {data.fileName}</p>
-                            <pre className="mt-2 p-2 bg-gray-100 rounded text-xs">{JSON.stringify(data.examSchedules, null, 2)}</pre>
                         </div>
                     )}
                 </CardContent>
@@ -178,5 +186,6 @@ const ExamSchedule = () => {
         </div>
     );
 };
+
 
 export default ExamSchedule;
