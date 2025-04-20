@@ -4,7 +4,7 @@ import (
 	"math"
 )
 
-const EarthRadiusKm = 6371.0 // Earth's radius in kilometers
+const EarthRadiusKm = 6371.0 
 
 // Haversine function to calculate the distance between two points on the Earth
 func Haversine(lat1, lon1, lat2, lon2 float64) float64 {
